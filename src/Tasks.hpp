@@ -33,8 +33,8 @@
  */
 enum taskHeapSize_t
 {
-  Security_heap   = 1024,
-  OTA_heap        = 1024,
+  Security_heap   = 8192,
+  OTA_heap        = 8192,
   MainPrg_heap    = 8192,
   PesoCont_heap   = 512,
   PesoCaffe_heap  = 512, 

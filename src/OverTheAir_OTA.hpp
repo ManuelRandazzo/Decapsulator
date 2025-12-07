@@ -4,7 +4,7 @@
 #include "Tasks.hpp"
 
 /// Libreria per la gestione del Debug e la configurazione del WiFi
-#include "WiFi_secrets.hpp"
+#include "WiFi_Config.hpp"
 
 /// Libreria che consente di modificare il codice Over The Air(OTA), tramite WiFi e senza il bisogno di fili
 #include "ArduinoOTA.h"
