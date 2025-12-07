@@ -23,7 +23,7 @@
  */
 
 #include "freertos/portmacro.h"
-#include <DRV8825_Decapsulator.hpp> /// Driver dello stepper
+#include "DRV8825_Decapsulator.hpp" /// Driver dello stepper
 //#include "PID.h"   /// Classe per la stabilità del motore
 #include "Tasks.hpp"   /// Creazione delle tasks
 #include "Interrupts.hpp"
@@ -104,7 +104,7 @@ class MOTION : private DRV8825
 
     /// Inizializza il Motion Controller
     inline void Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin,
-                     UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin = 255, void (*FaultISR)() = nullptr);
+                     UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin = 255, void (*FaultISR)() = nullptr, uint32_t FaultISR_Heap = 4096, UBaseType_t FaultISR_priority = 15);
     
     /// Mette in coppia il motore
     inline void attach();    
@@ -166,7 +166,7 @@ class MOTION : private DRV8825
     inline double stepsToGradi(int64_t steps);
 
     /// Definizione di una Interrupt Service Routine (ISR) relativa al pin nFAULT del DRV8825 per monitoraggio asincrono.
-    inline void setFaultISR(uint8_t fault_pin, void (*FaultISR)(), UBaseType_t priority = 15);
+    inline void setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap = 4096, UBaseType_t priority = 15);
 
     /// @return la posizione assoluta in steps
     inline double getPosition();
@@ -285,7 +285,7 @@ MOTION::~MOTION()
  *  @param fault_pin : associazione al pin nFAULT del driver
  *  @param FaultISR  : Viene associata una Interrupt Service Routine creata dall'utente che verrà eseguita in caso vi sia un problema : Overcurrent, Undervoltage, Overtemperature.
  */
-inline void MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin, UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin, void (*FaultISR)())
+inline void MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin, UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t FaultISR_priority)
 {
   /// Resetta i valori delle variabili della classe, fatto principalmente per portare a valori default "receiverQueue"
   reset();
@@ -297,13 +297,14 @@ inline void MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_p
   __stepsMotore = numberOfSteps;
 
   /// Inizializza la task per il metodo move
-  MoveHandlerTask.Init("Motion Class Move Handler", 2048, this, taskPriority);
+  MoveHandlerTask.Init("Motion Class Move Handler", 8192, this, taskPriority);
 
   /// Inizializza il driver e i pin
   Motion.begin(dir_pin, step_pin, en_pin, rst_pin, sleep_pin);
   
   /// Inizializza l'Interrupt Service Routine per il pin nFAULT
-  setFaultISR(fault_pin, FaultISR);                                  
+  if(fault_pin != 255 && FaultISR != nullptr)
+    setFaultISR(fault_pin, FaultISR, FaultISR_Heap, FaultISR_priority);                                  
 
   /// Imposta la funzione che la task eseguirà in loop
   MoveHandlerTask.setTask<MOTION>(this, nullptr, &MOTION::MoveHandler);
@@ -646,7 +647,7 @@ inline void MOTION::reset()
  */
 inline int64_t MOTION::gradiToSteps(double gradi)
 {
-  return (int64_t)((gradi / 360.0) * uStepScelti * __stepsMotore);
+  return (int64_t)((gradi / 360.0) * double(uStepScelti * __stepsMotore));
 }
 
 
@@ -675,7 +676,7 @@ inline double MOTION::stepsToGradi(int64_t steps)
  *  ATTENZIONE: Il context switch tra l'ISR e la task di gestione di Interrupt è immediata 
  *
  */
-inline void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), UBaseType_t priority)
+inline void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t priority)
 {
   /// Definisce la funzione di Interrupt Service Routine del pin nFAULT
   __FaultISR = FaultISR;
@@ -686,7 +687,7 @@ inline void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), UBaseType
   if(fault_pin != 255 && FaultISR != nullptr)
   {
     LogInfo("MOTION nFault ISR", "Sto per Chiamare INTERRUPT.Init");
-    nFAULT_ISR.Init("nFault_ISR", fault_pin, INPUT, FALLING, 2048, priority, __FaultISR);
+    nFAULT_ISR.Init("nFault_ISR", fault_pin, INPUT, FALLING, 8192, priority, __FaultISR);
   }
   else
     LogWarning("MOTION nFault ISR", "Controllare che il pin o la Interrupt Service Routine siano corretti");
@@ -780,7 +781,7 @@ void MOTION::MoveHandler()
   }
 
   /// Gestione dei log
-  #ifdef LOG_ACTIVE
+  #ifdef LOG_ACTIVE_MOTION
     /// Stringa dei Log
     String LogState = "";
 

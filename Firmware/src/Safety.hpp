@@ -16,7 +16,7 @@
  * 
  */
 
-#include "Tamburo.hpp"
+//#include "Tamburo.hpp"
 
 
 SemaphoreHandle_t flagSafety;
@@ -30,12 +30,10 @@ TaskHandle_t SafetyHandler = NULL;
 
 #define MACHINE_OPEN_PIN   255  /** @warning  Ancora da definire*/
 #define EMERGENCY_STOP_PIN 255  /** @warning  Ancora da definire*/
-#define nFAULT_TAMBURO     255  /** @warning  Ancora da definire*/
-#define nFAULT_PUNZONE     255  /** @warning  Ancora da definire*/
 
 
 
-void SafetyTask(void *pvParameters)
+extern void SafetyTask(void *pvParameters)
 {
     /**
      *   @safety_task_setup:
@@ -56,12 +54,6 @@ void SafetyTask(void *pvParameters)
 
     /// Segnalatori di macchinario aperto per Emergency Stop
     pinMode(MACHINE_OPEN_PIN, INPUT); /*!< MACHINE OPEN PIN : pulsanti N.O. messi in AND da HW */
-
-    /// nFAULT pin del driver del motore del tamburo (DRV8825) se va in Overcurrent, Undervoltage, Overtemperature
-    pinMode(nFAULT_TAMBURO, INPUT);
-
-    /// nFAULT pin del driver del motore del punzone (DRV8825) se va in Overcurrent, Undervoltage, Overtemperature
-    pinMode(nFAULT_PUNZONE, INPUT);
 
     /// Flag che determina se la safety è triggerata
     bool SafetyTriggered = false;
@@ -90,7 +82,7 @@ void SafetyTask(void *pvParameters)
         /**
          *  Si sblocca in automatico il macchinario quando è finito l'evento
          */
-        if(digitalRead(nFAULT_TAMBURO) == LOW)
+        /*if(digitalRead(nFAULT_TAMBURO) == LOW)
         {
             if(SafetyTriggered == false)
             {
@@ -115,7 +107,7 @@ void SafetyTask(void *pvParameters)
         }
         else if(SafetyTriggered == true)
             SafetyTriggered = false;
-
+*/
         if(digitalRead(MACHINE_OPEN_PIN) == LOW)
         {
             if(SafetyTriggered == false)
@@ -144,14 +136,14 @@ void SafetyTask(void *pvParameters)
             if(millis() - Timeout >= TIMEOUT_FOR_MANUAL_RESTART_MS)
                 NeedForManualRestart = true;
             
-            MainProgramEmergencyFunction();
+            //MainProgramEmergencyFunction();
             LogError("SAFETY TRIGGERED", "Entrato nello stato di emergenza causa: %s", strReason);
         }
 
         /// ATTENZIONE: Non ancora finita
         if(NeedForManualRestart == true)
         {   
-            DecapsulatorHandleTask.Suspend();
+            //DecapsulatorHandleTask.Suspend();
             LogWarning("Safety Task", "Il macchinario deve essere riavviato manualmente perchè\
                                        \nper ragioni di sicurezza non può riavviarsi da solo.\nCausa del riavvio manuale : %s", strReason);
         }
