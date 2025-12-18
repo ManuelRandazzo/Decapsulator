@@ -293,13 +293,14 @@ void IRAM_ATTR INTERRUPTS::__CallbackIT(void *thisPointer)
  */
 void INTERRUPTS::__wrapperTaskLoopIT()
 {
-  LogInfoISR("ISR", "Waiting To Receive A Notification from Interrupt");
+  //LogInfoISR("ISR", "Waiting To Receive A Notification from Interrupt");
+
   /// Aspetta la notifica all' "infinito" in questa task finchè non arriva
   ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
 
   /// Esegue il codice dell'Utente
 
-  LogInfoISR("ISR", "Received A Notification from Interrupt");
+  //LogInfoISR("ISR", "Received A Notification from Interrupt");
 
   /// Esegue la funzione se esiste
   if(__LoopIT)

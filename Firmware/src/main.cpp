@@ -48,19 +48,12 @@ BaseType_t setupTasks(void)
 {
   BaseType_t status = pdPASS;
   
-  /*status &= xTaskCreatePinnedToCore(SafetyTask, "task SAFETY", Security_heap, NULL, Security_priority, &SafetyHandler, APP_CPU_NUM);
+  //status &= xTaskCreatePinnedToCore(SafetyTask, "task SAFETY", Security_heap, NULL, Security_priority, &SafetyHandler, APP_CPU_NUM);
 
-  LogDebug("setup", "creata Safety");
-  delay(1000);*/
-
-  status &= OverTheAir.Init("task OTA", OTA_heap, NULL, OTA_priority, OTA_delay, OTA_Setup, OTA_Loop);
-  LogDebug("setup", "creata OTA");
-  delay(1000);
+  //status &= OverTheAir.Init("task OTA", OTA_heap, NULL, OTA_priority, OTA_delay, OTA_Setup, OTA_Loop);
 
   status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PROGRAM", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM);
 
-  LogDebug("setup", "creata prgDecapsulator");
-  delay(1000);
   //status &= Contenitori.Init("task PESO CONTENITORI", PesoCont_heap, NULL, PesoCont_priority, BALANCE_DELAY_BETWEEN_READINGS);
   
   
@@ -78,21 +71,16 @@ void setup()
   /// crea le task
   while(!setupTasks());
 
+  LogDebug("setup", "create le tasks");
 
-
-
-
-  /**
-   *  Questa funzione elimina il task di loop Arduino (non necessario)
-   *  @todo Bisogna controllare che non causi crash quando 
-   *  gestisce Seriali, WiFi ecc.
-   */
-  vTaskDelete(NULL);
 }
 
 /**
  *  @brief loop principale
  *        
  *  @note Non serve perchè le tasks vengono gestite dallo scheduler
+ *
+ *  @attention Non eliminare la task perchè serve al WiFi
+ * 
  */
 void loop() {}

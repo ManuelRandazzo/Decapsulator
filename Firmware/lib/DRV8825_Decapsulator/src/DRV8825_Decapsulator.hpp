@@ -123,11 +123,11 @@ class DRV8825
  */
 
 #ifndef digitaWriteFast
-#define digitalWriteFast(pin, high_or_low) do{ gpio_set_level((gpio_num_t)pin, high_or_low); }while(0)
+  #define digitalWriteFast(gpio_pin, high_or_low) do{ gpio_set_level((gpio_num_t)gpio_pin, high_or_low); }while(0)
 #endif
 
 #ifndef digitalReadFast
-#define digitalReadFast(pin)               ( gpio_get_level((gpio_num_t)pin) )
+  #define digitalReadFast(gpio_pin)               ( (gpio_pin < 32) ? ((GPIO_IN_REG >> gpio_pin) & 0x1) : ((GPIO_IN1_REG >> (gpio_pin - 32)) & 0x1) )
 #endif
 
 //  -- END OF FILE --

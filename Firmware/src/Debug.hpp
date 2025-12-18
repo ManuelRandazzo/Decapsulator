@@ -23,6 +23,7 @@
 #include "esp_idf_version.h"
 #include "esp32-hal-log.h"
 #include "rom/ets_sys.h" /// per ISR logging
+#include "semphr.h" // Per usare i semafori
 #include <string> /// Stringhe standard del c++
 
 using namespace std;
@@ -216,9 +217,10 @@ static bool isMqttConnected = false;
     #define __ISR_DECAPSULATOR_LOG(logType, tag, format, ...)\
       do\
       {\
-	      xSemaphoreTake(xSemaphoreLogger, portMAX_DELAY);\
+        BaseType_t xHigherPriorityTaskWoken = pdFALSE;\
+	      xSemaphoreTakeFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken);\
         ets_printf(ARDUHAL_LOG_FORMAT(E, format), ##__VA_ARGS__);\
-        xSemaphoreGive(xSemaphoreLogger);\
+        xSemaphoreGiveFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken);\
       } while(0)
 
 #else // NO LOGGER DEFINES
