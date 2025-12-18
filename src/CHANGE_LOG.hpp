@@ -17,7 +17,7 @@
  *  please increment this counter as a
  *  warning for the next person :
  */
-#define TOTAL_HOURS_WASTED_HERE 263
+#define TOTAL_HOURS_WASTED_HERE 272
 
 // @link_di_drive:https://drive.google.com/drive/u/1/folders/1zrbpykBCAI9a7m_Ivwn7NhQyyCF_MRep
 
@@ -31,7 +31,7 @@
 
 
 ╔════════════════════════════════════════════════╗
-║           @date	    :	     15-11-2025	         ║
+║           @date	    :	     18-12-2025	         ║
 ╚════════════════════════════════════════════════╝
 
 
@@ -49,27 +49,23 @@
 ╔════════════════════════════════════════════════╗
 ║  CHANGED: (modifiche a funzionalità esistenti) ║
 ╚════════════════════════════════════════════════╝
-- Cambiata radicalmente la gestione della classe DRV8825_Decapsulator resa thread safe
+- Cambiata radicalmente nuovamente la gestione della classe DRV8825_Decapsulator resa thread safe
   (La vecchia versione è stata backuppata nel Drive)
 
-- Cambiata la creazione della task Safety da oggetto TaskTypeDef a classica definizione di task FreeRTOS
-
-- Ora alla FINE del setup() viene eliminata la task che gestisce il loop()
+- Ora alla FINE del setup() NON viene più eliminata la task che gestisce il loop() perchè causava malfunzionamenti del WiFi
 
 ╔════════════════════════════════════════════════╗
 ║      BUGS: TO: FIX: (bug da correggere)        ║
 ╚════════════════════════════════════════════════╝
 - Molti bug tutti relativi alla gestione del @file Contenitori.hpp
 
-- Il compilatore dice che esp_timer_get_period non esiste nel @file DRV8825_Decapsulator
-  ma su Arduino invece esiste (problema dovuto alle versioni dell'ESPIDF)
+- Deprecated legacy della vecchia libreria RMT sulla libreria del driver del decapsulator
 
 ╔════════════════════════════════════════════════╗
 ║               FIXED: (bug corretti)            ║
 ╚════════════════════════════════════════════════╝
-- Problemi relativi alle librerie nella transizione da Arduino IDE a Platform IO della @class "SD"
+- 
 
- 
 ╔════════════════════════════════════════════════╗
 ║         TODO:  (cose ancora da fare)           ║
 ╚════════════════════════════════════════════════╝

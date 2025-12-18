@@ -20,3 +20,4 @@ node_modules/
 .vscode/launch.json
 .vscode/ipch
 src/local_secrets.hpp
+.directory

@@ -645,6 +645,7 @@ inline void MOTION::reset()
  *
  *  @return int64_t steps
  */
+__attribute__((always_inline))
 inline int64_t MOTION::gradiToSteps(double gradi)
 {
   return (int64_t)((gradi / 360.0) * double(uStepScelti * __stepsMotore));
@@ -659,6 +660,7 @@ inline int64_t MOTION::gradiToSteps(double gradi)
  *
  *  @return double gradi
  */
+__attribute__((always_inline))
 inline double MOTION::stepsToGradi(int64_t steps)
 {
   return (double)((steps * 360) / __stepsMotore); 
@@ -696,6 +698,7 @@ inline void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t 
 /**
  *  @return la posizione assoluta in gradi
  */
+__attribute__((always_inline))
 inline double MOTION::getPosition()
 {
   /// @note getAbsPosition appartiene alla @class DRV8825
@@ -705,6 +708,7 @@ inline double MOTION::getPosition()
 /**
  *  @return la posizione assoluta in steps
  */
+__attribute__((always_inline))
 inline int64_t MOTION::getPositionInSteps()
 {
   /// @note getAbsPosition appartiene alla @class DRV8825
@@ -723,6 +727,7 @@ inline int64_t MOTION::getPositionInSteps()
  *
  *  @brief Funzione per ottenere il delay per poter cambiare la velocità del movimento
  */
+__attribute__((always_inline))
 inline uint64_t MOTION::getPeriodDelay(const double gradiSecondo)
 {
   /// Formula Per ottenere il periodo tra uno step e l'altro tenendo conto del microstepping scelto,
@@ -742,12 +747,19 @@ void MOTION::MoveHandler()
 { 
   static SwitchMove_t selettore = STAND_STILL;
 
+  LogInfo("MoveHandler", "Sono entrato in Move Handler, il selettore attualmente è : ", selettore == STAND_STILL ? "STAND_STILL" : (const char*)(selettore));
+
   /// Se il motore non sta eseguendo nessun comando (selettore = STAND_STILL) e non
   /// è stato fermato (perchè lo Stop forza STAND_STILL) allora...
   if(selettore == STAND_STILL)
   {
+    BaseType_t queueValue;
+
     /// Tiene bloccata la task all'infinito se la coda è vuota
-    xQueueReceive(MoveQueueHandler, &receiverQueue, portMAX_DELAY);
+    queueValue = xQueueReceive(MoveQueueHandler, &receiverQueue, portMAX_DELAY);
+    
+    LogDebug("MoveHandler", "Queue value received = %s", queueValue == pdTRUE ? "pdTRUE" : "pdFALSE");
+
     selettore = receiverQueue.__SwitchMove;
     Motion.setDirection(receiverQueue.__dir); /// Imposta la direzione
   }
@@ -772,10 +784,12 @@ void MOTION::MoveHandler()
     /// Invia il comando di fare un movimento di tot steps in una direzione specificata
     case MOVE_REL :
     case MOVE_ABS :
+      LogWarning("Move Abs", "Selettore = MOVE_REL");
       Motion.step(receiverQueue.__move_steps, receiverQueue.__speed_steps_us);
     break;
     /// Invia il comando che fa un passo finché non viene ricevuto un altro dato dalla queue
     case CONTINUOUS :
+      LogWarning("Move Abs", "Selettore = MOVE_CONTINUOUS");
       Motion.stepContinuous(__moveContinuous_speed_steps_s);
     break;
   }
@@ -845,8 +859,12 @@ BaseType_t MOTION::MoveSendToQueue(MoveQueue_t StructToSend)
   BaseType_t queueValue;
 
   if(MoveQueueHandler != 0)
+  {
     /// Se la coda è piena aspetta 1000 ms = 1s di tempo per inviare
     queueValue = xQueueSend(MoveQueueHandler, &StructToSend, pdMS_TO_TICKS(1000));
+
+    LogDebug("MoveSendToQueue", "Queue value after send = %s", queueValue == pdTRUE ? "pdTRUE" : "pdFALSE");
+  }
 
   return queueValue;
 }
@@ -873,7 +891,8 @@ BaseType_t MOTION::MoveSendToQueue(MoveQueue_t StructToSend)
  *        ╚══════════╩══════════╩════════╝
  */
 
+__attribute__((always_inline))
 inline bool MOTION::getCamSignal()
 {
-  return !(digitalRead(receiverQueue.__calibPin) ^ receiverQueue.__calibSig);
+  return !(digitalReadFast(receiverQueue.__calibPin) ^ receiverQueue.__calibSig);
 }
