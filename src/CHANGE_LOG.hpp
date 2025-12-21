@@ -17,7 +17,7 @@
  *  please increment this counter as a
  *  warning for the next person :
  */
-#define TOTAL_HOURS_WASTED_HERE 272
+#define TOTAL_HOURS_WASTED_HERE 279
 
 // @link_di_drive:https://drive.google.com/drive/u/1/folders/1zrbpykBCAI9a7m_Ivwn7NhQyyCF_MRep
 
@@ -50,7 +50,11 @@
 ║  CHANGED: (modifiche a funzionalità esistenti) ║
 ╚════════════════════════════════════════════════╝
 - Cambiata radicalmente nuovamente la gestione della classe DRV8825_Decapsulator resa thread safe
-  (La vecchia versione è stata backuppata nel Drive)
+  (La vecchia versione è stata backuppata nel Drive) e con update chiamato dalla task che gestisce
+  il driver dato che prima veniva gestito all'interno della ISR (non bello e sbagliato), invece ora
+  l'ISR notifica solamente il metodo update(), infine ora sfrutta la nuova libreria del @file rmt_tx.h
+  potendo semplificare l'assegnazione del canale RMT senza la custom function e per sfruttare il DMA
+  quindi usando meno CPU time e usando una coda a discapito di un po' di ram occupata in più
 
 - Ora alla FINE del setup() NON viene più eliminata la task che gestisce il loop() perchè causava malfunzionamenti del WiFi
 
@@ -80,11 +84,6 @@
     Ricordarsi di togliere la gestione dei pin nFAULT dal driver perchè non ci saranno interrupt
     (motivo in più per fare tutta la gestione sul file della @class DRV8825) anche perchè non 
     servirà più gestire i mutex o gli spinlocks.
-
-  - @todo Bisogna controllare che vTaskDelete(NULL); (funzione che elimina completamente la task di loop)
-    alla fine del setup non causi crash quando gestisce Seriali, WiFi ecc.
-
-
 
 
 
