@@ -794,6 +794,9 @@ void MOTION::MoveHandler()
     break;
   }
 
+  /// Aggiorna la classe del DRV8825
+  Motion.update();
+
   /// Gestione dei log
   #ifdef LOG_ACTIVE_MOTION
     /// Stringa dei Log
