@@ -5,9 +5,9 @@
  * @details
  * Questo file implementa un logger per ESP32-S3 che invia messaggi di debug:
  * - tramite porta seriale UART la quale è thread-safe per le ESP32 (non ha bisogno di un'altra task)
- * - tramite MQTT usando la libreria thread-safe ESP32MQTTClient @version 1.0.0
+ * - tramite MQTT usando la libreria thread-safe ESP32MQTTClient
  *
- * Il sistema è progettato per essere thread-safe, non bloccare il loop principale,
+ * Il sistema è progettato per essere thread-safe, non bloccare il loop principale (o almeno poco overhead),
  * e può essere esteso per supportare anche SD card Log, o altre destinazioni.
  *
  * @authors   Randazzo Manuel, Pisan Alessio
@@ -17,16 +17,6 @@
 
 #pragma once
 
-/// File contenente ssid e la password dell'Utente
-#include "WiFi_Config.hpp"
-#include "ESP32MQTTClient.h"
-#include "esp_idf_version.h"
-#include "esp32-hal-log.h"
-#include "rom/ets_sys.h" /// per ISR logging
-#include "semphr.h" // Per usare i semafori
-#include <string> /// Stringhe standard del c++
-
-using namespace std;
 
 /** ╔═════════════════════════════════════════════╗
     ║             USER: LOGGER OPTIONS            ║
@@ -35,7 +25,7 @@ using namespace std;
 /// @info: Commentando questa riga si disattivano i LOG senza il bisogno di cancellarli nel programma
 #define LOG_ACTIVE
 /// @info: Commentando questa riga non vi saranno più log da parte del loop del motion. Tutti gli altri log del motion verranno scritti
-//#define LOG_ACTIVE_MOTION
+#define LOG_ACTIVE_MOTION
 /// @info: Commentando questa riga si disattivano i LOG MQTT senza il bisogno di cancellarli nel programma
 #define LOG_MQTT_ACTIVE
 /// @info: Scommentando questa riga si disattiva il restart dell'esp in caso di fail del wifi e/o dell'MQTT
@@ -64,6 +54,19 @@ void DebugOverrideVar(String override_topic, varType* var);
 
 
 
+/// File contenente ssid e la password dell'Utente
+#include "WiFi_Config.hpp"
+#include "ESP32MQTTClient.h"
+#include "esp_idf_version.h"
+#include "esp32-hal-log.h"
+#include "rom/ets_sys.h" /// per ISR logging
+#include "semphr.h" // Per usare i semafori
+#include <string> /// Stringhe standard del c++
+
+using namespace std;// Usato per le stringhe standard del c++
+
+
+
 
 /*╔═════════════════════════════════════════════╗*/
 /*║                 LOGGER CODE                 ║*/
@@ -73,7 +76,7 @@ static SemaphoreHandle_t xSemaphoreLogger;
 static bool isMqttConnected = false;
 
 
-#if defined(LOG_ACTIVE)
+#ifdef LOG_ACTIVE
   // ANSI Code per colorare i logs
   #define RST_COLOR       "\033[0m" // Resetta il colore alla fine del punto che si vuole colorare
   /// Normale
@@ -133,7 +136,7 @@ static bool isMqttConnected = false;
 
 
 
-  #if defined(LOG_MQTT_ACTIVE)
+  #ifdef LOG_MQTT_ACTIVE
 
     ESP32MQTTClient mqttClient; // Oggetto di tipo Client MQTT
 
