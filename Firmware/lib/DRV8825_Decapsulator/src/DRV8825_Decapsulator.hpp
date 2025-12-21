@@ -27,7 +27,9 @@
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "freertos/semphr.h"
-#include "driver/rmt.h"
+#include "driver/rmt_tx.h"
+#include "soc/gpio_struct.h"
+#include "hal/gpio_ll.h"
 #include "esp_log.h"
 
 
@@ -40,6 +42,30 @@
 
 
 
+/*
+ *  Lettura/Scrittura dei pin a basso livello senza controllo di validità del pin
+ */
+#ifndef digitaWriteFast
+  /**
+   * @brief Definisce una scrittura del pin low level (gpio_ll_set_level ha l'attributo always inline) 
+   * 
+   * @param gpio_pin è il pin che verrà scritto
+   */
+  #define digitalWriteFast(gpio_pin, level) gpio_ll_set_level(&GPIO, gpio_pin, level)
+#endif
+
+#ifndef digitalReadFast
+  /**
+   * @brief Definisce una lettura del pin low level (gpio_ll_get_level ha l'attributo always inline) 
+   * 
+   * @param gpio_pin è il pin che verrà letto
+   * 
+   * @return gpio digital level
+   */
+  #define digitalReadFast(gpio_pin)         gpio_ll_get_level(&GPIO, gpio_pin)
+#endif
+
+
 
 class DRV8825
 {
@@ -48,6 +74,7 @@ class DRV8825
     ~DRV8825();
 
     bool     begin(uint8_t DIR, uint8_t STEP, uint8_t EN = 255, uint8_t RST = 255, uint8_t SLP = 255, uint16_t number_of_steps_per_revolution = 200);
+    void     update();
 
     //       DIRECTION
     //       +1 = DRV8825_CLOCK_WISE
@@ -80,6 +107,8 @@ class DRV8825
     bool     isSleeping();
 
   protected:
+    TaskHandle_t TaskHandler = nullptr;
+
     uint8_t  _directionPin   = 255;
     uint8_t  _stepPin        = 255;
     uint8_t  _enablePin      = 255;
@@ -93,10 +122,10 @@ class DRV8825
     bool     _isStepDone     = false;
     int64_t  _absStepCounter = 0;
     uint16_t _stepsPerRevolution;
-    rmt_channel_t _rmtChannel = RMT_CHANNEL_MAX;
+    rmt_channel_handle_t _rmtChannel = NULL;
 
 
-    rmt_item32_t _stepPulse[1];
+    rmt_symbol_word_t _stepPulse[1];
 
     void setTmr(uint64_t period_us);
 
@@ -109,25 +138,18 @@ class DRV8825
 
   private:
     /// Questo mutex garantisce che una sola task alla volta acceda alla risorsa condivisa o alle variabili
-    SemaphoreHandle_t _mutex = nullptr;
-
-    /// Questo spinlock garantisce che una sola task alla volta acceda alla risorsa condivisa o alle variabili nella ISR
-    portMUX_TYPE _spinlock = portMUX_INITIALIZER_UNLOCKED;
+    SemaphoreHandle_t _mutex = nullptr;  
     
+    const rmt_transmit_config_t transmit_cfg =
+    {
+      .loop_count = 0,
+      .flags = { .eot_level = 0 }  // livello LOW dopo la trasmissione
+    };
+    
+    rmt_encoder_handle_t step_encoder = NULL;
 };
 
 
 
-/*
- *  In fase di precompilazione per lo sviluppo della mod della libreria
- */
-
-#ifndef digitaWriteFast
-  #define digitalWriteFast(gpio_pin, high_or_low) do{ gpio_set_level((gpio_num_t)gpio_pin, high_or_low); }while(0)
-#endif
-
-#ifndef digitalReadFast
-  #define digitalReadFast(gpio_pin)               ( (gpio_pin < 32) ? ((GPIO_IN_REG >> gpio_pin) & 0x1) : ((GPIO_IN1_REG >> (gpio_pin - 32)) & 0x1) )
-#endif
 
 //  -- END OF FILE --

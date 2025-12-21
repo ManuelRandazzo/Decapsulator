@@ -11,27 +11,7 @@
 #include "esp_timer.h"
 
 
-#define __MUTEX_TIMEOUT__ portMAX_DELAY
-
-
-/// FUNZIONE NON MEMBRO DELLA CLASSE PER SAPERE QUALE CANALE RMT ASSEGNARE
-static portMUX_TYPE used_channels_lock = portMUX_INITIALIZER_UNLOCKED;
-static bool used_channels[8] = {false};
-
-rmt_channel_t findFreeRMTChannel()
-{
-  portENTER_CRITICAL(&used_channels_lock);
-  for(uint8_t i = 0; i < 8; i++)
-    if(!used_channels[i])
-    {
-      used_channels[i] = true;
-      portEXIT_CRITICAL(&used_channels_lock);
-      return rmt_channel_t(i);
-    }
-  portEXIT_CRITICAL(&used_channels_lock);
-
-    return RMT_CHANNEL_MAX; // nessun canale disponibile
-}
+#define __MUTEX_TIMEOUT__ 100
 
 
 
@@ -46,13 +26,6 @@ DRV8825::~DRV8825()
   {
     esp_timer_stop(this->DRV8825_timer);
     esp_timer_delete(this->DRV8825_timer);
-  }
-
-  /// Libera l'RMT channel
-  if(this->_rmtChannel != RMT_CHANNEL_MAX)
-  {
-    rmt_driver_uninstall(this->_rmtChannel);
-    used_channels[this->_rmtChannel] = false;
   }
 
   /// Elimina il mutex
@@ -83,15 +56,14 @@ bool DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uint8_t 
   }
 
   /// Critical Section
-  rmt_channel_t rmtCh;
   xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
+  this->TaskHandler   = xTaskGetCurrentTaskHandle();
   this->_directionPin = DIR;
   this->_stepPin      = STEP;
   this->_enablePin    = EN;
   this->_resetPin     = RST;
   this->_sleepPin     = SLP;
   this->_stepsPerRevolution = number_of_steps_per_revolution;
-  rmtCh = this->_rmtChannel;
   xSemaphoreGive(_mutex);
 
   esp_err_t esp_err = ESP_OK;
@@ -127,19 +99,8 @@ bool DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uint8_t 
     digitalWriteFast(RST, HIGH);
   }
 
-  /// Trova il primo canale dell'RMT disponibile, se non lo è riutilizza il canale precedentemente assegnato
-  if(rmtCh == RMT_CHANNEL_MAX)
-    rmtCh = findFreeRMTChannel();
-
-  if(rmtCh == RMT_CHANNEL_MAX)
-  {
-    Serial.println("Errore DRV8825 RMT Init, Non ci sono più canali RMT disponibili (0 su 8)");
-    return false;
-  }
     
-  portENTER_CRITICAL(&_spinlock);
-  if(this->_rmtChannel != rmtCh)
-    _rmtChannel = rmtCh;
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
     
   /// Ricopia l'handler del timer
   this->DRV8825_timer = tmrDRV8825;
@@ -150,27 +111,96 @@ bool DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uint8_t 
   _stepPulse[0].duration0 = 1;
   _stepPulse[0].level1 = 0;
   _stepPulse[0].duration1 = 1;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 
   /// Setup RMT per il pin STEP
-  rmt_config_t rmt_tx;
-  rmt_tx.rmt_mode = RMT_MODE_TX;
-  rmt_tx.channel = _rmtChannel;
-  rmt_tx.gpio_num = (gpio_num_t)_stepPin;
-  rmt_tx.clk_div = 176; // 2.2 µs di risoluzione (80 MHz / 153 ~= 522.875 kHz) (il drv al massimo deve avere almeno 1.9us di impulso)
-  rmt_tx.mem_block_num = 1;
-  rmt_tx.tx_config.loop_en = false;
-  rmt_tx.tx_config.carrier_en = false;
-  rmt_tx.tx_config.idle_output_en = true;
-  rmt_tx.tx_config.idle_level = RMT_IDLE_LEVEL_LOW;
+  rmt_tx_channel_config_t rmt_tx_cfg;
+  rmt_tx_cfg.gpio_num = (gpio_num_t)_stepPin;
+  rmt_tx_cfg.clk_src = RMT_CLK_SRC_DEFAULT;    // clock source (default)
+  rmt_tx_cfg.resolution_hz = 80000000 / 176;   // periodo = 1/clk_freq = 176/80MHz = 2.2us
+  rmt_tx_cfg.mem_block_symbols = 256;           
+  rmt_tx_cfg.trans_queue_depth = 4;            // profondità della coda di trasferimento
+  rmt_tx_cfg.intr_priority = 0;                // 0 -> priorità bassa
+  rmt_tx_cfg.flags.invert_out = 0;
+  rmt_tx_cfg.flags.with_dma = 1;
+  rmt_tx_cfg.flags.io_loop_back = 0;
+  rmt_tx_cfg.flags.io_od_mode = 0;
+  rmt_tx_cfg.flags.allow_pd = 0;
+  rmt_tx_cfg.flags.init_level = 1;
 
-  rmt_config(&rmt_tx);
-  esp_err = rmt_driver_install(rmt_tx.channel, 0, 0);
+  esp_err = rmt_new_tx_channel(&rmt_tx_cfg, &this->_rmtChannel);
   if(esp_err != ESP_OK)
     return false;
+  /// Se il canale RMT è stato creato corretamente lo abilita
+  rmt_enable(this->_rmtChannel);
+
+  rmt_copy_encoder_config_t enc_cfg = {};
+  ESP_ERROR_CHECK(rmt_new_copy_encoder(&enc_cfg, &this->step_encoder));
+
 
   return true;
 }
+
+void DRV8825::update()
+{
+  //uint32_t startTime = micros();
+
+  /// Aspetta la notifica e se non arriva esce dalla funzione update
+  if(ulTaskNotifyTake(pdTRUE, 0) <= 0)
+    return;
+
+  bool exitCondition = false;
+
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
+  /// @return se ha finito gli steps che doveva fare
+  if(!_isContinuous && _stepsLeft == 0)
+  {
+    _isStepDone = true;
+    exitCondition = true;
+  }
+  xSemaphoreGive(_mutex);
+  
+  if(exitCondition)
+  {
+    Serial.println("exitCondition = true");
+    /// Ferma il timer
+    if(DRV8825_timer)
+      esp_timer_stop(DRV8825_timer);
+    return;
+  }
+
+  
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
+  /// Impulso di 2.2us HIGH e 2.2us LOW
+  esp_err_t err = rmt_transmit(this->_rmtChannel, this->step_encoder, this->_stepPulse, sizeof(this->_stepPulse), &this->transmit_cfg);
+  if(err == ESP_OK)
+  {
+    /// Timeout in ms che aspetta la fine della trasmissione (polling bloccante)
+    const int timeoutWaitAllDone = 10;
+    err = rmt_tx_wait_all_done(this->_rmtChannel, timeoutWaitAllDone); 
+    if(err == ESP_OK)
+    {
+      if(!_isContinuous && _stepsLeft > 0)
+      {
+        _stepsLeft--;
+        if (_stepsLeft == 0)
+        {
+          _isStepDone = true;
+          exitCondition = true;
+        }
+      }
+      _absStepCounter += _direction;
+
+      if(exitCondition && DRV8825_timer)
+        esp_timer_stop(DRV8825_timer);
+    }
+  }
+  xSemaphoreGive(_mutex);
+  
+  //uint32_t stopTime = micros();
+  //Serial.printf("Tempo di esecuzione __CallbackSteps: %d\n\nErrore RMT: %sus\n", stopTime - startTime, err==ESP_OK ? "ESP_OK" : "ESP_ERROR");
+}
+
 
 bool DRV8825::setDirection(int8_t direction)
 {
@@ -180,10 +210,10 @@ bool DRV8825::setDirection(int8_t direction)
 
   uint8_t dirPin;
   
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   this->_direction = direction;
   dirPin = this->_directionPin;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 
   //  timing from datasheet 650 ns figure 1
   delayMicroseconds(1);
@@ -196,9 +226,9 @@ bool DRV8825::setDirection(int8_t direction)
 
 int8_t DRV8825::getDirection()
 {
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   uint8_t dirPin = this->_directionPin;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
   
   return digitalReadFast(dirPin) == LOW ? DRV8825_CLOCK_WISE : DRV8825_COUNTERCLOCK_WISE;
 }
@@ -206,18 +236,18 @@ int8_t DRV8825::getDirection()
 /// @warning evitare di eseguire questa funzione quando il motore gira
 void DRV8825::setAbsPosition(int64_t absolute_position)
 {  
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   _absStepCounter = absolute_position;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 }
 
 int64_t DRV8825::getAbsPosition()
 {
   int64_t absolute_position;
 
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   absolute_position = _absStepCounter;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 
   return absolute_position;
 }
@@ -226,22 +256,22 @@ bool DRV8825::isStepDone()
 {
   bool tmpIsStepDone;
 
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   tmpIsStepDone = this->_isStepDone;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
   
   return tmpIsStepDone;
 }
 
 void DRV8825::step(uint64_t numberOfStepsToDo, uint64_t period_us)
 {
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   this->_isContinuous = false;
 
   this->_isStepDone = false;
 
   this->_stepsLeft = numberOfStepsToDo;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 
   setTmr(period_us);
 }
@@ -249,7 +279,7 @@ void DRV8825::step(uint64_t numberOfStepsToDo, uint64_t period_us)
 void stepGradi(double gradi, uint64_t period_us)
 {
   /*
-  xSemaphoreTake(_mutex);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   
   xSemaphoreGive(_mutex);
   uint64_t stepsToDo = 2233; /// Numero a caso lol
@@ -258,13 +288,13 @@ void stepGradi(double gradi, uint64_t period_us)
 
 void DRV8825::stepContinuous(uint64_t period_us)
 {
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   this->_isContinuous = true;
 
   this->_isStepDone = false;
 
   this->_stepsLeft = 0;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 
   setTmr(period_us);
 }
@@ -275,9 +305,9 @@ bool DRV8825::enable()
 {
   uint8_t enPin;
 
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   enPin = this->_enablePin;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 
   if(enPin == 255)
     return false;
@@ -290,9 +320,9 @@ bool DRV8825::disable()
 {
   uint8_t enPin;
 
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   enPin = this->_enablePin;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 
   if(enPin == 255)
     return false;
@@ -305,9 +335,9 @@ bool DRV8825::isEnabled()
 {
   uint8_t enPin;
 
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   enPin = this->_enablePin;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 
   if(enPin == 255)
     return false;
@@ -320,9 +350,9 @@ bool DRV8825::reset()
 {
   uint8_t rstPin;
 
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   rstPin = this->_resetPin;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 
   if(rstPin == 255)
     return false;
@@ -339,9 +369,9 @@ bool DRV8825::sleep()
 {
   uint8_t slpPin;
   
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   slpPin = this->_sleepPin;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
   
   if(slpPin == 255)
     return false;
@@ -354,9 +384,9 @@ bool DRV8825::wakeup()
 {
   uint8_t slpPin;
   
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   slpPin = this->_sleepPin;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 
   if(slpPin == 255)
     return false;
@@ -369,9 +399,9 @@ bool DRV8825::isSleeping()
 {
   uint8_t slpPin;
   
-  portENTER_CRITICAL(&_spinlock);
+  xSemaphoreTake(_mutex, __MUTEX_TIMEOUT__);
   slpPin = this->_sleepPin;
-  portEXIT_CRITICAL(&_spinlock);
+  xSemaphoreGive(_mutex);
 
   if(slpPin == 255)
     return false;
@@ -423,58 +453,16 @@ void DRV8825::setTmr(uint64_t period_us)
  */
 void DRV8825::__CallBackSteps(void* args)
 {
-  //uint32_t startTime = micros();
-
   DRV8825 *INST = static_cast<DRV8825*>(args);
-  if(!INST)
-    return;
 
-  bool exitCondition = false;
+  /// Se diventa pdTRUE passa subito alla task se non ci sono task più prioritarie di questa
+  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
+  /// Crea la notifica dell'interrupt
+  vTaskNotifyGiveFromISR(INST->TaskHandler, &xHigherPriorityTaskWoken);
 
-  portENTER_CRITICAL(&INST->_spinlock);
-  /// @return se ha finito gli steps che doveva fare
-  if(!INST->_isContinuous && INST->_stepsLeft == 0)
-  {
-    INST->_isStepDone = true;
-    exitCondition = true;
-  }
-  portEXIT_CRITICAL(&INST->_spinlock);
-  
-  if(exitCondition)
-  {
-    /// Ferma il timer
-    if(INST->DRV8825_timer)
-      esp_timer_stop(INST->DRV8825_timer);
-    return;
-  }
-
-  /// Controlla che l'RMT channel sia definito
-  if(INST->_rmtChannel == RMT_CHANNEL_MAX)
-    return;
-
-  /// Impulso di 2.2us HIGH e 2.2us LOW
-  esp_err_t err = rmt_write_items(INST->_rmtChannel, INST->_stepPulse, 1, true);
-  if(err == ESP_OK)
-  {
-    portENTER_CRITICAL(&INST->_spinlock);
-    if(!INST->_isContinuous && INST->_stepsLeft > 0)
-    {
-      INST->_stepsLeft--;
-      if (INST->_stepsLeft == 0)
-      {
-        INST->_isStepDone = true;
-        exitCondition = true;
-      }
-    }
-    INST->_absStepCounter += INST->_direction;
-    portEXIT_CRITICAL(&INST->_spinlock);
-
-    if(exitCondition && INST->DRV8825_timer)
-      esp_timer_stop(INST->DRV8825_timer);
-  }
-  
-  //uint32_t stopTime = micros();
-  //Serial.printf("Tempo di esecuzione __CallbackSteps: %d\n\nErrore RMT: %sus\n", stopTime - startTime, err==ESP_OK ? "ESP_OK" : "ESP_ERROR");
+  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
+
+
 //  -- END OF FILE --
