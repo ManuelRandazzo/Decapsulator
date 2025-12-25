@@ -71,7 +71,8 @@ using namespace std;// Usato per le stringhe standard del c++
 /*╔═════════════════════════════════════════════╗*/
 /*║                 LOGGER CODE                 ║*/
 /*╚═════════════════════════════════════════════╝*/
-
+/// Per quanti millisecondi il semaforo blocca la task al MAX se non riceve subito il semaforo
+#define __SEMAPHORE_TIMEOUT_MS__ 1000
 static SemaphoreHandle_t xSemaphoreLogger;
 static bool isMqttConnected = false;
 
@@ -187,6 +188,7 @@ static bool isMqttConnected = false;
 
 
 
+#define __SEMAPHORE_TIMEOUT_TICKS__ pdMS_TO_TICKS(__SEMAPHORE_TIMEOUT_MS__)
 
 /// @precompilazione: Se non è predisposto il log o non è specificata la sua attivazione definisce delle macro vuote
 #ifdef LOG_ACTIVE
@@ -196,7 +198,7 @@ static bool isMqttConnected = false;
     #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
       do\
       {\
-	      xSemaphoreTake(xSemaphoreLogger, portMAX_DELAY);\
+	      xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__);\
         log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
         if(isMqttConnected)\
         {\
@@ -210,7 +212,7 @@ static bool isMqttConnected = false;
     #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
       do\
       {\
-	      xSemaphoreTake(xSemaphoreLogger, portMAX_DELAY);\
+	      xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__);\
         log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
 	      xSemaphoreGive(xSemaphoreLogger);\
       } while(0)  
