@@ -72,7 +72,7 @@ using namespace std;// Usato per le stringhe standard del c++
 /*║                 LOGGER CODE                 ║*/
 /*╚═════════════════════════════════════════════╝*/
 /// Per quanti millisecondi il semaforo blocca la task al MAX se non riceve subito il semaforo
-#define __SEMAPHORE_TIMEOUT_MS__ 1000
+#define __SEMAPHORE_TIMEOUT_MS__ 200
 static SemaphoreHandle_t xSemaphoreLogger;
 static bool isMqttConnected = false;
 
@@ -132,7 +132,7 @@ static bool isMqttConnected = false;
               "/Func:" + string(__FUNCTION__) +\
               "/Line:" + to_string(__LINE__) +\
               "/Time:" + to_string(esp_timer_get_time() / 1000ULL) +\
-              " [ Tag : " + string(tag) + " ] ";
+              " [ Tag : " + string(tag) + " ] "
 
 
 

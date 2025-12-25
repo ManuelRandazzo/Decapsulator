@@ -11,7 +11,7 @@
  *
  * This program is NOT free software: you can NOT redistribute it and/or modify it.
  *
- * The Documentation is made following the Doxygen standard documentation style
+ * The Documentation is made following the Doxygen standard documentation rules
  *
  */
 
@@ -103,8 +103,8 @@ class MOTION : private DRV8825
     ~MOTION();
 
     /// Inizializza il Motion Controller
-    inline void Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin,
-                     UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin = 255, void (*FaultISR)() = nullptr, uint32_t FaultISR_Heap = 4096, UBaseType_t FaultISR_priority = 15);
+    inline drv_err_t Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin,
+                          UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin = 255, void (*FaultISR)() = nullptr, uint32_t FaultISR_Heap = 4096, UBaseType_t FaultISR_priority = 15);
     
     /// Mette in coppia il motore
     inline void attach();    
@@ -178,7 +178,10 @@ class MOTION : private DRV8825
     DRV8825 Motion; /// Oggetto del driver usato per il motore
 
     typedef enum : uint8_t { STAND_STILL, HOMING, MOVE_REL, MOVE_ABS, CONTINUOUS } SwitchMove_t;
-    const char* SwitchMoveStr[5] = { "STAND STILL", "HOMING", "MOVE RELATIVE", "MOVE ABSOLUTE", "MOVE CONTINUOUS" };
+    
+    #ifdef LOG_ACTIVE_MOTION
+      const char* SwitchMoveStr[5] = { "STAND STILL", "HOMING", "MOVE RELATIVE", "MOVE ABSOLUTE", "MOVE CONTINUOUS" };
+    #endif
 
     int64_t absoluteStepCounter;                /*!< Variabile di quanti step ha fatto il motore dall'accensione  */
 
@@ -222,6 +225,7 @@ class MOTION : private DRV8825
     TaskTypeDef MoveHandlerTask;                /*!< Oggetto alla classe delle tasks  */
     
     void MoveHandler();                         /*!< Funzione che esegue la task  */
+    void MoveHandlerBackup();
 
     INTERRUPTS HOME_IT;                         /*!< Definisce l'oggetto di homing  */
    
@@ -233,7 +237,9 @@ class MOTION : private DRV8825
     inline bool getCamSignal(); 
 
     /// Funzione per ottenere il delay per poter cambiare la velocità del movimento
-    inline uint64_t getPeriodDelay(const double gradiSecondo);         
+    inline uint64_t getPeriodDelay(const double gradiSecondo);   
+    
+    SwitchMove_t selettore = STAND_STILL;
 
     bool __isStopped = true;                  /*!< Flag di motore stoppato o avviato modificato da Start() e Stop() e restituito da
                                                    isStopped e isStarted  */
@@ -285,8 +291,13 @@ MOTION::~MOTION()
  *  @param fault_pin : associazione al pin nFAULT del driver
  *  @param FaultISR  : Viene associata una Interrupt Service Routine creata dall'utente che verrà eseguita in caso vi sia un problema : Overcurrent, Undervoltage, Overtemperature.
  */
-inline void MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin, UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t FaultISR_priority)
+inline drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin, UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t FaultISR_priority)
 {
+  /// Inizializza il driver e i pin
+  drv_err_t err = Motion.begin(dir_pin, step_pin, en_pin, rst_pin, sleep_pin, numberOfSteps);
+  if(err != DRV_OK)
+    return err;
+
   /// Resetta i valori delle variabili della classe, fatto principalmente per portare a valori default "receiverQueue"
   reset();
 
@@ -299,9 +310,6 @@ inline void MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_p
   /// Inizializza la task per il metodo move
   MoveHandlerTask.Init("Motion Class Move Handler", 8192, this, taskPriority);
 
-  /// Inizializza il driver e i pin
-  Motion.begin(dir_pin, step_pin, en_pin, rst_pin, sleep_pin);
-  
   /// Inizializza l'Interrupt Service Routine per il pin nFAULT
   if(fault_pin != 255 && FaultISR != nullptr)
     setFaultISR(fault_pin, FaultISR, FaultISR_Heap, FaultISR_priority);                                  
@@ -311,10 +319,12 @@ inline void MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_p
 
   /// Crea il buffer di coda per i movimenti del motore
   /// @link_ref: https://www.freertos.org/Documentation/02-Kernel/04-API-references/06-Queues/01-xQueueCreate
-  MoveQueueHandler = xQueueCreate(40, sizeof(MoveQueue_t));
+  MoveQueueHandler = xQueueCreate(5, sizeof(MoveQueue_t));
 
   /// Il motore inizialmente non è in coppia e aspetta un segnale di Start
   Stop(RELEASE);
+
+  return DRV_OK;
 }
 
 
@@ -684,15 +694,18 @@ inline void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t 
   __FaultISR = FaultISR;
   
 
-  LogInfo("MOTION nFault ISR", "Sto per inizializzare nFaultISR con il pin %d", fault_pin);
   /// collega il pin nFAULT all'Interrupt
   if(fault_pin != 255 && FaultISR != nullptr)
-  {
-    LogInfo("MOTION nFault ISR", "Sto per Chiamare INTERRUPT.Init");
     nFAULT_ISR.Init("nFault_ISR", fault_pin, INPUT, FALLING, 8192, priority, __FaultISR);
-  }
-  else
-    LogWarning("MOTION nFault ISR", "Controllare che il pin o la Interrupt Service Routine siano corretti");
+
+  #ifdef LOG_ACTIVE_MOTION
+    LogInfo("MOTION nFault ISR", "Sto per inizializzare nFaultISR con il pin %d", fault_pin);
+    /// collega il pin nFAULT all'Interrupt
+    if(fault_pin != 255 && FaultISR != nullptr)
+      LogInfo("MOTION nFault ISR", "Sto per Chiamare INTERRUPT.Init");
+    else
+      LogWarning("MOTION nFault ISR", "Controllare che il pin o la Interrupt Service Routine siano corretti");
+  #endif
 }
 
 /**
@@ -744,80 +757,73 @@ inline uint64_t MOTION::getPeriodDelay(const double gradiSecondo)
  */
 
 void MOTION::MoveHandler()
-{ 
-  static SwitchMove_t selettore = STAND_STILL;
-
-  LogInfo("MoveHandler", "Sono entrato in Move Handler, il selettore attualmente è : ", selettore == STAND_STILL ? "STAND_STILL" : (const char*)(selettore));
+{
+  bool flagRunOnceCMD;
 
   /// Se il motore non sta eseguendo nessun comando (selettore = STAND_STILL) e non
   /// è stato fermato (perchè lo Stop forza STAND_STILL) allora...
-  if(selettore == STAND_STILL)
+  if(this->selettore == STAND_STILL)
   {
-    BaseType_t queueValue;
+    /// Se è arrivato qualcosa in coda allora invia il comando al driver
+    if(xQueueReceive(MoveQueueHandler, &receiverQueue, portMAX_DELAY) == pdTRUE)
+    {
+      this->selettore = receiverQueue.__SwitchMove;
+      Motion.setDirection(receiverQueue.__dir); /// Imposta la direzione
 
-    /// Tiene bloccata la task all'infinito se la coda è vuota
-    queueValue = xQueueReceive(MoveQueueHandler, &receiverQueue, portMAX_DELAY);
-    
-    LogDebug("MoveHandler", "Queue value received = %s", queueValue == pdTRUE ? "pdTRUE" : "pdFALSE");
-
-    selettore = receiverQueue.__SwitchMove;
-    Motion.setDirection(receiverQueue.__dir); /// Imposta la direzione
+      /// Alza il flag il flag di comando
+      flagRunOnceCMD = true;
+    }
   }
 
-  if(__isHalted)
+  /// Se è stato dato un comando di halt allora blocca la coda
+  if(this->__isHalted)
   {
-    
-    /// Toglie qualsiasi movimento contenuto nella coda se non è già vuota
+    /// Toglie qualsiasi movimento successivo contenuto nella coda se non è già vuota
     if(uxQueueMessagesWaiting(MoveQueueHandler) > 0)
       xQueueReset(MoveQueueHandler);
 
     /// Forza il motore a stare in Halt, ovvero interrompe il comando attuale
-    selettore = STAND_STILL;
+    this->selettore = STAND_STILL;
 
-    /// Sblocca il motore dall'Halt (Halt rimane attivo per un giro di task e basta)
-    __isHalted = false;
+    /// Sblocca il motore dall'Halt (Halt rimane attivo per un ciclo e basta)
+    this->__isHalted = false;
+
+    /// Abortisce il movimento attuale
+    Motion.abortCurrentMovement();
+    
+    /// Abbassa il flag di comando
+    flagRunOnceCMD = false;
   }
-
-  /// Invio dei comandi
-  switch(selettore)
+  
+  if(flagRunOnceCMD)
   {
-    /// Invia il comando di fare un movimento di tot steps in una direzione specificata
-    case MOVE_REL :
-    case MOVE_ABS :
-      LogWarning("Move Abs", "Selettore = MOVE_REL");
-      Motion.step(receiverQueue.__move_steps, receiverQueue.__speed_steps_us);
-    break;
-    /// Invia il comando che fa un passo finché non viene ricevuto un altro dato dalla queue
-    case CONTINUOUS :
-      LogWarning("Move Abs", "Selettore = MOVE_CONTINUOUS");
-      Motion.stepContinuous(__moveContinuous_speed_steps_s);
-    break;
-  }
+    /// Abbassa il flag di comando
+    flagRunOnceCMD = false;
 
-  /// Aggiorna la classe del DRV8825
-  Motion.update();
-
-  /// Gestione dei log
-  #ifdef LOG_ACTIVE_MOTION
-    /// Stringa dei Log
-    String LogState = "";
-
-    /// Attesa fine del comando
-    switch(selettore)
+    /// Invio dei comandi
+    switch(this->selettore)
     {
-      case STAND_STILL ... CONTINUOUS :
-        LogInfo("Stato di esecuzione del Motion", "SwitchMove(MC state selector) attuale = %s (stato = %d)", SwitchMoveStr[selettore], selettore);
+      /// Invia il comando di fare un movimento di tot steps in una direzione specificata
+      case MOVE_REL :
+      case MOVE_ABS :
+        Motion.step(receiverQueue.__move_steps, receiverQueue.__speed_steps_us);
       break;
-
-      default :
-        LogState = "ERRORE, default state";
-        LogError("Motion MoveHandler switch is invalid", "Mode Motore stepper inserita non esistente");
+      /// Invia il comando che fa un passo finché non viene ricevuto un altro dato dalla queue
+      case CONTINUOUS :
+        Motion.stepContinuous(__moveContinuous_speed_steps_s);
       break;
     }
+    
+    /// Gestione dei log
+    #ifdef LOG_ACTIVE_MOTION
+      //LogInfo("Stato di esecuzione del Motion", "SwitchMove(MC state selector) attuale = %s (stato = %d)", SwitchMoveStr[selettore], selettore);
+    #endif
+  }
 
-    LogInfo("Stato di esecuzione del Motion", "SwitchMove(MC state selector) attuale = %s (stato = %d)", LogState, selettore);
-
-  #endif
+  
+  /// Aggiorna la classe del DRV8825
+  Motion.update();
+  //vTaskDelay(pdMS_TO_TICKS(20)); /// Permette di fare lo switch tra le task
 }
 
 /**
