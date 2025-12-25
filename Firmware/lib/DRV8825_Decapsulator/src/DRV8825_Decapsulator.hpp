@@ -67,6 +67,15 @@ typedef int8_t drv_err_t;
 #define DRV_ERR_RMT_TRANSMIT_CMD        18      /*!< Codice (drv_err_t) che indica che un errore nella trasmissione del canale rmt */
 #define DRV_ERR_CMD_ABORTED             19      /*!< Codice (drv_err_t) che indica un comando abortito dal metodo abortCurrent Movement */
 
+/**
+  * @brief Ritorna una stringa di codici errori di tipo drv_err_t 
+  * 
+  * @param code codice errore drv_err_t
+  * 
+  * @return stringa del messaggio d'errore
+  */
+extern const char *drv_err_to_name(drv_err_t code);
+
 
 /*
  *  Lettura/Scrittura dei pin a basso livello senza controllo di validità del pin
@@ -95,14 +104,6 @@ typedef int8_t drv_err_t;
 
 
 
-/**
-  * @brief Ritorna una stringa di codici errori di tipo drv_err_t 
-  * 
-  * @param code codice errore drv_err_t
-  * 
-  * @return stringa del messaggio d'errore
-  */
-extern const char *drv_err_to_name(drv_err_t code);
 
 
 class DRV8825

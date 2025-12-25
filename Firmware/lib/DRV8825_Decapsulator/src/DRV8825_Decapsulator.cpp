@@ -28,6 +28,13 @@ DRV8825::~DRV8825()
     esp_timer_delete(this->DRV8825_timer);
   }
 
+  /// Elimina il canale RMT
+  if(this->_rmtChannel != nullptr)
+  {
+    rmt_disable(this->_rmtChannel);
+    rmt_del_channel(this->_rmtChannel);
+  }
+
   /// Elimina il mutex
   if(_mutex != nullptr)
     vSemaphoreDelete(_mutex);
@@ -123,34 +130,52 @@ drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uin
   _stepPulse[0].duration1 = 1;
   xSemaphoreGive(_mutex);
 
-  /// Setup RMT per il pin STEP
-  rmt_tx_channel_config_t rmt_tx_cfg;
-  rmt_tx_cfg.gpio_num = (gpio_num_t)_stepPin;
-  rmt_tx_cfg.clk_src = RMT_CLK_SRC_DEFAULT;    // clock source (default)
-  rmt_tx_cfg.resolution_hz = 80000000 / 176;   // periodo = 1/clk_freq = 176/80MHz = 2.2us
-  rmt_tx_cfg.mem_block_symbols = 256;           
-  rmt_tx_cfg.trans_queue_depth = 4;            // profondità della coda di trasferimento
-  rmt_tx_cfg.intr_priority = 0;                // 0 -> priorità bassa
-  rmt_tx_cfg.flags.invert_out = 0;
-  rmt_tx_cfg.flags.with_dma = 1;
-  rmt_tx_cfg.flags.io_loop_back = 0;
-  rmt_tx_cfg.flags.io_od_mode = 0;
-  rmt_tx_cfg.flags.allow_pd = 0;
-  rmt_tx_cfg.flags.init_level = 1;
+  /// Setup RMT per il pin STEP -> @doc: https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/peripherals/rmt.html
+  rmt_tx_channel_config_t rmt_tx_cfg =
+  {
+    .gpio_num = (gpio_num_t)_stepPin,
+    .clk_src = RMT_CLK_SRC_DEFAULT,    // clock source (default)
+    .resolution_hz = 80000000 / 176,   // periodo = 1/clk_freq = 176/80MHz = 2.2us          
+    
+    /// Necessario per risolvere l'errore descritto 
+    /// in questo forum https://esp32.com/viewtopic.php?t=42301 
+    /// mem = 48 * 4 = 192 bytes
+    .mem_block_symbols = 48,
+    .trans_queue_depth = 1,            // profondità della coda di trasferimento
+    .intr_priority = 1,                // 0 -> priorità bassa
+    .flags = 
+    {
+      .invert_out = 0,
+      .with_dma = 1,
+      .io_loop_back = 0,
+      .io_od_mode = 0,
+      .allow_pd = 0,
+      .init_level = 1
+    }
+  };
 
   esp_err = rmt_new_tx_channel(&rmt_tx_cfg, &this->_rmtChannel);
   if(esp_err != ESP_OK)
+  {
+    Serial.printf("\n\033[1;31mrmt_new_tx_channel failed :\033[0m \033[0;31m%s\033[0m\n", esp_err_to_name(esp_err));
     return DRV_ERR_RMT_CREATION;
+  }
+
   /// Se il canale RMT è stato creato corretamente lo abilita
   rmt_enable(this->_rmtChannel);
   if(esp_err != ESP_OK)
+  {
+    Serial.printf("\n\033[1;31mrmt_enable failed :\033[0m \033[0;31m%s\033[0m\n", esp_err_to_name(esp_err));
     return DRV_ERR_RMT_ENABLE;
+  }
 
   rmt_copy_encoder_config_t enc_cfg = {};
-  ESP_ERROR_CHECK(rmt_new_copy_encoder(&enc_cfg, &this->step_encoder));
+  esp_err = rmt_new_copy_encoder(&enc_cfg, &this->step_encoder);
   if(esp_err != ESP_OK)
+  {
+    Serial.printf("\n\033[1;31mrmt_new_copy_encoder failed :\033[0m \033[0;31m%s\033[0m\n", esp_err_to_name(esp_err));
     return DRV_ERR_RMT_COPY_ENCODER;
-
+  }
 
   return DRV_OK;
 }

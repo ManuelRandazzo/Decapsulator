@@ -28,7 +28,6 @@
 
 
 
-
 /**
  * 
  *  @_not_defined_things: defines per i dati dell'oggetto del MotionControl del tamburo
@@ -73,7 +72,7 @@
  * 
  */
 #define RALLA_MOTOR_STEPS     200
-#define RALLA_TASK_PRIORITY   3
+#define RALLA_TASK_PRIORITY   1           /** @attention: è importante che sia <= della priorità della task */
 #define RALLA_SPEED_MOVEMENT  2000        // Velocità di esecuzione relativo al tamburo in gradi al secondo [°/s]
 #define GEAR_RATIO_RALLA      3           // Imposta un gear ratio 1/3 per la ralla
 
@@ -104,7 +103,7 @@
  */
 
 #define PUNZ_MOTOR_STEPS           200
-#define PUNZ_TASK_PRIORITY         3
+#define PUNZ_TASK_PRIORITY         1             /** @attention: è importante che sia <= della priorità della task */
 #define PUNZ_LOW_TORQUE_MOVEMENT   2800.0        // Velocità di esecuzione relativo al punzone in gradi al secondo [°/s]
 #define PUNZ_HIGH_TORQUE_MOVEMENT  180.0
 #define PUNZ_LOW_TORQUE_ROTATIONS  10.0
@@ -131,9 +130,6 @@
 #define PUNZ_HOME_DIR           DIR_POSITIVE
 #define PUNZ_POST_HOME_POS      NULL          /** @warning  Ancora da definire*/
 #define PUNZ_TOCCHI_SENSORE     2             /** @warning  Ancora da definire*/
-
-
-
 
 
 
@@ -244,26 +240,40 @@ void prgDecapsulatorTask(void *pvParameters)
 
   ///ATTENZIONE: Programma con variabili a caso ancora da definire
   ///            e da rendere THREAD SAFE
-  bool FORCE_THE_STARTUP = true;
+  bool FORCE_THE_STARTUP = false;//true;
   bool startCycleFromHMI = false;
   int nCicliRimanenti = 0; // prende il numero dalla SD Card
 
   Sequence_t sequenza = MACHINE_STARTUP_STATE;  // Gestione della sequenza del movimento del Decapsulator
 
 
+  LogDebug("Main Prg", "Prima dell'init RALLA");
+
+
   /// Motore Tamburo
-  MotRalla.Init(RALLA_MOTOR_STEPS, RALLA_DIRECTION_PIN, RALLA_STEP_PIN, RALLA_ENABLE_PIN, RALLA_RESET_PIN, RALLA_SLEEP_PIN,
+  drv_err_t drvErr = MotRalla.Init(RALLA_MOTOR_STEPS, RALLA_DIRECTION_PIN, RALLA_STEP_PIN, RALLA_ENABLE_PIN, RALLA_RESET_PIN, RALLA_SLEEP_PIN,
                 RALLA_TASK_PRIORITY, RALLA_MICROSTEP);
+  while(drvErr != DRV_OK)
+  {
+    LogError("Main Prg", "Errore nell'inizializzazione del MOTION della Ralla, codice errore = %s (%d)", drv_err_to_name(drvErr), drvErr);
+    while(1);
+  }
+  LogDebug("Main Prg", "Prima dell'init PUNZONE");
   
   /// Motore Punzone
-  MotPunzone.Init(PUNZ_MOTOR_STEPS, PUNZ_DIRECTION_PIN, PUNZ_STEP_PIN, PUNZ_ENABLE_PIN, PUNZ_RESET_PIN, PUNZ_SLEEP_PIN,
-                PUNZ_TASK_PRIORITY, PUNZ_MICROSTEP);
+  drvErr = MotPunzone.Init(PUNZ_MOTOR_STEPS, PUNZ_DIRECTION_PIN, PUNZ_STEP_PIN, PUNZ_ENABLE_PIN, PUNZ_RESET_PIN, PUNZ_SLEEP_PIN,
+                  PUNZ_TASK_PRIORITY, PUNZ_MICROSTEP);
+  while(drvErr != DRV_OK)
+  {
+    LogError("Main Prg", "Errore nell'inizializzazione del MOTION del Punzone, codice errore = %s (%d)", drv_err_to_name(drvErr), drvErr);
+    while(1);
+  }
 
   /// Inizializzazione pin e ISR Capsula Caduta
   initDebPin(&cadutaCapsInt, capsulaPassataISR);
   
   /// Inizializzazione pin e Polling Presenza Capsula
-  initDebPin(&presenzaCaps/*, nullptr*/);
+  initDebPin(&presenzaCaps);
   
   /// Inizializzazione pin e ISR Punzone Min Position
   initDebPin(&punzMinInt, fc_PunzoneBassoISR);
@@ -280,7 +290,6 @@ void prgDecapsulatorTask(void *pvParameters)
   LogDebug("Main Prg", "Move ...");
   MotRalla.moveContinuous(RALLA_HOME_DIR, RALLA_HOME_SPEED);
   
-  while(1);
 
   /**
    *    @loop:
@@ -297,7 +306,7 @@ void prgDecapsulatorTask(void *pvParameters)
 
     /// @brief 
     switch(sequenza)
-    {
+    { 
       case EMERGENCY_STATE :
         
       break;
@@ -305,7 +314,7 @@ void prgDecapsulatorTask(void *pvParameters)
       case MACHINE_STARTUP_STATE :
         /// Se il macchinario è chiuso e il pulsante di emergenza è alzato allora è possibile inizializzarlo
         // (dopodichè entrambi verranno gestiti dagli emergency interrupts)
-        if(digitalRead(nFAULT_TAMBURO) == HIGH && digitalRead(nFAULT_PUNZONE) == HIGH)
+        if(1/*digitalRead(nFAULT_TAMBURO) == HIGH && digitalRead(nFAULT_PUNZONE) == HIGH*/)
         {
           LogDebug("Main Prg", "Inizializzando il macchinario ...");
 
@@ -325,7 +334,7 @@ void prgDecapsulatorTask(void *pvParameters)
           ServoParatia.write(SERVO_CLOSED_POS); // Chiude la paratia mossa dal servomotore
 
           sequenza = MACHINE_STARTUP_FINISHED_STATE;
-          LogWarning("Main Prg", "Wait init to finish");
+          LogWarning("Decapsulator PRG", "Wait init to finish");
         }
       break;
 
@@ -420,15 +429,14 @@ void prgDecapsulatorTask(void *pvParameters)
     }
 
      
-
+/*
     debounce(punzMaxInt);
     debounce(punzMinInt);
     debounce(cadutaCapsInt);
     debounce(presenzaCaps);
     debounce(rallaInt);
-
+*/
     
-
 
     xTaskDelayUntil(&getLastTick, MainPrg_delay);
   }
@@ -436,7 +444,7 @@ void prgDecapsulatorTask(void *pvParameters)
 
 
 
-
+#include <sdkconfig.h>
 
 /**
 ╔═════════════════════════════════════════════════╗

@@ -63,7 +63,7 @@ enum taskPriority_t
 enum taskDelays_t
 {
   Security_delay   = 5,
-  MainPrg_delay    = 20,
+  MainPrg_delay    = 10,
   OTA_delay        = 15,
 };
 
