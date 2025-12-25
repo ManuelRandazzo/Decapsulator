@@ -34,12 +34,38 @@
 
 
 //  setDirection
-#define DRV8825_CLOCK_WISE         +1  //  pin LOW, incremento
+typedef int8_t drv_direction_t;
+
+#define DRV8825_CLOCK_WISE         1   //  pin LOW, incremento
 #define DRV8825_COUNTERCLOCK_WISE  -1  //  pin HIGH, decremento
 
 /// ABSOLUTE PERIOD VALUES
-#define DRV8825_MIN_PERIOD_US 4 // Tempo minimo tra uno step e l'altro in microsecondi (us)
+#define DRV8825_MIN_PERIOD_US 900 // Tempo minimo tra uno step e l'altro in microsecondi (us)
 
+
+/// @brief errori restituiti dal drv
+typedef int8_t drv_err_t;
+
+#define DRV_TRUE                        1       /*!< Codice (drv_err_t) che indica un booleano true ) */
+#define DRV_FALSE                       0       /*!< Codice (drv_err_t) che indica un booleano false  */
+#define DRV_OK                          3       /*!< Codice (drv_err_t) che indica successo (no errori) */
+#define DRV_FAIL                        -1      /*!< Codice (drv_err_t) generico che indica insuccesso  */
+#define DRV_NO_NOTIFY                   4       /*!< Codice (drv_err_t) che indica che non è arrivata nessuna notifica (non un errore) */
+#define DRV_ERR_MUX_CREATION            5       /*!< Codice (drv_err_t) che indica la creazione fallita del mutex */
+#define DRV_ERR_MUX_TAKE_TIMEOUT        6       /*!< Codice (drv_err_t) che indica un timeout da parte del mutex */
+#define DRV_ERR_TMR_CREATION            7       /*!< Codice (drv_err_t) che indica la creazione fallita del timer */
+#define DRV_ERR_TMR_UNDEFINED           8       /*!< Codice (drv_err_t) che indica la creazione fallita del timer */
+#define DRV_ERR_NO_DIR_PIN              9       /*!< Codice (drv_err_t) che indica che non esiste un pin DIR */
+#define DRV_ERR_NO_STEP_PIN             10      /*!< Codice (drv_err_t) che indica che non esiste un pin STEP */
+#define DRV_ERR_NO_EN_PIN               11      /*!< Codice (drv_err_t) che indica che non esiste un pin EN */
+#define DRV_ERR_NO_SLP_PIN              12      /*!< Codice (drv_err_t) che indica che non esiste un pin SLP */
+#define DRV_ERR_NO_RST_PIN              13      /*!< Codice (drv_err_t) che indica che non esiste un pin RST */
+#define DRV_ERR_RMT_CREATION            14      /*!< Codice (drv_err_t) che indica che un errore nella creazione del canale rmt di trasmissione */
+#define DRV_ERR_RMT_ENABLE              15      /*!< Codice (drv_err_t) che indica che un errore nell'abilitazione del canale rmt di trasmissione */
+#define DRV_ERR_RMT_COPY_ENCODER        16      /*!< Codice (drv_err_t) che indica che un errore nella copia in memoria nel canale rmt di trasmissione */
+#define DRV_ERR_RMT_TX_TIMEOUT          17      /*!< Codice (drv_err_t) che indica un timeout nella trasmissione del canale rmt */
+#define DRV_ERR_RMT_TRANSMIT_CMD        18      /*!< Codice (drv_err_t) che indica che un errore nella trasmissione del canale rmt */
+#define DRV_ERR_CMD_ABORTED             19      /*!< Codice (drv_err_t) che indica un comando abortito dal metodo abortCurrent Movement */
 
 
 /*
@@ -67,44 +93,56 @@
 
 
 
+
+
+/**
+  * @brief Ritorna una stringa di codici errori di tipo drv_err_t 
+  * 
+  * @param code codice errore drv_err_t
+  * 
+  * @return stringa del messaggio d'errore
+  */
+extern const char *drv_err_to_name(drv_err_t code);
+
+
 class DRV8825
 {
   public:
     DRV8825();
     ~DRV8825();
 
-    bool     begin(uint8_t DIR, uint8_t STEP, uint8_t EN = 255, uint8_t RST = 255, uint8_t SLP = 255, uint16_t number_of_steps_per_revolution = 200);
-    void     update();
+    drv_err_t     begin(uint8_t DIR, uint8_t STEP, uint8_t EN = 255, uint8_t RST = 255, uint8_t SLP = 255, uint16_t number_of_steps_per_revolution = 200);
+    drv_err_t     update();
 
     //       DIRECTION
     //       +1 = DRV8825_CLOCK_WISE
     //       -1 = DRV8825_COUNTERCLOCK_WISE
     //       returns false if parameter out of range.
-    bool     setDirection(int8_t direction = DRV8825_CLOCK_WISE);
-    int8_t   getDirection();
+    drv_err_t     setDirection(drv_direction_t direction = DRV8825_CLOCK_WISE);
+    drv_err_t     getDirection();
 
     //       ABSOLUTE POSITION
-    void     setAbsPosition(int64_t absolute_position);
-    int64_t  getAbsPosition();
+    drv_err_t     setAbsPosition(int64_t absolute_position);
+    int64_t       getAbsPosition();
 
     //       STEPS
-    void     step(uint64_t numberOfStepsToDo, uint64_t period_us);
-    void     stepGradi(double gradi, double gradi_al_secondo);
-    void     stepContinuous(uint64_t period_us);
-    bool     isStepDone();
+    drv_err_t     step(uint64_t numberOfStepsToDo, uint64_t period_us);
+    void          abortCurrentMovement();
+    drv_err_t     stepContinuous(uint64_t period_us);
+    drv_err_t     isStepDone();
 
     //       ENABLE pin should be set.
-    bool     enable();
-    bool     disable();
-    bool     isEnabled();
+    drv_err_t     enable();
+    drv_err_t     disable();
+    drv_err_t     isEnabled();
 
     //       RESET pin should be set.
-    bool     reset();
+    drv_err_t     reset();
 
     //       SLEEP pin should be set.
-    bool     sleep();
-    bool     wakeup();
-    bool     isSleeping();
+    drv_err_t     sleep();
+    drv_err_t     wakeup();
+    bool          isSleeping();
 
   protected:
     TaskHandle_t TaskHandler = nullptr;
@@ -118,8 +156,9 @@ class DRV8825
     int8_t  _direction       = DRV8825_CLOCK_WISE;
 
     uint64_t  _stepsLeft     = 0;
-    bool     _isContinuous   = false; 
-    bool     _isStepDone     = false;
+    bool     _isContinuous   = false;
+    bool     _abortCommand = false;
+    bool     _isStepDone     = true;
     int64_t  _absStepCounter = 0;
     uint16_t _stepsPerRevolution;
     rmt_channel_handle_t _rmtChannel = NULL;
@@ -127,7 +166,7 @@ class DRV8825
 
     rmt_symbol_word_t _stepPulse[1];
 
-    void setTmr(uint64_t period_us);
+    drv_err_t setTmr(uint64_t period_us);
 
     /// Definisce il timer di precisione usato per fare un delay senza
     /// CPU Load con frequenza maggiore rispetto a freertos
@@ -148,8 +187,4 @@ class DRV8825
     
     rmt_encoder_handle_t step_encoder = NULL;
 };
-
-
-
-
 //  -- END OF FILE --
