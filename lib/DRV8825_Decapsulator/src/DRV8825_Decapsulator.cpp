@@ -156,7 +156,6 @@ drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uin
 
   esp_err = rmt_new_tx_channel(&rmt_tx_cfg, &this->_rmtChannel);
   if(esp_err != ESP_OK)
-<<<<<<< HEAD
   {
     Serial.printf("\n\033[1;31mrmt_new_tx_channel failed :\033[0m \033[0;31m%s\033[0m\n", esp_err_to_name(esp_err));
     return DRV_ERR_RMT_CREATION;
@@ -178,20 +177,6 @@ drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uin
     return DRV_ERR_RMT_COPY_ENCODER;
   }
 
-=======
-    return DRV_ERR_RMT_CREATION;
-  /// Se il canale RMT è stato creato corretamente lo abilita
-  rmt_enable(this->_rmtChannel);
-  if(esp_err != ESP_OK)
-    return DRV_ERR_RMT_ENABLE;
-
-  rmt_copy_encoder_config_t enc_cfg = {};
-  ESP_ERROR_CHECK(rmt_new_copy_encoder(&enc_cfg, &this->step_encoder));
-  if(esp_err != ESP_OK)
-    return DRV_ERR_RMT_COPY_ENCODER;
-
-
->>>>>>> 3db5e61 (update(all filese): aggiorna tutti i file)
   return DRV_OK;
 }
 
