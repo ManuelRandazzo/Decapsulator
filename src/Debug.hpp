@@ -27,7 +27,7 @@
 /// @info: Commentando questa riga non vi saranno più log da parte del loop del motion. Tutti gli altri log del motion verranno scritti
 //#define LOG_ACTIVE_MOTION
 /// @info: Commentando questa riga si disattivano i LOG MQTT senza il bisogno di cancellarli nel programma
-#define LOG_MQTT_ACTIVE
+//#define LOG_MQTT_ACTIVE
 /// @info: Scommentando questa riga si disattiva il restart dell'esp in caso di fail del wifi e/o dell'MQTT
 #define NO_ESP_RESTART_ON_CONNECTION_FAILURE
 
@@ -476,17 +476,19 @@ static varType FromStringToVarType(const std::string &s)
 template<typename varType>
 void DebugOverrideVar(const String override_topic, varType* var)
 {
-  if(!var)
-    return;
+  #ifdef LOG_MQTT_ACTIVE
+    if(!var)
+      return;
 
-  /// Scrive il topic utente
-  String topic = BASE_LOG_TOPIC "DEBUG OVERRIDE/" + override_topic;
+    /// Scrive il topic utente
+    String topic = BASE_LOG_TOPIC "DEBUG OVERRIDE/" + override_topic;
 
-  /// ATTENZIONE: il puntatore deve essere valido per tutta la durata della sottoscrizione.
-  mqttClient.subscribe(topic.c_str(), [var](const string &topic, const string &payload)
-  {
-      *var = FromStringToVarType<varType>(payload);
-  });
+    /// ATTENZIONE: il puntatore deve essere valido per tutta la durata della sottoscrizione.
+    mqttClient.subscribe(topic.c_str(), [var](const string &topic, const string &payload)
+    {
+        *var = FromStringToVarType<varType>(payload);
+    });
+  #endif
 }
 
 
