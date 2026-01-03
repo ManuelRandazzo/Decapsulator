@@ -179,7 +179,7 @@ class MOTION : private DRV8825
 
     typedef enum : uint8_t { STAND_STILL, HOMING, MOVE_REL, MOVE_ABS, CONTINUOUS } SwitchMove_t;
     
-    #ifdef LOG_ACTIVE_MOTION
+    #ifndef LOG_ACTIVE_MOTION
       const char* SwitchMoveStr[5] = { "STAND STILL", "HOMING", "MOVE RELATIVE", "MOVE ABSOLUTE", "MOVE CONTINUOUS" };
     #endif
 
@@ -214,18 +214,16 @@ class MOTION : private DRV8825
       Direction_t __dir;                        /*!< Direzione che verrà impostata all'invio del comando  */  
     } MoveQueue_t;
 
-    uint64_t __moveContinuous_speed_steps_s;    /*!< Velocità del motore se in Continuous mode  */
  
     MoveQueue_t receiverQueue;                  /*!< Struct che contiene gli attuali dati ricevuti  */
 
     BaseType_t MoveSendToQueue(MoveQueue_t StructToSend);
 
-    inline int64_t updateStepsPosition();       /*!< Aggiorna la posizione e ritorna anche la posizione assoluta  */
+    //inline int64_t updateStepsPosition();       /*!< Aggiorna la posizione e ritorna anche la posizione assoluta  */
 
     TaskTypeDef MoveHandlerTask;                /*!< Oggetto alla classe delle tasks  */
     
     void MoveHandler();                         /*!< Funzione che esegue la task  */
-    void MoveHandlerBackup();
 
     INTERRUPTS HOME_IT;                         /*!< Definisce l'oggetto di homing  */
    
@@ -293,33 +291,43 @@ MOTION::~MOTION()
  */
 inline drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin, UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t FaultISR_priority)
 {
-  /// Inizializza il driver e i pin
-  drv_err_t err = Motion.begin(dir_pin, step_pin, en_pin, rst_pin, sleep_pin, numberOfSteps);
-  if(err != DRV_OK)
-    return err;
-
-  /// Resetta i valori delle variabili della classe, fatto principalmente per portare a valori default "receiverQueue"
-  reset();
-
   /// Microstep scelti da HardWare
   uStepScelti = microSteps;
 
   /// Passi totali per ogni giro di motore
   __stepsMotore = numberOfSteps;
 
-  /// Inizializza la task per il metodo move
-  MoveHandlerTask.Init("Motion Class Move Handler", 8192, this, taskPriority);
-
-  /// Inizializza l'Interrupt Service Routine per il pin nFAULT
-  if(fault_pin != 255 && FaultISR != nullptr)
-    setFaultISR(fault_pin, FaultISR, FaultISR_Heap, FaultISR_priority);                                  
-
-  /// Imposta la funzione che la task eseguirà in loop
-  MoveHandlerTask.setTask<MOTION>(this, nullptr, &MOTION::MoveHandler);
-
   /// Crea il buffer di coda per i movimenti del motore
   /// @link_ref: https://www.freertos.org/Documentation/02-Kernel/04-API-references/06-Queues/01-xQueueCreate
   MoveQueueHandler = xQueueCreate(5, sizeof(MoveQueue_t));
+  
+  /// Inizializza l'Interrupt Service Routine per il pin nFAULT
+  if(fault_pin != 255 && FaultISR != nullptr)
+    setFaultISR(fault_pin, FaultISR, FaultISR_Heap, FaultISR_priority);
+
+  /// Inizializza il driver e i pin
+  drv_err_t errDrv = Motion.begin(dir_pin, step_pin, en_pin, rst_pin, sleep_pin, numberOfSteps);
+  if(errDrv != DRV_OK)
+    return errDrv;
+
+  /// Resetta i valori delle variabili della classe, fatto principalmente per portare a valori default "receiverQueue"
+  reset();
+                          
+  /// Inizializza la task per il metodo move
+  BaseType_t errTaskInit = MoveHandlerTask.Init<MOTION>("Move Handler", 8192, NULL, taskPriority, 0, this, nullptr, &MOTION::MoveHandler);
+  
+  #ifdef LOG_ACTIVE_MOTION
+    if(errTaskInit != pdTRUE)
+    {
+      LogError("Motion Init", "Inizializzazione della task fallita");
+      return DRV_FAIL;
+    }
+  #endif
+  
+  /// Setta la task in cui verrà chiamato l'update
+  errDrv = Motion.setUpdateTask(MoveHandlerTask.getHandler());
+  if(errDrv != DRV_OK)
+    return errDrv;
 
   /// Il motore inizialmente non è in coppia e aspetta un segnale di Start
   Stop(RELEASE);
@@ -514,7 +522,9 @@ inline void MOTION::moveRel(double gradi, double speed_gradi_al_secondo)
 
   /// Mantiene la velocità precedentemente data se la velocità è <= 0.0
   if(speed_gradi_al_secondo > 0.0)
-    QueueDatasToSend.__speed_steps_us = getPeriodDelay(abs(speed_gradi_al_secondo));
+    QueueDatasToSend.__speed_steps_us = getPeriodDelay(speed_gradi_al_secondo);
+  LogWarning("SUS", "gradi : %llu, microsecondi = %llu", gradiToSteps(abs(gradi)), getPeriodDelay(speed_gradi_al_secondo));
+
 
   /// Setta il selettore dello switch case 
   QueueDatasToSend.__SwitchMove = MOVE_REL;
@@ -551,7 +561,7 @@ inline void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
 
   /// Mantiene la velocità precedentemente data se la velocità è <= 0.0
   if(speed_gradi_al_secondo > 0.0)
-    QueueDatasToSend.__speed_steps_us = getPeriodDelay(abs(speed_gradi_al_secondo));
+    QueueDatasToSend.__speed_steps_us = getPeriodDelay(speed_gradi_al_secondo);
 
   /// Setta il selettore dello switch case 
   QueueDatasToSend.__SwitchMove = MOVE_ABS;
@@ -575,9 +585,9 @@ inline void MOTION::moveContinuous(Direction_t direzione, double speed_gradi_al_
   
   /// Mantiene la velocità precedentemente data se la velocità è <= 0.0
   if(speed_gradi_al_secondo > 0.0)
-    __moveContinuous_speed_steps_s = getPeriodDelay(speed_gradi_al_secondo);
+    QueueDatasToSend.__speed_steps_us = getPeriodDelay(speed_gradi_al_secondo);
 
-  /// Setta il selettore dello switch case 
+  /// Setta il selettore dello switch case
   QueueDatasToSend.__SwitchMove = CONTINUOUS;
 
   /// Invia i dati alla coda
@@ -630,8 +640,6 @@ inline void MOTION::reset()
     .__move_steps = 0,                 /*!< Passi da eseguire scelti in runtime  */
     .__dir = DIR_NEGATIVE,             /*!< Direzione che verrà impostata all'invio del comando  */
   };        
-
-  __moveContinuous_speed_steps_s = 0;
 
   absoluteStepCounter = 0;             /*!< Variabile di quanti step ha fatto il motore dall'accensione  */
 
@@ -745,7 +753,7 @@ inline uint64_t MOTION::getPeriodDelay(const double gradiSecondo)
 {
   /// Formula Per ottenere il periodo tra uno step e l'altro tenendo conto del microstepping scelto,
   /// vedi datasheet per ottenere la frequenza di step dato che : Tstep = (1 / Fstep)
-  return (uint64_t)(360000000.0 / (gradiSecondo * double(this->uStepScelti) * double(this->__stepsMotore)));
+  return (uint64_t)(360000000.0 / (gradiSecondo * double(this->uStepScelti * this->__stepsMotore)));
 }
 
 /**
@@ -755,29 +763,36 @@ inline uint64_t MOTION::getPeriodDelay(const double gradiSecondo)
  * 
  *  ATTENZIONE: La task viene riattivata da Start e sospesa da Stop quindi è sicuro che non venga mai chiamato MoveHandler per ragioni di sicurezza
  */
-
 void MOTION::MoveHandler()
 {
-  bool flagRunOnceCMD;
+  bool flagRunOnceCMD = false;
 
   /// Se il motore non sta eseguendo nessun comando (selettore = STAND_STILL) e non
   /// è stato fermato (perchè lo Stop forza STAND_STILL) allora...
   if(this->selettore == STAND_STILL)
   {
+    BaseType_t queueErr = xQueueReceive(MoveQueueHandler, &receiverQueue, 0);
+    
     /// Se è arrivato qualcosa in coda allora invia il comando al driver
-    if(xQueueReceive(MoveQueueHandler, &receiverQueue, portMAX_DELAY) == pdTRUE)
+    if(queueErr == pdTRUE)
     {
       this->selettore = receiverQueue.__SwitchMove;
-      Motion.setDirection(receiverQueue.__dir); /// Imposta la direzione
 
       /// Alza il flag il flag di comando
       flagRunOnceCMD = true;
     }
+    #ifdef LOG_ACTIVE_MOTION
+      LogInfo("Handler Motion", "Command %sReceived", (queueErr == pdTRUE ? "" : "Not "));
+    #endif
   }
 
   /// Se è stato dato un comando di halt allora blocca la coda
   if(this->__isHalted)
   {
+    #ifdef LOG_ACTIVE_MOTION
+      LogInfo("Handler Motion", "Command Halted.\nErasing Queue");
+    #endif
+
     /// Toglie qualsiasi movimento successivo contenuto nella coda se non è già vuota
     if(uxQueueMessagesWaiting(MoveQueueHandler) > 0)
       xQueueReset(MoveQueueHandler);
@@ -800,30 +815,50 @@ void MOTION::MoveHandler()
     /// Abbassa il flag di comando
     flagRunOnceCMD = false;
 
+    /// Imposta la direzione
+    Motion.setDirection(receiverQueue.__dir);
+
     /// Invio dei comandi
     switch(this->selettore)
     {
       /// Invia il comando di fare un movimento di tot steps in una direzione specificata
       case MOVE_REL :
       case MOVE_ABS :
+        LogError("Motion", "Step ricevuti = %llu\nVelocità ricevuta = %llu", receiverQueue.__move_steps, receiverQueue.__speed_steps_us);
         Motion.step(receiverQueue.__move_steps, receiverQueue.__speed_steps_us);
       break;
       /// Invia il comando che fa un passo finché non viene ricevuto un altro dato dalla queue
       case CONTINUOUS :
-        Motion.stepContinuous(__moveContinuous_speed_steps_s);
+        LogError("Motion", "Velocità ricevuta = %llu", receiverQueue.__speed_steps_us);
+        Motion.stepContinuous(receiverQueue.__speed_steps_us);
       break;
     }
     
     /// Gestione dei log
-    #ifdef LOG_ACTIVE_MOTION
-      //LogInfo("Stato di esecuzione del Motion", "SwitchMove(MC state selector) attuale = %s (stato = %d)", SwitchMoveStr[selettore], selettore);
+    #ifndef LOG_ACTIVE_MOTION
+      LogInfo("Handler Motion", "SwitchMove(MC state selector) attuale = %s (stato = %d)", SwitchMoveStr[selettore], selettore);
     #endif
   }
 
   
   /// Aggiorna la classe del DRV8825
-  Motion.update();
-  //vTaskDelay(pdMS_TO_TICKS(20)); /// Permette di fare lo switch tra le task
+  drv_err_t err = Motion.update();
+  #ifndef LOG_ACTIVE_MOTION
+    static uint32_t time = millis();
+
+    if(err != DRV_OK && err != DRV_NO_NOTIFY)
+    {
+      time = millis();
+      LogError("Errore Update DRV8825", "Driver Error : %s", drv_err_to_name(err));
+    }
+
+    if(millis() - time >= 8000)
+    {
+      time = millis();
+      LogInfo("Update DRV8825", "%s", drv_err_to_name(err));
+    }
+  #endif
+  //vTaskDelay(pdMS_TO_TICKS(0)); /// Permette di fare lo switch tra le task
 }
 
 /**
@@ -872,7 +907,9 @@ BaseType_t MOTION::MoveSendToQueue(MoveQueue_t StructToSend)
     /// Se la coda è piena aspetta 1000 ms = 1s di tempo per inviare
     queueValue = xQueueSend(MoveQueueHandler, &StructToSend, pdMS_TO_TICKS(1000));
 
+    #ifdef LOG_ACTIVE_MOTION
     LogDebug("MoveSendToQueue", "Queue value after send = %s", queueValue == pdTRUE ? "pdTRUE" : "pdFALSE");
+    #endif
   }
 
   return queueValue;
