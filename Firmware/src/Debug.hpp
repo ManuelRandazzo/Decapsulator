@@ -25,7 +25,7 @@
 /// @info: Commentando questa riga si disattivano i LOG senza il bisogno di cancellarli nel programma
 #define LOG_ACTIVE
 /// @info: Commentando questa riga non vi saranno più log da parte del loop del motion. Tutti gli altri log del motion verranno scritti
-#define LOG_ACTIVE_MOTION
+//#define LOG_ACTIVE_MOTION
 /// @info: Commentando questa riga si disattivano i LOG MQTT senza il bisogno di cancellarli nel programma
 #define LOG_MQTT_ACTIVE
 /// @info: Scommentando questa riga si disattiva il restart dell'esp in caso di fail del wifi e/o dell'MQTT
@@ -198,23 +198,27 @@ static bool isMqttConnected = false;
     #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
       do\
       {\
-	      xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__);\
-        log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
-        if(isMqttConnected)\
+	      if(xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__))\
         {\
-          _TOPIC_MQTT_(logType ## _LOG_TOPIC, tag);\
-          mqtt_logger_printf(topic, format, ##__VA_ARGS__);\
+          log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
+          if(isMqttConnected)\
+          {\
+            _TOPIC_MQTT_(logType ## _LOG_TOPIC, tag);\
+            mqtt_logger_printf(topic, format, ##__VA_ARGS__);\
+          }\
+          xSemaphoreGive(xSemaphoreLogger);\
         }\
-	      xSemaphoreGive(xSemaphoreLogger);\
       } while(0)
   #else
     /// Default Decapsulator Logger
     #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
       do\
       {\
-	      xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__);\
-        log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
-	      xSemaphoreGive(xSemaphoreLogger);\
+	      if(xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__))\
+        {\
+          log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
+          xSemaphoreGive(xSemaphoreLogger);\
+        }\
       } while(0)  
   #endif
 
@@ -223,9 +227,11 @@ static bool isMqttConnected = false;
       do\
       {\
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;\
-	      xSemaphoreTakeFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken);\
-        ets_printf(ARDUHAL_LOG_FORMAT(E, format), ##__VA_ARGS__);\
-        xSemaphoreGiveFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken);\
+	      if(xSemaphoreTakeFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken))\
+        {\
+          ets_printf(ARDUHAL_LOG_FORMAT(E, format), ##__VA_ARGS__);\
+          xSemaphoreGiveFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken);\
+        }\
       } while(0)
 
 #else // NO LOGGER DEFINES
