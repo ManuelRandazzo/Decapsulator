@@ -60,12 +60,13 @@ typedef int8_t drv_err_t;
 #define DRV_ERR_NO_EN_PIN               11      /*!< Codice (drv_err_t) che indica che non esiste un pin EN */
 #define DRV_ERR_NO_SLP_PIN              12      /*!< Codice (drv_err_t) che indica che non esiste un pin SLP */
 #define DRV_ERR_NO_RST_PIN              13      /*!< Codice (drv_err_t) che indica che non esiste un pin RST */
-#define DRV_ERR_RMT_CREATION            14      /*!< Codice (drv_err_t) che indica che un errore nella creazione del canale rmt di trasmissione */
-#define DRV_ERR_RMT_ENABLE              15      /*!< Codice (drv_err_t) che indica che un errore nell'abilitazione del canale rmt di trasmissione */
-#define DRV_ERR_RMT_COPY_ENCODER        16      /*!< Codice (drv_err_t) che indica che un errore nella copia in memoria nel canale rmt di trasmissione */
-#define DRV_ERR_RMT_TX_TIMEOUT          17      /*!< Codice (drv_err_t) che indica un timeout nella trasmissione del canale rmt */
-#define DRV_ERR_RMT_TRANSMIT_CMD        18      /*!< Codice (drv_err_t) che indica che un errore nella trasmissione del canale rmt */
-#define DRV_ERR_CMD_ABORTED             19      /*!< Codice (drv_err_t) che indica un comando abortito dal metodo abortCurrent Movement */
+#define DRV_WAITING_RMT_TX_TO_FINISH    14      /*!< Codice (drv_err_t) che indica che sta ancora avvenendo la trasmissione del canale rmt (niente polling bloccante) */
+#define DRV_ERR_RMT_CREATION            15      /*!< Codice (drv_err_t) che indica che un errore nella creazione del canale rmt di trasmissione */
+#define DRV_ERR_RMT_ENABLE              16      /*!< Codice (drv_err_t) che indica che un errore nell'abilitazione del canale rmt di trasmissione */
+#define DRV_ERR_RMT_COPY_ENCODER        17      /*!< Codice (drv_err_t) che indica che un errore nella copia in memoria nel canale rmt di trasmissione */
+#define DRV_ERR_RMT_TX_TIMEOUT          18      /*!< Codice (drv_err_t) che indica un timeout nella trasmissione del canale rmt */
+#define DRV_ERR_RMT_TRANSMIT_CMD        19      /*!< Codice (drv_err_t) che indica che un errore nella trasmissione del canale rmt */
+#define DRV_CMD_ABORTED                 20      /*!< Codice (drv_err_t) che indica un comando abortito dal metodo abortCurrent Movement */
 
 /**
   * @brief Ritorna una stringa di codici errori di tipo drv_err_t 
@@ -115,6 +116,10 @@ class DRV8825
     drv_err_t     begin(uint8_t DIR, uint8_t STEP, uint8_t EN = 255, uint8_t RST = 255, uint8_t SLP = 255, uint16_t number_of_steps_per_revolution = 200);
     drv_err_t     update();
 
+    // Di norma non è neccesario in quanto usa la task in cui viene
+    // fatto il begin() ricavandosi l'Handler in autonomia
+    drv_err_t     setUpdateTask(TaskHandle_t handler);
+
     //       DIRECTION
     //       +1 = DRV8825_CLOCK_WISE
     //       -1 = DRV8825_COUNTERCLOCK_WISE
@@ -158,12 +163,15 @@ class DRV8825
 
     uint64_t  _stepsLeft     = 0;
     bool     _isContinuous   = false;
-    bool     _abortCommand = false;
+    bool     _abortCommand   = false;
     bool     _isStepDone     = true;
     int64_t  _absStepCounter = 0;
     uint16_t _stepsPerRevolution;
     rmt_channel_handle_t _rmtChannel = NULL;
 
+    bool     _waitRmtAsyncTransmit   = false;
+
+    uint32_t _timeoutRmtTransmit     = 0;
 
     rmt_symbol_word_t _stepPulse[1];
 
@@ -178,7 +186,9 @@ class DRV8825
 
   private:
     /// Questo mutex garantisce che una sola task alla volta acceda alla risorsa condivisa o alle variabili
-    SemaphoreHandle_t _mutex = nullptr;  
+    SemaphoreHandle_t _mutex = nullptr;
+
+    bool _isDriverInitialized = false;
     
     const rmt_transmit_config_t transmit_cfg =
     {
