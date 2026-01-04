@@ -64,15 +64,35 @@ BaseType_t setupTasks(void)
 /**
  *  @brief Setup per la definizione delle task e inizializzazione dei componenti
  */
+MOTION motoreIsolato;
+bool xBusy = false;
 void setup()
 {
   LogBegin();
 
   /// crea le task
-  while(!setupTasks());
+  //while(!setupTasks());
 
   LogDebug("setup", "create le tasks");
+  drv_err_t err = motoreIsolato.Init(RALLA_MOTOR_STEPS, RALLA_DIRECTION_PIN, RALLA_STEP_PIN, RALLA_ENABLE_PIN, RALLA_RESET_PIN, RALLA_SLEEP_PIN,
+                      RALLA_TASK_PRIORITY, RALLA_MICROSTEP);
+  if(DRV_OK != err)
+  {
+    LogError("Motore test Init", "Resetto l'esp32.\nErrore : %s.", drv_err_to_name(err));
+    delay(2000);
+    ESP.restart();
+  }
 
+  motoreIsolato.attach();
+  motoreIsolato.Start();
+  
+  //while(!motoreIsolato.isStepDone());
+  /*motoreIsolato.moveRel(-270.0, 900.0);
+  while(!motoreIsolato.isStepDone());*/
+  motoreIsolato.moveContinuous(DIR_POSITIVE, 1000.0);
+  vTaskDelay(pdMS_TO_TICKS(5000));
+  motoreIsolato.Halt();
+  //vTaskSuspend(NULL);
 }
 
 /**
@@ -83,4 +103,19 @@ void setup()
  *  @attention Non eliminare la task perchè serve al WiFi
  * 
  */
-void loop() {}
+bool toggle = false;
+void loop() {
+  if(motoreIsolato.isStepDone())
+  {
+    for(int i=0; i<4; i++)
+    {
+      if(!toggle)
+        motoreIsolato.moveRel(-270.0, 1400.0);
+      else
+        motoreIsolato.moveRel(+270.0, 1400.0);
+
+      vTaskDelay(pdMS_TO_TICKS(1000));
+    }
+    toggle ^= 1;
+  }
+}
