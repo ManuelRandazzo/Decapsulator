@@ -24,10 +24,12 @@
 
 /// @info: Commentando questa riga si disattivano i LOG senza il bisogno di cancellarli nel programma
 #define LOG_ACTIVE
-/// @info: Commentando questa riga non vi saranno più log da parte del loop del motion. Tutti gli altri log del motion verranno scritti
+/// @info: Commentando questa riga non vi saranno più log da parte della TaskTypedef class
+//#define LOG_ACTIVE_TASK
+/// @info: Commentando questa riga non vi saranno più log da parte della motion class
 //#define LOG_ACTIVE_MOTION
 /// @info: Commentando questa riga si disattivano i LOG MQTT senza il bisogno di cancellarli nel programma
-#define LOG_MQTT_ACTIVE
+//#define LOG_ACTIVE_MQTT
 /// @info: Scommentando questa riga si disattiva il restart dell'esp in caso di fail del wifi e/o dell'MQTT
 #define NO_ESP_RESTART_ON_CONNECTION_FAILURE
 
@@ -137,7 +139,7 @@ static bool isMqttConnected = false;
 
 
 
-  #ifdef LOG_MQTT_ACTIVE
+  #ifdef LOG_ACTIVE_MQTT
 
     ESP32MQTTClient mqttClient; // Oggetto di tipo Client MQTT
 
@@ -193,7 +195,7 @@ static bool isMqttConnected = false;
 /// @precompilazione: Se non è predisposto il log o non è specificata la sua attivazione definisce delle macro vuote
 #ifdef LOG_ACTIVE
 
-  #ifdef LOG_MQTT_ACTIVE
+  #ifdef LOG_ACTIVE_MQTT
     /// Default Decapsulator Logger
     #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
       do\
@@ -298,7 +300,7 @@ extern void startWiFi(uint32_t timeout_for_each_initialization_ms = DEFAULT_TIME
   uint32_t startTime = millis();
 
 
-  #if defined(LOG_ACTIVE) && defined(LOG_MQTT_ACTIVE)
+  #if defined(LOG_ACTIVE) && defined(LOG_ACTIVE_MQTT)
     /// Avvio del broker MQTT sulla porta 1883
     mqttClient.enableDebuggingMessages();
 
@@ -336,7 +338,7 @@ extern void startWiFi(uint32_t timeout_for_each_initialization_ms = DEFAULT_TIME
   }    
     
     
-  #if defined(LOG_ACTIVE) && defined(LOG_MQTT_ACTIVE)
+  #if defined(LOG_ACTIVE) && defined(LOG_ACTIVE_MQTT)
     /// Timeout che se supera un certo tempo riavvia l'ESP
     mqttClient.loopStart();
     ESP_timeoutRestart = millis();
@@ -499,7 +501,7 @@ void DebugOverrideVar(const String override_topic, varType* var)
  */
 
 
-#if defined(LOG_ACTIVE) && defined(LOG_MQTT_ACTIVE)
+#if defined(LOG_ACTIVE) && defined(LOG_ACTIVE_MQTT)
   /// Funzioni aggiuntive dell'MQTT Client
   void onMqttConnect(esp_mqtt_client_handle_t client){}
 
