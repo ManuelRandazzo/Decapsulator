@@ -287,8 +287,19 @@ void prgDecapsulatorTask(void *pvParameters)
 
   MotRalla.attach();
   MotRalla.Start();
+  vTaskDelay(1000);
   LogDebug("Main Prg", "Move ...");
-  MotRalla.moveContinuous(RALLA_HOME_DIR, RALLA_HOME_SPEED);
+  //MotRalla.moveContinuous(RALLA_HOME_DIR, RALLA_HOME_SPEED);
+
+  while(1)
+  {
+    if(MotRalla.isStepDone())
+    {
+      MotRalla.moveContinuous(DIR_NEGATIVE, 1000);
+      LogWarning("prg main", "Update programma main");
+    }
+    vTaskDelay(5000);
+  }
   
 
   /**
@@ -301,7 +312,6 @@ void prgDecapsulatorTask(void *pvParameters)
      * 
      * @attention 
      */
-
 
 
     /// @brief 
