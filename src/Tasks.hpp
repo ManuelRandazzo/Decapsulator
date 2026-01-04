@@ -57,8 +57,6 @@ enum taskPriority_t
 
 /**
  *  @brief enum dei delay delle singole tasks
- *
- *  @note cercare di non fare troppi overlap tra le tasks (errore di concorrenza)
  */
 enum taskDelays_t
 {
@@ -411,8 +409,8 @@ void TaskTypeDef::ClassInternalUsage_Task(void *pvParameters)
     Instance->__TaskLoopClass(); /// A quanto pare vuole un parametro *void anche se non lo usa
   else
   {
-    LogError("ClassInternalUsage_Task", "Warning, non existing function or method while Calling %s SetupTask\nAborting further Task calls untill providing a loop function...\n\n\n", Instance->name);
-    return;
+    LogError("ClassInternalUsage_Task", "Warning, non existing function or method while Calling %s SetupTask\nAborting further Task calls until providing a loop function...\n\n\n", Instance->name);
+    vTaskDelay(portMAX_DELAY);
   }
 
   for(;;)
