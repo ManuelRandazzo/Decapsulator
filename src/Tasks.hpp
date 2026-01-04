@@ -89,9 +89,6 @@ class TaskTypeDef
     /// Modifica il tempo della task
     inline void TaskWait(uint32_t delayMillis);
 
-    /// Modifica il tempo della task
-    inline void TaskWaitMicros(uint32_t delayMicros);
-
     /// Funzione che restituisce l'handelr della task, utile per modificare o notificare qualcosa della task (per esempio nelle ISR)
     inline TaskHandle_t getHandler();
 
@@ -194,7 +191,9 @@ BaseType_t TaskTypeDef::Init(const char *name, const uint32_t HeapSize, void *pv
 
   if(priority > configMAX_PRIORITIES || HeapSize == 0x00 || HeapSize == 0)
   {
-    LogError("Task Creation", "Controllare questi parametri della TASK %s : Heap=%zu    Priorità=%d\n\n", name, HeapSize, priority);
+    #ifdef LOG_ACTIVE_TASK
+      LogError("Task Creation", "Controllare questi parametri della TASK %s : Heap=%zu    Priorità=%d\n\n", name, HeapSize, priority);
+    #endif
     this->status = pdFAIL;
   }
   else
@@ -204,13 +203,14 @@ BaseType_t TaskTypeDef::Init(const char *name, const uint32_t HeapSize, void *pv
   }
 
   
-  if(this->status == pdPASS) 
-    LogInfo("TaskCreate", "Riuscita la creazione della task: %s\n", this->name);
-  else  
-    LogError("TaskCreate", "Errore nella creazione della task: %s\n", this->name);
+  #ifdef LOG_ACTIVE_TASK
+    if(this->status == pdPASS) 
+      LogInfo("TaskCreate", "Riuscita la creazione della task: %s\n", this->name);
+    else  
+      LogError("TaskCreate", "Errore nella creazione della task: %s\n", this->name);
 
-  LogInfo("TaskCreate Info Heap", "Heap ancora libero : %zu byte su %zu byte   e   Heap totale usato : %zu\n\n\n", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getHeapSize() - ESP.getFreeHeap());
-    
+    LogInfo("TaskCreate Info Heap", "Heap ancora libero : %zu byte su %zu byte   e   Heap totale usato : %zu\n\n\n", ESP.getFreeHeap(), ESP.getHeapSize(), ESP.getHeapSize() - ESP.getFreeHeap());
+  #endif
 
   if(status == pdPASS)
     __isRunning = 1;
@@ -234,9 +234,7 @@ BaseType_t TaskTypeDef::Init(const char *name, const uint32_t HeapSize, void *pv
  */ 
 BaseType_t TaskTypeDef::Init(const char *name, const uint32_t HeapSize, void *pvParameters, UBaseType_t priority, uint32_t delay_ms, void (*taskSetupFunction)(), void (*taskLoopFunction)())
 {
-  LogInfo("Loop&Setup", "trying to setup the loop and setup tasks");
   setTask(taskSetupFunction, taskLoopFunction);
-  LogInfo("Loop&Setup", "finished to setup the loop and setup tasks");
   return Init(name, HeapSize, pvParameters, priority, delay_ms);
 }
 
@@ -295,8 +293,10 @@ inline void TaskTypeDef::setTask(void (*taskSetupFunction)(), void (*taskLoopFun
   __TaskSetupNormale = taskSetupFunction; 
   __TaskLoopNormale = taskLoopFunction; 
   
-  if(__TaskSetupNormale == nullptr || __TaskLoopNormale == nullptr)
-    LogError("Errore setTask", "Errore nel settaggio della task %s, TaskSetupClass e/o TaskLoopClass sono nullptr");
+  #ifdef LOG_ACTIVE_TASK
+    if(__TaskSetupNormale == nullptr || __TaskLoopNormale == nullptr)
+      LogError("Errore setTask", "Errore nel settaggio della task %s, TaskSetupClass e/o TaskLoopClass sono nullptr");
+  #endif
 }
 
 /**
@@ -318,8 +318,10 @@ inline void TaskTypeDef::setTask(refClass* thisPointer, void (refClass::*taskSet
   __TaskSetupClass = [thisPointer, taskSetupMethod] (void) { if(taskSetupMethod) (thisPointer->*taskSetupMethod)(); };
   __TaskLoopClass = [thisPointer, taskLoopMethod] (void) { if(taskLoopMethod) (thisPointer->*taskLoopMethod)(); }; 
 
-  if(__TaskSetupClass == nullptr || __TaskLoopClass == nullptr)
-    LogError("Errore setTask", "Errore nel settaggio della task %s, TaskSetupClass e/o TaskLoopClass sono nullptr");
+  #ifdef LOG_ACTIVE_TASK
+    if(__TaskSetupClass == nullptr || __TaskLoopClass == nullptr)
+      LogError("Errore setTask", "Errore nel settaggio della task %s, TaskSetupClass e/o TaskLoopClass sono nullptr");
+  #endif
 }
 
 /**
@@ -384,7 +386,9 @@ void TaskTypeDef::ClassInternalUsage_Task(void *pvParameters)
    * 
    */
 
-  LogInfo("ClassInternalUsage_Task", "Calling %s SetupTask", Instance->name);
+  #ifdef LOG_ACTIVE_TASK
+    LogInfo("ClassInternalUsage_Task", "Calling %s SetupTask", Instance->name);
+  #endif
 
   Instance->TaskStart();
   
@@ -393,8 +397,11 @@ void TaskTypeDef::ClassInternalUsage_Task(void *pvParameters)
     Instance->__TaskSetupNormale();
   else if(Instance->__TaskSetupClass)  
     Instance->__TaskSetupClass();  /// A quanto pare vuole un parametro *void anche se non lo usa
+
+  #ifdef LOG_ACTIVE_TASK
   else
     LogWarning(Instance->name, "Warning, non existing function or method while Calling %s SetupTask\nAborting further Task calls untill providing a loop function...\n\n\n", Instance->name);
+  #endif
 
   /**
    * 
@@ -402,14 +409,18 @@ void TaskTypeDef::ClassInternalUsage_Task(void *pvParameters)
    * 
    */
 
-  LogInfo("ClassInternalUsage_Task", "Calling %s LoopTask\n\n\n", Instance->name);/// se esiste la funzione di loop la esegue
+  #ifdef LOG_ACTIVE_TASK
+    LogInfo("ClassInternalUsage_Task", "Calling %s LoopTask\n\n\n", Instance->name);/// se esiste la funzione di loop la esegue
+  #endif
   if(Instance->__TaskLoopNormale)
     Instance->__TaskLoopNormale();
   else if(Instance->__TaskLoopClass)
     Instance->__TaskLoopClass(); /// A quanto pare vuole un parametro *void anche se non lo usa
   else
   {
-    LogError("ClassInternalUsage_Task", "Warning, non existing function or method while Calling %s SetupTask\nAborting further Task calls until providing a loop function...\n\n\n", Instance->name);
+    #ifdef LOG_ACTIVE_TASK
+      LogError("ClassInternalUsage_Task", "Warning, non existing function or method while Calling %s SetupTask\nAborting further Task calls until providing a loop function...\n\n\n", Instance->name);
+    #endif
     vTaskDelay(portMAX_DELAY);
   }
 
@@ -420,9 +431,12 @@ void TaskTypeDef::ClassInternalUsage_Task(void *pvParameters)
       Instance->__TaskLoopNormale();
     else if(Instance->__TaskLoopClass)
       Instance->__TaskLoopClass(); /// A quanto pare vuole un parametro *void anche se non lo usa
+    
+    #ifdef LOG_ACTIVE_TASK
     else
       LogError("ClassInternalUsage_Task", "Warning, non existing function or method while Calling %s SetupTask\nAborting further Task calls untill providing a loop function...\n\n\n", Instance->name);
-    
+    #endif
+
     /// attende
     Instance->__TaskWait();
   }
