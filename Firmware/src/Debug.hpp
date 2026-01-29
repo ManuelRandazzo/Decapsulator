@@ -484,11 +484,13 @@ void DebugOverrideVar(const String override_topic, varType* var)
   /// Scrive il topic utente
   String topic = BASE_LOG_TOPIC "DEBUG OVERRIDE/" + override_topic;
 
-  /// ATTENZIONE: il puntatore deve essere valido per tutta la durata della sottoscrizione.
-  mqttClient.subscribe(topic.c_str(), [var](const string &topic, const string &payload)
-  {
-      *var = FromStringToVarType<varType>(payload);
-  });
+  #ifdef LOG_ACTIVE_MQTT
+    /// ATTENZIONE: il puntatore deve essere valido per tutta la durata della sottoscrizione.
+    mqttClient.subscribe(topic.c_str(), [var](const string &topic, const string &payload)
+    {
+        *var = FromStringToVarType<varType>(payload);
+    });
+  #endif
 }
 
 
