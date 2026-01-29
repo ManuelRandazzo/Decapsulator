@@ -5,19 +5,18 @@
   "authors":
   [
     {
-      "name": "Rob Tillaart",
-      "email": "Rob.Tillaart@gmail.com",
+      "name": "Manuel Randazzo",
       "maintainer": true
     }
   ],
   "repository":
   {
     "type": "git",
-    "url": "https://github.com/RobTillaart/DRV8825.git"
+    "url": "https://github.com/ManuelRandazzo/Decapsulator"
   },
   "version": "0.2.0",
   "license": "MIT",
   "frameworks": "*",
   "platforms": "*",
-  "headers": "DRV8825.h"
+  "headers": "DRV8825_Decapsulator.h"
 }

@@ -516,7 +516,7 @@ drv_err_t DRV8825::setTmr(uint64_t period_us)
 
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
     return DRV_ERR_MUX_TAKE_TIMEOUT;
-    
+
   esp_timer_handle_t tmrDRV8825;
 
   if(this->DRV8825_timer)
