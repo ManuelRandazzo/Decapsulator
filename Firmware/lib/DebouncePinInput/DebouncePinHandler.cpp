@@ -1,36 +1,83 @@
 #include "DebouncePinHandler.hpp"
 
 
-
-DebPinHandler::DebPinHandler(uint8_t pinNumber, const char* pinName, uint8_t input_mode, 
-                             void (*ISR)(), uint32_t debounce_ms)
-    : mutex(nullptr), name(pinName), pin(pinNumber), debounce_ms(debounce_ms), ISR(ISR), 
-        inputMode(input_mode), flag(0), precPinLevel(0), lastTime(0), debState(0), TRIGGER(CHANGE)
+/**
+ * @brief Costruttore del Debounce pin
+ * @attention Non serve e non bisogna fare i pinMode dei pin, viene gestito tutto dal costruttore
+ * 
+ * @param IntrOrPoll    INTERRUPT oppure POLLING
+ * @param pinNumber     Numero del pin di input
+ * @param pinName       Nome del pin usato per debugging
+ * @param debounce_ms   Tempo per il debounce in millisecondi
+ * @param input_mode    Modalità di input del pin INPUT, INPUT_PULLUP, INPUT_PULLDOWN
+ * @param level_trigger Livello a cui viene triggerato il cambio di stato del pin
+ */
+DebPinHandler::DebPinHandler(bool IntrOrPoll, uint8_t pinNumber, const char* pinName,
+                             uint32_t debounce_ms, uint8_t level_trigger, uint8_t input_mode)
+    : mutex(nullptr), name((pinName != "") ? pinName : "No Pin Name"), pin(pinNumber), 
+      debounce_ms(debounce_ms), isInterrupt(false), inputMode(input_mode), flag(0), 
+      precPinLevel(0), lastTime(0), debState(0), TRIGGER(level_trigger), changeOccurred(false)
 {
-    this->__Init();
+    this->__Init(IntrOrPoll);
 }
 
-
-DebPinHandler::DebPinHandler(uint8_t pinNumber, const char* pinName, uint8_t input_mode, 
-                             uint8_t level_trigger, void (*ISR)(), uint32_t debounce_ms)
-    : mutex(nullptr), name(pinName), pin(pinNumber), debounce_ms(debounce_ms), ISR(ISR), 
-        inputMode(input_mode), flag(0), precPinLevel(0), lastTime(0), debState(0), TRIGGER(level_trigger)
-{
-    this->__Init();
-}
-
-
-DebPinHandler::DebPinHandler(uint8_t pinNumber, const char* pinName, uint8_t input_mode,
-                             uint8_t level_trigger, uint32_t debounce_ms)
-    : mutex(nullptr), name(pinName), pin(pinNumber), debounce_ms(debounce_ms), ISR(nullptr), 
-        inputMode(input_mode), flag(0), precPinLevel(0), lastTime(0), debState(0), TRIGGER(level_trigger)
-{
-    this->__Init();
-}
-
+/**
+ * @brief Distruttore della classe
+ */
 DebPinHandler::~DebPinHandler()
 {
-    detachInterrupt(digitalPinToInterrupt(this->pin));
+    if(this->isInterrupt == true)
+        detachInterrupt(digitalPinToInterrupt(this->pin));
+}
+
+/**
+ * @brief Dopo aver fatto il detach permette di ricollegare il pin con i dati impostati
+ */
+void DebPinHandler::reattach()
+{
+    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+        return;
+
+    if(this->isInterrupt)
+        attachInterruptArg(digitalPinToInterrupt(this->pin), &this->__ISR, this, this->TRIGGER);
+
+    this->isAttached = true;
+
+    xSemaphoreGive(this->mutex);
+}
+
+/**
+ * @brief Disconnette il pin
+ */
+void DebPinHandler::detach()
+{
+    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+        return;
+
+    if(this->isInterrupt)
+        detachInterrupt(this->pin);
+
+    this->isAttached = false;
+
+    xSemaphoreGive(this->mutex);
+}
+
+/**
+ * @return true se il debounce ha dato esito positivo 
+ *         false se negativo
+ */
+bool DebPinHandler::event()
+{
+    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+        return false;
+
+    bool flagHasOccured
+    if(this->isAttached)
+         = this->changeOccurred;
+
+    xSemaphoreGive(this->mutex);
+
+    return flagHasOccured;
 }
 
 
@@ -39,12 +86,17 @@ DebPinHandler::~DebPinHandler()
  * @return Se è avvenuto o no un cambio di stato del pin
  * @attention E' solo per INTERRUPT:
  */
-bool DebPinHandler::update()
+bool DebPinHandler::intrUpdate()
 {
-    if(this->ISR == nullptr)
+    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
         return false;
 
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    this->changeOccurred = false;
+
+    if(!this->isAttached)
+        return false;
+
+    if(!this->isInterrupt)
         return false;
 
     switch(this->debState)
@@ -68,7 +120,7 @@ bool DebPinHandler::update()
 
         case 1 : /// STATO ATTESA CONFERMA
 
-            if(millis() - this->lastTime >= debounce_ms)
+            if(millis() - this->lastTime >= this->debounce_ms)
             {
                 /// Flag reset
                 this->flag = 0;
@@ -77,20 +129,20 @@ bool DebPinHandler::update()
                 this->debState = 0;
 
                 /// Restituisce lo stato reale del pin
-                if(digitalReadFast(this->pin) == precPinLevel)
+                if(digitalReadFast(this->pin) == this->precPinLevel)
                 {
                     this->level = this->precPinLevel;
-                    xSemaphoreGive(mutex);
-                    return true;
+                    xSemaphoreGive(this->mutex);
+                    return this->changeOccurred = true;
                 }
             }
 
         break;
     }
 
-    xSemaphoreGive(mutex);
-    
-    return false;
+    xSemaphoreGive(this->mutex);
+
+    return this->changeOccurred = false;
 }
 
 
@@ -100,22 +152,26 @@ bool DebPinHandler::update()
  * @return Se è avvenuto o no un cambio di stato del pin
  * @attention E' solo per POLLING:
  */
-bool DebPinHandler::update(uint8_t trigger)
+bool DebPinHandler::pollUpdate(uint8_t trigger)
 {
-    if(this->ISR != nullptr)
-        return false;
-
     if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
         return false;
 
-    
+    this->changeOccurred = false;
+
+    if(this->isInterrupt)
+        return false;
+
+    if(!this->isAttached)
+        return false;
+
     switch(this->debState)
     {
         case 0 : /// STATO ATTESA EVENTO
-
+        {
             /// Legge lo stato del pin
-            bool tmpRead = digitalReadFast(this->pin);
-            bool eventTriggered = false;
+            uint8_t tmpRead = digitalReadFast(this->pin);
+            bool eventTriggered;
 
             switch(trigger)
             {
@@ -132,9 +188,11 @@ bool DebPinHandler::update(uint8_t trigger)
                 break;
 
                 default :
-                    LogError("update", "Inserito un trigger non idoneo al pin \"%s (%d)\"", this->name, this->pin);
+                    //LogError("update", "Inserito un trigger non idoneo al pin \"%s (%d)\"", this->name, this->pin);
+                    return false;
                 break;
             }
+            this->precPinLevel = tmpRead;
 
             /// Attende che si verifichi l'evento
             if(eventTriggered)
@@ -148,12 +206,12 @@ bool DebPinHandler::update(uint8_t trigger)
                 /// Passa allo stato di attesa della conferma
                 this->debState++;
             }
-
-        break;
-
+        
+            break;
+        }
         case 1 : /// STATO ATTESA CONFERMA
 
-            if(millis() - this->lastTime >= debounce_ms)
+            if(millis() - this->lastTime >= this->debounce_ms)
             {
                 /// Debounce state reset
                 this->debState = 0;
@@ -162,17 +220,17 @@ bool DebPinHandler::update(uint8_t trigger)
                 if(digitalReadFast(this->pin) == this->precPinLevel)
                 {
                     this->level = this->precPinLevel;
-                    xSemaphoreGive(mutex);
-                    return true;
+                    xSemaphoreGive(this->mutex);
+                    return this->changeOccurred = true;
                 }
             }
 
         break;
     }
 
-    xSemaphoreGive(mutex);
+    xSemaphoreGive(this->mutex);
 
-    return false;
+    return this->changeOccurred = false;
 }
 
 
@@ -189,33 +247,39 @@ bool DebPinHandler::update(uint8_t trigger)
 /**
  * @brief Inizializza un determinato input pin per avere un debounce
  */
-void DebPinHandler::__Init()
+void DebPinHandler::__Init(bool IntrOrPoll)
 {
-  mutex = xSemaphoreCreateMutex();
-  
-  if(xSemaphoreTake(mutex, 0) == pdFAIL)
-  {
-    LogError("initDebPin", "Errore xSemaphoreTake del pin \"%s\"", name);
-    return;
-  }
+    this->mutex = xSemaphoreCreateMutex();
 
-  /// Inizializza l'input pin con la modalità voluta
-  if(pin == 255)
-  {
-    LogError("initDebPin", "Errore pin non fornito del pin \"%s\"", name);
-    return;
-  }
-  
-  pinMode(pin, inputMode);
+    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    {
+        LogError("initDebPin", "Errore xSemaphoreTake del pin \"%s\"", this->name);
+        return;
+    }
 
-  /// Legge il valore iniziale del pin 
-  level = precPinLevel = digitalReadFast(this->pin);
+    /// Inizializza l'input pin con la modalità voluta
+    if(this->pin == 255)
+    {
+        LogError("initDebPin", "Errore pin non fornito del pin \"%s\"", this->name);
+        return;
+    }
 
-  /// Associa la relativa Interrupt Service Routine
-  if(ISR != nullptr)
-    attachInterrupt(digitalPinToInterrupt(pin), ISR, TRIGGER);
-  
-  xSemaphoreGive(mutex);
+    pinMode(this->pin, this->inputMode);
+
+    /// Legge il valore iniziale del pin 
+    this->level = this->precPinLevel = digitalReadFast(this->pin);
+
+    if(IntrOrPoll == INTR)
+    {
+        this->isInterrupt = true;
+
+        /// Associa la relativa Interrupt Service Routine se esiste
+        attachInterruptArg(digitalPinToInterrupt(this->pin), &this->__ISR, this, this->TRIGGER);
+        
+        this->isAttached = true;
+    }
+
+    xSemaphoreGive(this->mutex);
 }
 
 
@@ -223,10 +287,10 @@ void DebPinHandler::__Init()
 /**
  *  @brief Interrupt Service Routine invocata
  */
-void IRAM_ATTR DebPinHandler::__InternalISR(void *pvParameters)
+void IRAM_ATTR DebPinHandler::__ISR(void* thisPtr)
 {
-  DebPinHandler *ptrThis = static_cast<DebPinHandler *>(pvParameters);
+    DebPinHandler *ptrThis = static_cast<DebPinHandler *>(thisPtr);
 
-  /// Alza il flag
-  ptrThis->flag = 1;
+    /// Alza il flag
+    ptrThis->flag = 1;
 }
