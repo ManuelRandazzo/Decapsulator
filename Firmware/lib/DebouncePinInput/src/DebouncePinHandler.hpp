@@ -70,7 +70,14 @@ class DebPinHandler
          */
         bool pollUpdate(uint8_t trigger = CHANGE);
 
-
+        /**
+         * @brief Restituisce il valore del pin senza debounce
+         * 
+         * @return HIGH se il livello è alto, LOW se il livello è basso 
+         * 
+         * @return -1 in caso di ERRORE di Semaforo non ottenuto
+         */
+        int8_t rawRead();
 
         /**
          *  @brief Trasforma tutte le variabili della classe in una stringa
