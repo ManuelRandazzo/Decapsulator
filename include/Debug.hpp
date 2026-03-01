@@ -18,6 +18,17 @@
 #pragma once
 
 
+/// File contenente ssid e la password dell'Utente
+#include "WiFi_Config.hpp"
+#include "ESP32MQTTClient.h"
+#include "esp_idf_version.h"
+#include "esp32-hal-log.h"
+#include "rom/ets_sys.h" /// per ISR logging
+#include "semphr.h" // Per usare i semafori
+#include <string> /// Stringhe standard del c++
+
+using namespace std;// Usato per le stringhe standard del c++
+
 /** ╔═════════════════════════════════════════════╗
     ║             USER: LOGGER OPTIONS            ║
     ╚═════════════════════════════════════════════╝ */
@@ -55,17 +66,6 @@ void DebugOverrideVar(String override_topic, varType* var);
 
 
 
-
-/// File contenente ssid e la password dell'Utente
-#include "WiFi_Config.hpp"
-#include "ESP32MQTTClient.h"
-#include "esp_idf_version.h"
-#include "esp32-hal-log.h"
-#include "rom/ets_sys.h" /// per ISR logging
-#include "semphr.h" // Per usare i semafori
-#include <string> /// Stringhe standard del c++
-
-using namespace std;// Usato per le stringhe standard del c++
 
 
 

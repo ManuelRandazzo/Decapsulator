@@ -24,6 +24,8 @@
 #include "MotionControl.hpp"
 /// Include la libreria per la gestione del servomotore
 #include "ESP32Servo.h"
+/// Include la libreria per la gestione dei pin e del debounce
+#include "DebouncePinHandler.hpp"
 
 
 
@@ -33,10 +35,12 @@
  *  @_not_defined_things: defines per i dati dell'oggetto del MotionControl del tamburo
  * 
  */
-#define PIECE_PRESENCE_PIN 12  /** @warning  Ancora da definire*/
-#define PIECE_PASSED_PIN   11  /** @warning  Ancora da definire*/
-#define nFAULT_TAMBURO     7   /** @warning  Ancora da definire*/
-#define nFAULT_PUNZONE     39  /** @warning  Ancora da definire*/
+#define PIECE_PRESENCE_PIN     12 /** @attention  Ancora da definire */
+#define PIECE_PASSED_PIN       11 /** @attention  Ancora da definire */
+#define nFAULT_TAMBURO          7 /** @attention  Ancora da definire */
+#define nFAULT_PUNZONE         39 /** @attention  Ancora da definire */
+#define AUTOKILL_DETECT_PIN   150 /** @attention  Ancora da definire */
+#define AUTOKILL_SHUTDOWN_PIN 150 /** @attention  Ancora da definire */
 
 
 /**
@@ -45,24 +49,17 @@
 #define TIMEOUT_X
 #define TIMEOUT_Y
 
-/**
- *  DEBOUNCE: TIME:
- */
-#define DEB_TIME_CADUTA_CAPSULA_MS 30 // <= 110ms senza considerare overhead
-#define DEB_TIME_INTERRUPT 30 // 30ms debounce per confermare il valore di un pin rilevato dall'interrupt
-
-
 
 /**
  * 
  *  GHIGLIOTTINA: defines per i dati dell'oggetto del servomotore per la ghigliottina
  * 
  */
-#define SERVO_PIN         37   /** @warning Ancora da definire. Pin del servo motore */
+#define SERVO_PIN         37   /** @attention Ancora da definire. Pin del servo motore */
 #define SERVO_MIN         0    /** Gradi minimi a cui il servo può arrivare */
 #define SERVO_MAX         180  /** Gradi massimi a cui il servo può arrivare */
-#define SERVO_CLOSED_POS  0    /** @warning Ancora da definire. Angolo di chiusura della paratia*/
-#define SERVO_OPEN_POS    90  /** @warning Ancora da definire. Angolo di apertura della paratia*/
+#define SERVO_CLOSED_POS  0    /** @attention Ancora da definire. Angolo di chiusura della paratia*/
+#define SERVO_OPEN_POS    90  /** @attention Ancora da definire. Angolo di apertura della paratia*/
 
 
 
@@ -77,23 +74,23 @@
 #define GEAR_RATIO_RALLA      3           // Imposta un gear ratio 1/3 per la ralla
 
 /// Driver DRV8825 pins
-#define RALLA_DIRECTION_PIN   4             /** @warning  Ancora da definire*/
-#define RALLA_STEP_PIN        5             /** @warning  Ancora da definire*/
-#define RALLA_ENABLE_PIN      6             /** @warning  Ancora da definire*/
-#define RALLA_RESET_PIN       255           /** @warning  Ancora da definire*/
-#define RALLA_SLEEP_PIN       255           /** @warning  Ancora da definire*/
-#define RALLA_FAULT_PIN       7             /** @warning  Ancora da definire*/
+#define RALLA_DIRECTION_PIN   4             /** @attention  Ancora da definire*/
+#define RALLA_STEP_PIN        5             /** @attention  Ancora da definire*/
+#define RALLA_ENABLE_PIN      6             /** @attention  Ancora da definire*/
+#define RALLA_RESET_PIN       255           /** @attention  Ancora da definire*/
+#define RALLA_SLEEP_PIN       255           /** @attention  Ancora da definire*/
+#define RALLA_FAULT_PIN       7             /** @attention  Ancora da definire*/
 
 
 /// Parametri HOMING
-#define RALLA_CALIB_PIN       14           /** @warning  Ancora da definire*/
+#define RALLA_CALIB_PIN       14            /** @attention  Ancora da definire*/
 #define RALLA_TRIGGER_MODE    FALLING
 #define RALLA_HOME_SPEED      30            /** Gradi al secondo*/
 #define RALLA_MICROSTEP       FULL_STEP //STEP_1_TO_16
 #define RALLA_CAM_SIGNAL      ACTIVE_LOW
 #define RALLA_HOME_DIR        DIR_NEGATIVE
-#define RALLA_POST_HOME_POS   NULL          /** @warning  Ancora da definire*/
-#define RALLA_TOCCHI_SENSORE  2             /** @warning  Ancora da definire*/
+#define RALLA_POST_HOME_POS   NULL          /** @attention  Ancora da definire*/
+#define RALLA_TOCCHI_SENSORE  2             /** @attention  Ancora da definire*/
 
 
 /**
@@ -111,25 +108,25 @@
 
 
 /// Driver DRV8825 pins
-#define PUNZ_DIRECTION_PIN      4             /** @warning  Ancora da definire*/
-#define PUNZ_STEP_PIN           5             /** @warning  Ancora da definire*/
-#define PUNZ_ENABLE_PIN         15            /** @warning  Ancora da definire*/
-#define PUNZ_RESET_PIN          7             /** @warning  Ancora da definire*/
-#define PUNZ_SLEEP_PIN          6             /** @warning  Ancora da definire*/
-#define PUNZ_FAULT_PIN          16            /** @warning  Ancora da definire*/
+#define PUNZ_DIRECTION_PIN      4             /** @attention  Ancora da definire*/
+#define PUNZ_STEP_PIN           5             /** @attention  Ancora da definire*/
+#define PUNZ_ENABLE_PIN         15            /** @attention  Ancora da definire*/
+#define PUNZ_RESET_PIN          7             /** @attention  Ancora da definire*/
+#define PUNZ_SLEEP_PIN          6             /** @attention  Ancora da definire*/
+#define PUNZ_FAULT_PIN          16            /** @attention  Ancora da definire*/
 
 /// Parametri HOMING Punzone
-#define PUNZ_MAX_POS_PIN 13 /** @warning  Ancora da definire*/
-#define PUNZ_MIN_POS_PIN 21 /** @warning  Ancora da definire*/
+#define PUNZ_MAX_POS_PIN 13 /** @attention  Ancora da definire*/
+#define PUNZ_MIN_POS_PIN 21 /** @attention  Ancora da definire*/
 
 #define PUNZ_CALIB_PIN          PUNZ_MAX_POS_PIN
-#define PUNZ_TRIGGER_MODE       CHANGE
+#define PUNZ_TRIGGER_MODE       FALLING
 #define PUNZ_HOME_SPEED         30            /** Gradi al secondo*/
 #define PUNZ_MICROSTEP          FULL_STEP //STEP_1_TO_16
 #define PUNZ_CAM_SIGNAL         ACTIVE_LOW
 #define PUNZ_HOME_DIR           DIR_POSITIVE
-#define PUNZ_POST_HOME_POS      NULL          /** @warning  Ancora da definire*/
-#define PUNZ_TOCCHI_SENSORE     2             /** @warning  Ancora da definire*/
+#define PUNZ_POST_HOME_POS      NULL          /** @attention  Ancora da definire*/
+#define PUNZ_TOCCHI_SENSORE     2             /** @attention  Ancora da definire*/
 
 
 
@@ -157,11 +154,6 @@ typedef enum __sequence__ : uint8_t
 } Sequence_t;
 
 
-
-
-
-
-
 /// Crea gli oggetti
 /// Crea l'oggetto della classe TaskTypeDef, ovvero la task di gestione del decapsulator
 TaskTypeDef DecapsulatorHandleTask;
@@ -174,43 +166,12 @@ SemaphoreHandle_t _DecapsulatorMutex = nullptr;
 portMUX_TYPE _DecapsulatorSpinlock = portMUX_INITIALIZER_UNLOCKED;
 
 
-typedef struct __debounce_pin_management__
-{
-  unsigned level : 1;      // Stato reale del pin dopo il debounce
-  const uint8_t pin;
-  const uint32_t debounce_ms; // Tempo di debounce in millisecondi (ms)
 
-  /// flag da usare nell'ISR con accesso atomico di natura
-  volatile unsigned flag : 1;
-
-  /// Per debounce function
-  unsigned precPinState : 1;
-  uint32_t lastTime;
-  unsigned debState : 5;
-  
-} DebPinMgmt_t;
-
-/// Così oppure direttamente un array di queste struct da passare al pvParameter della task (sempre globale)
-DebPinMgmt_t cadutaCapsInt = { .pin = PIECE_PASSED_PIN,   .debounce_ms = 30 };
-DebPinMgmt_t presenzaCaps  = { .pin = PIECE_PRESENCE_PIN, .debounce_ms = 30 };
-DebPinMgmt_t rallaInt      = { .pin = RALLA_CALIB_PIN,    .debounce_ms = 30 };
-DebPinMgmt_t punzMinInt    = { .pin = PUNZ_MIN_POS_PIN,   .debounce_ms = 30 };
-DebPinMgmt_t punzMaxInt    = { .pin = PUNZ_MAX_POS_PIN,   .debounce_ms = 30 };
+volatile QueueHandle_t ptrAutokillSharedVars;
 
 
 
 
-/**
- * 
- *    Prototipi di funzioni utili al programma
- *  
- */
-void initDebPin(DebPinMgmt_t* inPin, void (*ISR)() = nullptr);
-void debounce(DebPinMgmt_t intPin);
-void capsulaPassataISR();
-void fc_PunzoneAltoISR();
-void fc_PunzoneBassoISR();
-void calib_ralla_positionISR();
 
 
 
@@ -269,38 +230,19 @@ void prgDecapsulatorTask(void *pvParameters)
     while(1);
   }
 
-  /// Inizializzazione pin e ISR Capsula Caduta
-  initDebPin(&cadutaCapsInt, capsulaPassataISR);
+  /// Inizializzazione Servo e relativi suoi timer[0-4] dell'hardware ledc
+  for(uint8_t i = 0; i < 4; i++)
+    ESP32PWM::allocateTimer(i);
+	ServoParatia.setPeriodHertz(50);    // standard 50 hz servo
   
-  /// Inizializzazione pin e Polling Presenza Capsula
-  initDebPin(&presenzaCaps);
-  
-  /// Inizializzazione pin e ISR Punzone Min Position
-  initDebPin(&punzMinInt, fc_PunzoneBassoISR);
-  
-  /// Inizializzazione pin e ISR Punzone Max Position
-  initDebPin(&punzMaxInt, fc_PunzoneAltoISR);
-
-  /// Inizializzazione pin e ISR Tamburo Calibration
-  initDebPin(&rallaInt, calib_ralla_positionISR);
-
-
-  MotRalla.attach();
-  MotRalla.Start();
-  vTaskDelay(1000);
-  LogDebug("Main Prg", "Move ...");
-  //MotRalla.moveContinuous(RALLA_HOME_DIR, RALLA_HOME_SPEED);
-
-  while(1)
-  {
-    if(MotRalla.isStepDone())
-    {
-      MotRalla.moveContinuous(DIR_NEGATIVE, 1000);
-      LogWarning("prg main", "Update programma main");
-    }
-    vTaskDelay(5000);
-  }
-  
+  /// Inizializzazione dei pin di debounce
+  DebPinHandler autoKill     (INTR, AUTOKILL_DETECT_PIN, "Autokill Detection Pin", 10/* ms */, FALLING, INPUT);
+  DebPinHandler cadutaCaps   (INTR, PIECE_PASSED_PIN   , "Caduta Capsule Pin"    , 30/* ms */, RISING , INPUT);
+  DebPinHandler presenzaCaps (POLL, PIECE_PRESENCE_PIN , "Presenza Capsule Pin"  , 30/* ms */, FALLING, INPUT);
+  DebPinHandler ralla        (INTR, RALLA_CALIB_PIN    , "Ralla Calibration Pin" , 30/* ms */, RALLA_TRIGGER_MODE , INPUT);
+  DebPinHandler punzMin      (INTR, PUNZ_MIN_POS_PIN   , "Punzone FC Minimo"     , 30/* ms */, PUNZ_TRIGGER_MODE , INPUT);
+  DebPinHandler punzMax      (INTR, PUNZ_MAX_POS_PIN   , "Punzone FC Massimo"    , 30/* ms */, PUNZ_TRIGGER_MODE , INPUT);
+     
 
   /**
    *    @loop:
@@ -310,76 +252,94 @@ void prgDecapsulatorTask(void *pvParameters)
     /**
      * @info: Gestione della sequenza completa del decapsulator
      * 
-     * @attention 
+     * @attention
+     * 
+     * @todo
      */
+
+
+    /// Update dei pin di debounce
+    autoKill.intrUpdate();
+    cadutaCaps.intrUpdate();
+    presenzaCaps.pollUpdate();
+    ralla.intrUpdate();     
+    punzMin.intrUpdate();
+    punzMax.intrUpdate();
+
 
 
     /// @brief 
     switch(sequenza)
-    { 
+    {
       case EMERGENCY_STATE :
         
       break;
 
+      /// Se il macchinario è chiuso (se non lo è non si accende l'ESP32) è possibile inizializzarlo
       case MACHINE_STARTUP_STATE :
-        /// Se il macchinario è chiuso e il pulsante di emergenza è alzato allora è possibile inizializzarlo
-        // (dopodichè entrambi verranno gestiti dagli emergency interrupts)
-        if(1/*digitalRead(nFAULT_TAMBURO) == HIGH && digitalRead(nFAULT_PUNZONE) == HIGH*/)
-        {
-          LogDebug("Main Prg", "Inizializzando il macchinario ...");
 
-          /// Fa tutti gli attach dei motori e li prepara ad essere comandati
-          MotRalla.attach();
-          MotRalla.Start();
-          /// Esegue l'homing del tamburo
-          /*MotRalla.home(RALLA_CALIB_PIN, INPUT, RALLA_TRIGGER_MODE, RALLA_HOME_SPEED, RALLA_HOME_DIR,
-                        25.0 * 360.0, RALLA_TOCCHI_SENSORE, RALLA_CAM_SIGNAL);*/
+        LogDebug("Main Prg", "Inizializzando il macchinario ...");
+
+        /// Fa tutti gli attach dei motori e li prepara ad essere comandati
+        MotRalla.attach();
+        MotRalla.Start();
+        /// Esegue l'homing del tamburo
+        /*MotRalla.home(RALLA_CALIB_PIN, INPUT, RALLA_TRIGGER_MODE, RALLA_HOME_SPEED, RALLA_HOME_DIR,
+                      25.0 * 360.0, RALLA_TOCCHI_SENSORE, RALLA_CAM_SIGNAL);*/
+                      
+        /// Se non è ancora in posizione allora raggiunge una posizione nota (Posizione Home della ralla)
+        if(ralla.rawRead() != RALLA_CAM_SIGNAL)
           MotRalla.moveContinuous(RALLA_HOME_DIR, RALLA_HOME_SPEED);
 
-          MotPunzone.attach();
-          MotPunzone.Start();
+        MotPunzone.attach();
+        MotPunzone.Start();
+        /// Se non è ancora in posizione arretrata allora va indietro (Posizione Home del punzone)
+        if(punzMax.rawRead() == PUNZ_CAM_SIGNAL)
           MotPunzone.moveContinuous(DIR_NEGATIVE, PUNZ_HOME_SPEED);
 
-          ServoParatia.attach(SERVO_PIN, SERVO_MIN, SERVO_MAX);
-          ServoParatia.write(SERVO_CLOSED_POS); // Chiude la paratia mossa dal servomotore
+        ServoParatia.attach(SERVO_PIN, SERVO_MIN, SERVO_MAX);
+        ServoParatia.write(SERVO_CLOSED_POS); // Chiude la paratia mossa dal servomotore
 
-          sequenza = MACHINE_STARTUP_FINISHED_STATE;
-          LogWarning("Decapsulator PRG", "Wait init to finish");
-        }
+        sequenza = MACHINE_STARTUP_FINISHED_STATE;
+        LogWarning("Decapsulator PRG", "Wait init to finish");
+    
       break;
 
+      /// Una volta Inizializzato tutto...(motori in posizione ecc.)
+      /// Passa allo stato di quiete in cui attende il comando di start
       case MACHINE_STARTUP_FINISHED_STATE :
-            
-        /// Una volta Inizializzato tutto...(motori in posizione ecc.)
-        /// Passa allo stato di quiete in cui attende il comando di start
+      {            
         /// DebugOverrideVar<bool>("forceStartup/value", &FORCE_THE_STARTUP); <-- @bug
-        if(FORCE_THE_STARTUP || (punzMaxInt.flag == true && punzMinInt.flag == false && rallaInt.flag == true))
+        if(FORCE_THE_STARTUP || (punzMax.event() == true && punzMin.event() == false && ralla.event() == true))
         {
-          /// Permette la ricalibrazione della ralla
-          rallaInt.flag = false;
-          //detachInterrupt(rallaInt.pin);
+          ralla.detach();
           LogWarning("Decapsulator PRG", "Entro nello stato: QUIETE");
           sequenza = QUIETE_STATE;
         }
-      break;
+        break;
+      }
 
       case QUIETE_STATE :
+      {
         /// Se sono presenti le capsule nello scivolo e c'è stato il segnale di start inizia il ciclo
-        if(startCycleFromHMI && presenzaCaps.flag && MotRalla.isStepDone() && MotPunzone.isStepDone())
+        if(startCycleFromHMI && presenzaCaps.event() && MotRalla.isStepDone() && MotPunzone.isStepDone())
         {
           LogInfo("Decapsulator PRG", "Entro nello stato: REACH_NEXT_STATION_STATE");
           sequenza = REACH_NEXT_STATION_STATE;
         }
-      break;
+        break;
+      }
 
       case REACH_NEXT_STATION_STATE :
+      {
+
         if(MotRalla.isStepDone() && MotPunzone.isStepDone())
         {
           /// Setta la direzione di marcia del tamburo e si muove alla posizione successiva
           MotRalla.moveRel(+90.0 * GEAR_RATIO_RALLA, RALLA_SPEED_MOVEMENT);
 
           /// Se c'è il pezzo vuol dire che rimangono sempre almeno 3 cicli, altrimenti decrementa
-          nCicliRimanenti = presenzaCaps.flag ? 3 : nCicliRimanenti-1;
+          nCicliRimanenti = presenzaCaps.event() ? 3 : nCicliRimanenti-1;
 
           if(nCicliRimanenti == 0)
           {
@@ -392,9 +352,11 @@ void prgDecapsulatorTask(void *pvParameters)
             sequenza = PUNCHER_DOWN_LOW_TORQUE_STATE;
           }
         }
-      break;
+        break;
+      }
 
       case PUNCHER_DOWN_LOW_TORQUE_STATE :
+      {
         if(MotRalla.isStepDone())
         {
           /// Setta la direzione di marcia del punzone e mette in coda 
@@ -403,26 +365,32 @@ void prgDecapsulatorTask(void *pvParameters)
           LogInfo("Decapsulator PRG", "Entro nello stato: PUNCHER_DOWN_HIGH_TORQUE_STATE");
           sequenza = PUNCHER_DOWN_HIGH_TORQUE_STATE;
         }
-      break;
+        break;
+      }
 
       case PUNCHER_DOWN_HIGH_TORQUE_STATE :
+      {
         if(MotRalla.isStepDone())
         {
           MotPunzone.moveRel(PUNZ_HIGH_TORQUE_ROTATIONS * 360.0, PUNZ_HIGH_TORQUE_MOVEMENT);    // Fa 15 giri = 30mm lineari ad alta coppia
           LogInfo("Decapsulator PRG", "Entro nello stato: SERVO_LOADER_OPEN_STATE");
           sequenza = SERVO_LOADER_OPEN_STATE;      
         }
-      break;
+        break;
+      }
 
       case SERVO_LOADER_OPEN_STATE :
+      {
         if(MotRalla.isStepDone())
         {
           ServoParatia.write(SERVO_OPEN_POS);
           /// Cambio di stato dovuto dall'Interrupt della Fotocellula conferma capsula nel tamburo
         }
-      break;
+        break;
+      }
 
       case SERVO_LOADER_CLOSE_STATE :
+      {
         /// Se il pezzo è passato, i 30ms di debounce sono passati e non si è intasato
         if(!digitalRead(PIECE_PASSED_PIN))
         {
@@ -430,135 +398,27 @@ void prgDecapsulatorTask(void *pvParameters)
           LogInfo("Decapsulator PRG", "Entro nello stato: PUNCHER_UP_STATE");
           sequenza = PUNCHER_UP_STATE;
         }
-      break;
+        break;
+      }
 
       case PUNCHER_UP_STATE :
+      {
         MotPunzone.moveRel((PUNZ_LOW_TORQUE_ROTATIONS + PUNZ_HIGH_TORQUE_ROTATIONS) * -360.0, PUNZ_LOW_TORQUE_MOVEMENT);
         LogInfo("Decapsulator PRG", "Entro nello stato: PUNCHER_UP_STATE");
-      break;
+        break;
+      }
     }
 
      
 /*
-    debounce(punzMaxInt);
-    debounce(punzMinInt);
-    debounce(cadutaCapsInt);
-    debounce(presenzaCaps);
-    debounce(rallaInt);
+    debounce(&punzMaxInt);
+    debounce(&punzMinInt);
+    debounce(&cadutaCapsInt);
+    debounce(&presenzaCaps);
+    debounce(&rallaInt);
 */
     
 
     xTaskDelayUntil(&getLastTick, MainPrg_delay);
   }
 }
-
-
-
-#include <sdkconfig.h>
-
-/**
-╔═════════════════════════════════════════════════╗
-║                   INTERRUPTS:                   ║
-╚═════════════════════════════════════════════════╝
-*/
-
-/**
- * @brief è la ISR per rilevare la caduta della capsula
- */
-void IRAM_ATTR capsulaPassataISR() { cadutaCapsInt.flag = true; }
-
-
-
-
-
-
-/**
- *  @brief Queste funzioni gestiscono in modo asincrono le gestioni
- *         dell'Interrupt Service Routine dei pin di finecorsa 
- *         sia "Alto" che "Basso"
- * 
- *  @note Cambia il valore dello stato sia in RISING che in FALLING edge
- * 
- *  @todo Vedere se ha senso implementare un metodo di "AbortStep"
- *        che setta direttamente a 0 i passi che deve fare il motore
- */
-void IRAM_ATTR fc_PunzoneAltoISR() { punzMaxInt.flag = true; }
-
-void IRAM_ATTR fc_PunzoneBassoISR() { punzMinInt.flag = true; }
-
-void IRAM_ATTR calib_ralla_positionISR() { rallaInt.flag = true; }
-
-
-
-
-
-
-/// leggendo direttamente i registri è più veloce (preso spunto da "gpio_ll_get_level()")
-/// @attention Necessita però che in pinMode(pin, INPUT_PULLUP) oppure pinMode(pin, INPUT_PULLDOWN)
-#ifndef digitalReadFast
-  #define digitalReadFast(gpio_pin) ( (gpio_pin < 32) ? ((*(volatile uint32_t*)(GPIO_IN_REG) >> gpio_pin) & 0x1) : ((*(volatile uint32_t*)(GPIO_IN1_REG) >> (gpio_pin - 32)) & 0x1) )
-#endif
-
-
-void debounce(DebPinMgmt_t intPin)
-{
-  switch(intPin.debState)
-  {
-    case 0 : /// STATO ATTESA EVENTO
-    
-      /// Attende che si verifichi l'evento
-      if(intPin.flag)
-      {
-        /// Si salva il tempo di start da quando avviene il rilevamento dell'interrupt
-        intPin.lastTime = millis();    
-
-        /// Restituisce lo stato di confronto
-        intPin.precPinState = digitalReadFast(intPin.pin);
-
-        /// Passa allo stato di attesa della conferma
-        intPin.debState++;
-      }
-
-    break;
-
-    case 1 : /// STATO ATTESA CONFERMA
-
-      /// Si salva il tempo attuale
-      const uint32_t tmpTime = millis();
-
-      if(tmpTime - intPin.lastTime >= intPin.debounce_ms)
-      {
-        /// Flag reset
-        intPin.flag = 0;
-
-        /// Debounce state reset
-        intPin.debState = 0;
-
-        /// Restituisce lo stato reale del pin
-        if(digitalReadFast(intPin.pin) == intPin.precPinState)
-        {
-          intPin.level = intPin.precPinState;
-        }
-      }
-
-    break;
-  }
-}
-
-
-/**
- * @brief Inizializza un determinato input pin per avere un debounce
- * 
- * @param inPin viene passata la struttura che contiene i dati relativi
- *        al pin e al su debounce
- * 
- * @param ISR 
- */
-void initDebPin(DebPinMgmt_t* inPin, void (*ISR)())
-{
-  pinMode(inPin->pin, INPUT_PULLDOWN);
-  inPin->level = digitalReadFast(inPin->pin);
-  if(ISR != nullptr)
-    attachInterrupt(digitalPinToInterrupt(inPin->pin), ISR, CHANGE);
-}
-

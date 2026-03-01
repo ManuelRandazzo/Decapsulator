@@ -38,6 +38,12 @@ void DebPinHandler::reattach()
     if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
         return;
 
+    if(this->isAttached)
+    {
+        xSemaphoreGive(this->mutex);
+        return;
+    }
+
     if(this->isInterrupt)
         attachInterruptArg(digitalPinToInterrupt(this->pin), &this->__ISR, this, this->TRIGGER);
 
@@ -53,6 +59,12 @@ void DebPinHandler::detach()
 {
     if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
         return;
+
+    if(!this->isAttached)
+    {
+        xSemaphoreGive(this->mutex);
+        return;
+    }
 
     if(this->isInterrupt)
         detachInterrupt(this->pin);
@@ -235,6 +247,21 @@ bool DebPinHandler::pollUpdate(uint8_t trigger)
 
 
 
+/**
+ * @brief Restituisce il valore del pin senza debounce
+ */
+inline int8_t DebPinHandler::rawRead()
+{
+    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+        return -1;
+
+    int8_t pinToRead = this->pin;
+
+    xSemaphoreGive(this->mutex);
+
+    /// legge il pin e restituisce il livello
+    return digitalReadFast(pinToRead);
+}
 
 
 

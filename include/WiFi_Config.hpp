@@ -4,7 +4,8 @@
 #pragma once
 
 /// Include la libreria per la gestione del WiFi
-#include "WiFi.h"
+#include "Arduino.h"
+#include <WiFi.h>
 
 /// Include il file in cui ci sono i dati del WiFi e la relativa password 
 /// del programmatore (salvato solo nel PC in locale e non su github, escluso da .gitignore)
