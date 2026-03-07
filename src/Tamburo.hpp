@@ -18,8 +18,6 @@
 
 /// Include la libreria custom per la gestione delle task
 #include "Tasks.hpp"
-/// Include il file custom della gestione degli Interrupts
-#include "Interrupts.hpp"
 /// Include la libreria custom del motion
 #include "MotionControl.hpp"
 /// Include la libreria per la gestione del servomotore

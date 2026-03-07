@@ -1,0 +1,22 @@
+{
+  "name": "WiFi_Config",
+  "keywords": "WiFi_Config",
+  "description": "Libreria per usare i Task di freeRTOS in OOP",
+  "authors":
+  [
+    {
+      "name": "Manuel Randazzo",
+      "maintainer": true
+    }
+  ],
+  "repository":
+  {
+    "type": "git",
+    "url": "https://github.com/ManuelRandazzo/Decapsulator"
+  },
+  "version": "1.0.0",
+  "license": "MIT",
+  "frameworks": "*",
+  "platforms": "*",
+  "headers": "DRV8825.h"
+}

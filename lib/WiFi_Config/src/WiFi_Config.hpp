@@ -5,7 +5,7 @@
 
 /// Include la libreria per la gestione del WiFi
 #include "Arduino.h"
-#include <WiFi.h>
+#include "WiFi.h"
 
 /// Include il file in cui ci sono i dati del WiFi e la relativa password 
 /// del programmatore (salvato solo nel PC in locale e non su github, escluso da .gitignore)
@@ -16,11 +16,10 @@
 
 /// Test Mosquitto MQTT broker, @see https://test.mosquitto.org
 #define MQTT_BROKER "mqtt://test.mosquitto.org:1883"
+//#define MQTT_BROKER "mqtt://192.168.3.98:1883" /// Usa l'mqtt broker che gira sulla raspberry
 
 /// Si può modificare dal display (tastiera virtuale usando LVGL, libreria "lvgl" esempio "keyboard"), ma di default sono così, veranno salvati su un file da leggere all'inizio.
 /// Bisogna dichiararla inline perchè se no viene fatta una copia in tutti i file che includono WiFi_secrets.h, producendo errori
-String WIFI_SSID = __HIDDEN_PROGRAMMER_INITIAL_WIFI_SSID;
-String WIFI_PASSWORD = __HIDDEN_PROGRAMMER_INITIAL_WIFI_PASSWORD;
 extern String WIFI_SSID;
 extern String WIFI_PASSWORD;
 
