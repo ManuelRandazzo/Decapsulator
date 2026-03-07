@@ -21,9 +21,7 @@
  * @brief QUESTO FILE CONTIENE LA CLASSE PER L'HANDLING DEI MOTORI STEPPER
  *
  */
-#include "freertos/portmacro.h"
 #include "DRV8825_Decapsulator.hpp" /// Driver dello stepper
-//#include "PID.h"   /// Classe per la stabilità del motore
 #include "Tasks.hpp"   /// Creazione delle tasks
 #include "Interrupts.hpp"
 #include "Debug.hpp"
@@ -102,76 +100,76 @@ class MOTION : private DRV8825
     ~MOTION();
 
     /// Inizializza il Motion Controller
-    inline drv_err_t Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin,
-                          UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin = 255, void (*FaultISR)() = nullptr, uint32_t FaultISR_Heap = 4096, UBaseType_t FaultISR_priority = 15);
+    drv_err_t Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin,
+                   UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin = 255, void (*FaultISR)() = nullptr, uint32_t FaultISR_Heap = 4096, UBaseType_t FaultISR_priority = 15);
 
     /// Mette in coppia il motore
-    inline void attach();    
+    void attach();    
 
     /// Disaccoppia il motore
-    inline void detach();
+    void detach();
 
     /// Restituisce se il motore è attached (true) o no (false)
-    inline bool isAttached();
+    bool isAttached();
 
     /// Restituisce se il motore è detached (true) o no (false) 
-    inline bool isDetached();
+    bool isDetached();
 
     /// Inizializza il motore con l'Homing in modo che si sappia il punto di partenza
-    inline void home(uint8_t calibrationPin, uint8_t inputModePin, uint8_t triggerMode, double HomeVelocity_gradi_sec, Direction_t searchDirection,
-                     double gradiDopoHome, uint8_t quanteVolteToccaIlSensore, CalibSignal_t calibCamSignal);
+    void home(uint8_t calibrationPin, uint8_t inputModePin, uint8_t triggerMode, double HomeVelocity_gradi_sec, Direction_t searchDirection,
+              double gradiDopoHome, uint8_t quanteVolteToccaIlSensore, CalibSignal_t calibCamSignal);
 
     /// @return se è finito(true) o no(false) l'homing
-    inline bool isHomeDone();
+    bool isHomeDone();
 
     /// Permette al motore di avviarsi e muoversi, almeno una volta deve essere chiamata questa funzione
-    inline void Start();
+    void Start();
 
     /// Ferma il motore lasciandolo in coppia o togliendo corrente e necessita di un nuovo Start()
-    inline void Stop(StopReleaseOrHold_t rilasciaOppureMantieniCoppia = RELEASE);
+    void Stop(StopReleaseOrHold_t rilasciaOppureMantieniCoppia = RELEASE);
 
     /// Ferma il motore lasciandolo in coppia non serve richiamare un nuovo Start()
-    inline void Halt();
+    void Halt();
 
     /// @return true se il motore è fermo e non può essere comandato
-    inline bool isStopped();
+    bool isStopped();
 
     /// @return true se il motore può essere comandato
-    inline bool isStarted();
+    bool isStarted();
 
     /// Muove il motore in una direzione e alla velocità specificata in modo RELATIVO
-    inline void moveRel(double gradi, double speed_gradi_al_secondo = 0.0);
+    void moveRel(double gradi, double speed_gradi_al_secondo = 0.0);
 
     /// Muove il motore in una direzione e alla velocità specificata in modo ASSOLUTO rispetto all'accensione
-    inline void moveAbs(double gradi, double speed_gradi_al_secondo = 0.0);
+    void moveAbs(double gradi, double speed_gradi_al_secondo = 0.0);
 
     /// Muove il motore all'infinito verso la direzione specificata
-    inline void moveContinuous(Direction_t direzione, double speed_gradi_al_secondo = 0.0);
+    void moveContinuous(Direction_t direzione, double speed_gradi_al_secondo = 0.0);
 
     /// Restituisce se il movimento è finito o no così da poterne iniziare un altro
-    inline bool isStepDone();
+    bool isStepDone();
 
     /// Driver in low power mode, Disaccoppia il motore, Ignora TUTTI gli Input, spegne : clock, pompa di carica, regolatore interno 
     /// Se state = FALSE è "sveglio", se state = TRUE allora va in sleep mode, se è già spento o già acceso e viene ripetuta l'operazione non fa nulla
-    inline void sleep(bool state = true);
+    void sleep(bool state = true);
 
     ///resetta il driver e le variabili
-    inline void reset();
+    void reset();
 
     /// Converte da gradi a steps con segno
-    inline int64_t gradiToSteps(double gradi);
+    int64_t gradiToSteps(double gradi);
 
     /// Converte da steps a gradi con segno
-    inline double stepsToGradi(int64_t steps);
+    double stepsToGradi(int64_t steps);
 
     /// Definizione di una Interrupt Service Routine (ISR) relativa al pin nFAULT del DRV8825 per monitoraggio asincrono.
-    inline void setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap = 4096, UBaseType_t priority = 15);
+    void setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap = 4096, UBaseType_t priority = 15);
 
     /// @return la posizione assoluta in steps
-    inline double getPosition();
+    double getPosition();
 
     /// @return la posizione assoluta in steps
-    inline int64_t getPositionInSteps();
+    int64_t getPositionInSteps();
 
   private : /// Dato che la libreria del driver fornisce come protected delle variabili la classe MOTION le eredita
     DRV8825 Motion; /// Oggetto del driver usato per il motore
@@ -218,7 +216,7 @@ class MOTION : private DRV8825
 
     BaseType_t MoveSendToQueue(MoveQueue_t StructToSend);
 
-    //inline int64_t updateStepsPosition();       /*!< Aggiorna la posizione e ritorna anche la posizione assoluta  */
+    //int64_t updateStepsPosition();            /*!< Aggiorna la posizione e ritorna anche la posizione assoluta  */
 
     TaskTypeDef MoveHandlerTask;                /*!< Oggetto alla classe delle tasks  */
     
@@ -231,19 +229,18 @@ class MOTION : private DRV8825
     void HomingReachedISR();
 
     /// Funzione per ottenere 1 se il segnale della camma è attivo oppure 0 se non è attivo
-    inline bool getCamSignal(); 
+    bool getCamSignal(); 
 
     /// Funzione per ottenere il delay per poter cambiare la velocità del movimento
-    inline uint64_t getPeriodDelay(const double gradiSecondo);   
+    uint64_t getPeriodDelay(const double gradiSecondo);   
     
     SwitchMove_t selettore = STAND_STILL;
 
     bool __isStopped = true;                  /*!< Flag di motore stoppato o avviato modificato da Start() e Stop() e restituito da
                                                    isStopped e isStarted  */
     
-    bool __isHalted = false;                   /*!< Flag di motore in Halt modificato da Halt e tutte le azioni di movimento  */
+    bool __isHalted = false;                  /*!< Flag di motore in Halt modificato da Halt e tutte le azioni di movimento  */
 
     bool __isAttached = false;                /*!< Flag di motore stoppato o avviato modificato da Start() e Stop() e restituito da
                                                    isStopped e isStarted  */
 };
-

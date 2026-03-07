@@ -1,9 +1,7 @@
 #pragma once
 
 #include "Arduino.h"
-#include "Debug.hpp"
-#include "freertos/portmacro.h"
-#include "freertos/semphr.h"
+//#include "Debug.hpp"
 #include "hal/gpio_ll.h"
 
 #ifndef digitalReadFast

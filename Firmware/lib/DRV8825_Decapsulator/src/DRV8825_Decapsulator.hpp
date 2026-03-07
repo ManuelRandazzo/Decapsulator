@@ -24,13 +24,8 @@
  */
 
 #include "Arduino.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
 #include "driver/rmt_tx.h"
-#include "soc/gpio_struct.h"
 #include "hal/gpio_ll.h"
-#include "esp_log.h"
 
 
 //  setDirection

@@ -83,13 +83,18 @@ bool DebPinHandler::event()
     if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
         return false;
 
-    bool flagHasOccured
+    bool flagHasOccured;
     if(this->isAttached)
-         = this->changeOccurred;
+        flagHasOccured = this->changeOccurred;
 
     xSemaphoreGive(this->mutex);
 
     return flagHasOccured;
+
+
+
+
+    
 }
 
 
@@ -250,7 +255,7 @@ bool DebPinHandler::pollUpdate(uint8_t trigger)
 /**
  * @brief Restituisce il valore del pin senza debounce
  */
-inline int8_t DebPinHandler::rawRead()
+int8_t DebPinHandler::rawRead()
 {
     if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
         return -1;
@@ -280,14 +285,14 @@ void DebPinHandler::__Init(bool IntrOrPoll)
 
     if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
     {
-        LogError("initDebPin", "Errore xSemaphoreTake del pin \"%s\"", this->name);
+        //LogError("initDebPin", "Errore xSemaphoreTake del pin \"%s\"", this->name);
         return;
     }
 
     /// Inizializza l'input pin con la modalità voluta
     if(this->pin == 255)
     {
-        LogError("initDebPin", "Errore pin non fornito del pin \"%s\"", this->name);
+        //LogError("initDebPin", "Errore pin non fornito del pin \"%s\"", this->name);
         return;
     }
 

@@ -1,4 +1,3 @@
-
 #include "MotionControl.hpp"
 
 /**
@@ -131,7 +130,7 @@ void MOTION::MoveHandler()
  *  @param fault_pin : associazione al pin nFAULT del driver
  *  @param FaultISR  : Viene associata una Interrupt Service Routine creata dall'utente che verrà eseguita in caso vi sia un problema : Overcurrent, Undervoltage, Overtemperature.
  */
-inline drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin, UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t FaultISR_priority)
+drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin, UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t FaultISR_priority)
 {
   /// Microstep scelti da HardWare
   uStepScelti = microSteps;
@@ -182,7 +181,7 @@ inline drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t s
 /**
  *  @brief Mette in coppia il motore
  */
-inline void MOTION::attach()
+void MOTION::attach()
 {
   Motion.enable();
   __isAttached = true;
@@ -191,7 +190,7 @@ inline void MOTION::attach()
 /**
  *  @brief Disaccoppia il motore
  */
-inline void MOTION::detach()
+void MOTION::detach()
 {
   Motion.disable();
   __isAttached = false;
@@ -200,7 +199,7 @@ inline void MOTION::detach()
 /**
  *  @brief Restituisce se il motore è attached (true) o no (false)
  */
-inline bool MOTION::isAttached()
+bool MOTION::isAttached()
 {
   return __isAttached;
 }
@@ -208,7 +207,7 @@ inline bool MOTION::isAttached()
 /**
  *  @brief Restituisce se il motore è detached (true) o no (false)
  */
-inline bool MOTION::isDetached()
+bool MOTION::isDetached()
 {
   return !__isAttached;
 }
@@ -230,7 +229,7 @@ inline bool MOTION::isDetached()
  *  @warning QUESTA FUNZIONE ESCE SUBITO ED ESEGUE L'HOMING IN MODO ASINCRONO CON TASK INTERNA.
  *           Solo quando la funzione @see isHomeDone() restituisce true allora sarà effettivamente finito l'home 
  */
-inline void MOTION::home(uint8_t calibrationPin, uint8_t inputModePin, uint8_t triggerMode, double HomeVelocity_gradi_sec, Direction_t searchDirection,
+void MOTION::home(uint8_t calibrationPin, uint8_t inputModePin, uint8_t triggerMode, double HomeVelocity_gradi_sec, Direction_t searchDirection,
                          double gradiDopoHome, uint8_t quanteVolteToccaIlSensore, CalibSignal_t calibCamSignal)
 {
   /// Struct per inviare il buffer dati
@@ -278,7 +277,7 @@ inline void MOTION::home(uint8_t calibrationPin, uint8_t inputModePin, uint8_t t
  *
  *  @return Restituisce true se l'homing è finito, restituisce false se non è finito
  */
-inline bool MOTION::isHomeDone()
+bool MOTION::isHomeDone()
 {
   return __isHomeFinished;
 }
@@ -294,7 +293,7 @@ inline bool MOTION::isHomeDone()
            Invece in HOLD mode manterrà in coppia il motore impedendo che si sposti finchè c'è ancora corrente
  *  @note Se va in sleep consuma meno corrente e impedisce che per sbaglio vengano inviati comandi
  */
-inline void MOTION::Stop(StopReleaseOrHold_t rilasciaOppureMantieniCoppia)
+void MOTION::Stop(StopReleaseOrHold_t rilasciaOppureMantieniCoppia)
 {
   /// Fin da subito non permette più il movimento ignora l'aggiornamento di step
   __isStopped = true;
@@ -309,7 +308,7 @@ inline void MOTION::Stop(StopReleaseOrHold_t rilasciaOppureMantieniCoppia)
 /**
  *  @brief Restituisce se il motore è fermo e NON può essere comandato
  */
-inline bool MOTION::isStopped()
+bool MOTION::isStopped()
 {
   return __isStopped;
 }
@@ -320,7 +319,7 @@ inline bool MOTION::isStopped()
  *  @warning Bisogna chiamare attach() prima di poterlo startare / restartare 
  *           se era stata tolta la coppia al motore 
  */
-inline void MOTION::Start()
+void MOTION::Start()
 {
   /// Riprende la task che era stata precedentemente fermata per ragioni di siurezza con Stop()
   MoveHandlerTask.Resume();
@@ -331,7 +330,7 @@ inline void MOTION::Start()
 /**
  *  @brief Restituisce se il motore è startato e può essere comandato
  */
-inline bool MOTION::isStarted()
+bool MOTION::isStarted()
 {
   return !(__isStopped);
 }
@@ -340,7 +339,7 @@ inline bool MOTION::isStarted()
  *  @brief Interrompe il comando che sta attualmente avvenendo qualsiasi esso sia e cancella i movimenti successivi,
  *         ma lasciando il motore in coppia e fermo ma accetta altri comandi senza ridare Start()
  */
-inline void MOTION::Halt()
+void MOTION::Halt()
 {
   __isHalted = true;
 }
@@ -351,7 +350,7 @@ inline void MOTION::Halt()
  *  @param gradi il segno determina la direzione e sono i gradi di cui si sposta
  *  @param speed_gradi_al_secondo è la velocità a cui si muove il motore
  */
-inline void MOTION::moveRel(double gradi, double speed_gradi_al_secondo)
+void MOTION::moveRel(double gradi, double speed_gradi_al_secondo)
 {
   /// Struttura temporanea da inviare in coda
   MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__nCalibTouch = 1, .__speed_steps_us = 10 };
@@ -385,7 +384,7 @@ inline void MOTION::moveRel(double gradi, double speed_gradi_al_secondo)
  *                   poiché non teneva conto di quanti step doveva fare e in che direzione per arrivare
  *                   nel voluto punto assoluto
  */
-inline void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
+void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
 {
   /// In base all'attuale posizione riconosce la direzione
   int64_t tmpSteps = gradiToSteps(gradi);
@@ -416,7 +415,7 @@ inline void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
  *  @param Direzione in cui gira
  *  @param speed_gradi_al_secondo è la velocità a cui si muove il motore
  */
-inline void MOTION::moveContinuous(Direction_t direzione, double speed_gradi_al_secondo)
+void MOTION::moveContinuous(Direction_t direzione, double speed_gradi_al_secondo)
 {  
   /// Struttura temporanea da inviare in coda
   MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__nCalibTouch = 1, .__speed_steps_us = 10 };
@@ -440,7 +439,7 @@ inline void MOTION::moveContinuous(Direction_t direzione, double speed_gradi_al_
  *
  *  @return se è finito o no il passo e quindi è possibile dare un altro comando
  */
-inline bool MOTION::isStepDone()
+bool MOTION::isStepDone()
 {
   return Motion.isStepDone();
 }
@@ -450,7 +449,7 @@ inline bool MOTION::isStepDone()
  *         
  *  @param state Se state = FALSE è "sveglio", se state = TRUE allora va in sleep mode, se è già spento o già acceso e viene ripetuta l'operazione non fa nulla
  */
-inline void MOTION::sleep(bool state)
+void MOTION::sleep(bool state)
 {
   state && !Motion.isSleeping() ? Motion.sleep() : (!state && Motion.isSleeping() ? Motion.wakeup() : false); //false vuol dire che non fa nulla
 }
@@ -460,7 +459,7 @@ inline void MOTION::sleep(bool state)
 /**
  *  @brief Resetta il driver e le variabili della classe
  */
-inline void MOTION::reset()
+void MOTION::reset()
 {
   Motion.reset();
 
@@ -503,8 +502,7 @@ inline void MOTION::reset()
  *
  *  @return int64_t steps
  */
-__attribute__((always_inline))
-inline int64_t MOTION::gradiToSteps(double gradi)
+int64_t MOTION::gradiToSteps(double gradi)
 {
   return (int64_t)((gradi / 360.0) * double(uStepScelti * __stepsMotore));
 }
@@ -518,8 +516,7 @@ inline int64_t MOTION::gradiToSteps(double gradi)
  *
  *  @return double gradi
  */
-__attribute__((always_inline))
-inline double MOTION::stepsToGradi(int64_t steps)
+double MOTION::stepsToGradi(int64_t steps)
 {
   return (double)((steps * 360) / __stepsMotore); 
 }
@@ -536,7 +533,7 @@ inline double MOTION::stepsToGradi(int64_t steps)
  *  ATTENZIONE: Il context switch tra l'ISR e la task di gestione di Interrupt è immediata 
  *
  */
-inline void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t priority)
+void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t priority)
 {
   /// Definisce la funzione di Interrupt Service Routine del pin nFAULT
   __FaultISR = FaultISR;
@@ -559,8 +556,7 @@ inline void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t 
 /**
  *  @return la posizione assoluta in gradi
  */
-__attribute__((always_inline))
-inline double MOTION::getPosition()
+double MOTION::getPosition()
 {
   /// @note getAbsPosition appartiene alla @class DRV8825
   return gradiToSteps(getAbsPosition());
@@ -569,8 +565,7 @@ inline double MOTION::getPosition()
 /**
  *  @return la posizione assoluta in steps
  */
-__attribute__((always_inline))
-inline int64_t MOTION::getPositionInSteps()
+int64_t MOTION::getPositionInSteps()
 {
   /// @note getAbsPosition appartiene alla @class DRV8825
   return getAbsPosition();
@@ -588,8 +583,7 @@ inline int64_t MOTION::getPositionInSteps()
  *
  *  @brief Funzione per ottenere il delay per poter cambiare la velocità del movimento
  */
-__attribute__((always_inline))
-inline uint64_t MOTION::getPeriodDelay(const double gradiSecondo)
+uint64_t MOTION::getPeriodDelay(const double gradiSecondo)
 {
   /// Formula Per ottenere il periodo tra uno step e l'altro tenendo conto del microstepping scelto,
   /// vedi datasheet per ottenere la frequenza di step dato che : Tstep = (1 / Fstep)
@@ -603,7 +597,7 @@ inline uint64_t MOTION::getPeriodDelay(const double gradiSecondo)
  *
  *  @brief Interrupt Service Routine per il segnale del finecorsa che viene eseguito su una task dedicata, @see @ref @file Interrupts.hpp --> @class INTERRUPTS
  */
-inline void MOTION::HomingReachedISR()
+void MOTION::HomingReachedISR()
 {
   if(getCamSignal()) /// Se non è stato fermato e il segnale è valido allora...
   {
@@ -673,9 +667,7 @@ BaseType_t MOTION::MoveSendToQueue(MoveQueue_t StructToSend)
  *        ║     1    ║     1    ║    1   ║
  *        ╚══════════╩══════════╩════════╝
  */
-
-__attribute__((always_inline))
-inline bool MOTION::getCamSignal()
+bool MOTION::getCamSignal()
 {
   return !(digitalReadFast(receiverQueue.__calibPin) ^ receiverQueue.__calibSig);
 }
