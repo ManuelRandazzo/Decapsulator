@@ -19,5 +19,5 @@ node_modules/
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
-src/local_secrets.hpp
+local_secrets.hpp
 .directory
