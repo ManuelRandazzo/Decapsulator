@@ -16,8 +16,8 @@
 #endif
 
 
-#define INTR (bool)(false)
-#define POLL (bool)(true)
+#define INTR (bool)(true)
+#define POLL (bool)(false)
 
 
 
@@ -78,6 +78,21 @@ class DebPinHandler
         int8_t rawRead();
 
         /**
+         * @brief restituisce se il pin è polling
+         * 
+         * @return true se è interrupt, false se è polling
+         */
+        bool IsInterrupt();
+
+        /**
+         * @brief restituisce se il pin è interrupt
+         * 
+         * @return true se è polling, false se è interrupt
+         */
+        bool IsPolling();
+
+
+        /**
          *  @brief Trasforma tutte le variabili della classe in una stringa
          *  
          *  @return Stringa con tutti le variabili
@@ -99,6 +114,17 @@ class DebPinHandler
             str += String("precPinLevel : ") + precPinLevel + "\n";
             str += String("lastTime : ") + lastTime + "\n";
             str += String("debState : ") + debState + "\n";
+            int8_t rawReadVal = rawRead();
+            String rawReadStr;
+            str += String("raw read : ");
+            switch(rawReadVal)
+            {
+              case -1   : str += "MUTEX ERROR (-1)"; break;
+              case HIGH : str += "HIGH (1)"; break;
+              case LOW  : str += "LOW (0)"; break;
+              default   : str += "UNKNOWN : value " + String(rawReadVal);
+            }
+            str += "\n";
 
             return str;
         }
@@ -124,7 +150,7 @@ class DebPinHandler
         uint32_t lastTime;
         unsigned debState : 5;
 
-        void __Init(bool inputMode);
+        void __Init();
 
         static void __ISR(void* thisPtr);
 };
