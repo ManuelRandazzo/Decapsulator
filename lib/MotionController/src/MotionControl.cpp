@@ -14,7 +14,7 @@ MOTION::~MOTION()
  *  @private Element Of The Class
  *
  *  @brief Questo metodo ha il compito di gestire in modo ottimale per sistema FreeRTOS il movimento e la velocità del motore
- * 
+ *
  *  ATTENZIONE: La task viene riattivata da Start e sospesa da Stop quindi è sicuro che non venga mai chiamato MoveHandler per ragioni di sicurezza
  */
 void MOTION::MoveHandler()
@@ -32,7 +32,7 @@ void MOTION::MoveHandler()
     {
       this->selettore = receiverQueue.__SwitchMove;
 
-      /// Alza il flag il flag di comando
+      /// Alza il flag di comando
       flagRunOnceCMD = true;
     }
     #ifdef LOG_ACTIVE_MOTION
@@ -40,8 +40,98 @@ void MOTION::MoveHandler()
     #endif
   }
   else if(Motion.isStepDone() == DRV_TRUE)
+  {
+    /// Se era in corso il backoff dell'homing, segnala il completamento
+    if(this->selettore == HOMING && this->__homing_state == HOMING_BACKOFF)
+    {
+      this->__isHomeFinished = true;
+      this->__homing_state   = HOMING_IDLE;
+      #ifdef LOG_ACTIVE_MOTION
+        LogInfo("Handler Motion", "Homing completato con successo");
+      #endif
+    }
     this->selettore = STAND_STILL;
+  }
+  
+  if(this->HardMax != nullptr)
+  {
+    this->HardMax->IsInterrupt() ? this->HardMax->intrUpdate()
+                                 : this->HardMax->pollUpdate();
+    if(this->HardMax->event())
+    {
+      if(this->HardMax->rawRead() == this->__calib_signal)
+      {
+        #ifdef LOG_ACTIVE_MOTION
+          LogInfo("Handler Motion", "Hard Max Limit Pressed, blocking DIR_POSITIVE");
+        #endif
+        this->__limit_direction = DIR_NEGATIVE;
+      }
+      else if(this->__limit_direction == DIR_NEGATIVE)
+      {
+        #ifdef LOG_ACTIVE_MOTION
+          LogInfo("Handler Motion", "Hard Max Limit Released, clearing limit direction");
+        #endif
+        this->__limit_direction = NO_DIR;
+      }
+    }
+  }
 
+  if(this->HardMin != nullptr)
+  {
+    this->HardMin->IsInterrupt() ? this->HardMin->intrUpdate()
+                                 : this->HardMin->pollUpdate();
+
+    if(this->HardMin->event())
+    {
+      if(this->HardMin->rawRead() == this->__calib_signal)
+      {
+        #ifdef LOG_ACTIVE_MOTION
+          LogInfo("Handler Motion", "Hard Min Limit Pressed, blocking DIR_NEGATIVE");
+        #endif
+        this->__limit_direction = DIR_POSITIVE;
+      }
+      else if(this->__limit_direction == DIR_POSITIVE)
+      {
+        #ifdef LOG_ACTIVE_MOTION
+          LogInfo("Handler Motion", "Hard Min Limit Released, clearing limit direction");
+        #endif
+        this->__limit_direction = NO_DIR;
+      }
+    }
+  }
+
+  if(this->__limit_direction != NO_DIR)
+  {
+    /// Durante l'homing in SEARCH il finecorsa è atteso: avvia il backoff
+    if(this->selettore == HOMING && this->__homing_state == HOMING_SEARCH)
+    {
+      #ifdef LOG_ACTIVE_MOTION
+        LogInfo("Handler Motion", "Homing: finecorsa trovato, avvio backoff di %lu steps",
+          receiverQueue.__PostHomeVal);
+      #endif
+
+      /// Inverte la direzione e percorre i passi post-home
+      Direction_t backDir = (receiverQueue.__dir == DIR_POSITIVE) ? DIR_NEGATIVE : DIR_POSITIVE;
+      Motion.abortCurrentMovement();
+      Motion.setDirection(backDir);
+      Motion.step(receiverQueue.__PostHomeVal, receiverQueue.__speed_steps_us);
+
+      this->__homing_state    = HOMING_BACKOFF;
+      this->__limit_direction = NO_DIR;
+      flagRunOnceCMD          = false;
+    }
+    else if(receiverQueue.__dir == this->__limit_direction)
+    {
+      #ifdef LOG_ACTIVE_MOTION
+        LogInfo("Handler Motion", "Hard Limit active, aborting command in dir: %s",
+          this->receiverQueue.__dir == DIR_NEGATIVE ? "DIR_NEGATIVE" : "DIR_POSITIVE");
+      #endif
+      this->abortCurrentCommand();
+      this->selettore = STAND_STILL;
+      flagRunOnceCMD  = false;
+    }
+  }
+  
   /// Se è stato dato un comando di halt allora blocca la coda
   if(this->__isHalted)
   {
@@ -58,6 +148,9 @@ void MOTION::MoveHandler()
 
     /// Sblocca il motore dall'Halt (Halt rimane attivo per un ciclo e basta)
     this->__isHalted = false;
+
+    /// Resetta l'homing state interrompendolo se serve
+    this->__homing_state = HOMING_IDLE;
 
     /// Abortisce il movimento attuale
     Motion.abortCurrentMovement();
@@ -77,6 +170,14 @@ void MOTION::MoveHandler()
     /// Invio dei comandi
     switch(this->selettore)
     {
+      case STAND_STILL :
+        // Do nothing
+      break;
+      /// Avvia il movimento continuo verso il finecorsa di calibrazione
+      case HOMING :
+        this->__homing_state = HOMING_SEARCH;
+        Motion.stepContinuous(receiverQueue.__home_steps_us);
+      break;
       /// Invia il comando di fare un movimento di tot steps in una direzione specificata
       case MOVE_REL :
       case MOVE_ABS :
@@ -93,8 +194,8 @@ void MOTION::MoveHandler()
       LogInfo("Handler Motion", "SwitchMove(MC state selector) attuale = %s (stato = %d)", SwitchMoveStr[selettore], selettore);
     #endif
   }
+ 
 
-  
   /// Aggiorna la classe del DRV8825
   drv_err_t err = Motion.update();
   #ifdef LOG_ACTIVE_MOTION
@@ -109,6 +210,8 @@ void MOTION::MoveHandler()
         LogInfo("Update DRV8825", "%s", drv_err_to_name(err));
     }
   #endif
+
+
 
   
   //vTaskDelay(pdMS_TO_TICKS(0)); /// Permette di fare lo switch tra le task
@@ -177,6 +280,68 @@ drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin
   return DRV_OK;
 }
 
+/**
+ *  @brief Setta i limiti massimi e minimi oltre ai quali il motore non può arrivare
+ * 
+ *  @param pinLimMax Pin che rileva il massimo a cui può arrivare il motore
+ * 
+ *  @param pinLimMin Pin che rileva il minimo a cui può arrivare il motore
+ *
+ *  @param IntrOrPoll INTERRUPT oppure POLLING
+ *   
+ *  @param debounce_ms Tempo per il debounce in millisecondi
+ *   
+ *  @param input_mode Modalità di input del pin INPUT, INPUT_PULLUP, INPUT_PULLDOWN
+ * 
+ *  @param levelActive è il segnale per il quale il sensore viene considerato come triggerato.
+ *                     Valori accetati ACTIVE_LOW, ACTIVE_HIGH
+ */
+void MOTION::setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll, uint32_t debounce_ms, uint8_t input_mode, CalibSignal_t levelActive)
+{
+
+  if(pinLimMax == 255 && pinLimMin == 255)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError("setHardLimits", "Impossibile settare hard limits senza avere almeno settato uno dei due pin diverso da 255");
+    #endif
+    return;
+  }
+
+  if(levelActive == UNKNOWN)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError("setHardLimits", "Impossibile dedurre il livello di quando gli hard limit sono attivi o no del Motion");
+    #endif
+    return;
+  }
+  
+  this->__calib_signal = levelActive;
+
+  DebPinHandler* ptrHardMax = new DebPinHandler(IntrOrPoll, pinLimMax, "MotionHardPinMax", debounce_ms, CHANGE, input_mode);
+  DebPinHandler* ptrHardMin = new DebPinHandler(IntrOrPoll, pinLimMin, "MotionHardPinMin", debounce_ms, CHANGE, input_mode);
+
+  if(ptrHardMax == 0)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError("Hard Max Pin", "Impossibile allocare memoria per il pin Max del Motion");
+    #endif
+    return;
+  }
+
+  if(ptrHardMin == 0)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError("Hard Min Pin", "Impossibile allocare memoria per il pin Min del Motion");
+    #endif
+    return;
+  }
+
+
+  this->HardMax = ptrHardMax;
+  this->HardMin = ptrHardMin;
+
+}
+
 
 /**
  *  @brief Mette in coppia il motore
@@ -229,45 +394,59 @@ bool MOTION::isDetached()
  *  @warning QUESTA FUNZIONE ESCE SUBITO ED ESEGUE L'HOMING IN MODO ASINCRONO CON TASK INTERNA.
  *           Solo quando la funzione @see isHomeDone() restituisce true allora sarà effettivamente finito l'home 
  */
-void MOTION::home(uint8_t calibrationPin, uint8_t inputModePin, uint8_t triggerMode, double HomeVelocity_gradi_sec, Direction_t searchDirection,
-                         double gradiDopoHome, uint8_t quanteVolteToccaIlSensore, CalibSignal_t calibCamSignal)
+void MOTION::home(double HomeVelocity_gradi_sec, Direction_t searchDirection, double gradiDopoHome)
 {
+  if(HomeVelocity_gradi_sec <= 0)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError("Homing", "Impossibile eseguire l'homing con una velocità di homing di : %f", HomeVelocity_gradi_sec);
+    #endif
+    return;
+  }
+
+  switch(searchDirection)
+  {
+    case NO_DIR :
+      #ifdef LOG_ACTIVE_MOTION
+        LogError("Homing", "Impossibile eseguire l'homing senza avere una direzione definita (searchDirection = NO_DIR)");
+      #endif
+      return;
+    break;
+    case DIR_NEGATIVE :
+      if(this->HardMax == nullptr)
+      {
+        #ifdef LOG_ACTIVE_MOTION
+          LogError("Homing", "Impossibile eseguire l'homing perchè Hard Max non è definito");
+        #endif
+        return;
+      }
+    break;
+    case DIR_POSITIVE :
+      if(this->HardMin == nullptr)
+      {
+        #ifdef LOG_ACTIVE_MOTION
+          LogError("Homing", "Impossibile eseguire l'homing perchè Hard Min non è definito");
+        #endif
+        return;
+      }
+    break;
+  }
+
   /// Struct per inviare il buffer dati
-  MoveQueue_t HomeQueueDatas = { .__home_steps_us = 10, .__nCalibTouch = 1, .__speed_steps_us = 10 };
-
-  /// Viene salvato il pin del sensore
-  HomeQueueDatas.__calibPin = calibrationPin;
-
-  /// Viene salvato il segnale che assume il sensore al passaggio
-  HomeQueueDatas.__calibSig = calibCamSignal;
-
-  /// Imposta la direzione
-  HomeQueueDatas.__dir = searchDirection;
-
-  /// Imposta la velocità di Home
-  HomeQueueDatas.__home_steps_us = getPeriodDelay(HomeVelocity_gradi_sec);
-  
-  /// Quante volte deve toccare il sensore per finire l'homing
-  HomeQueueDatas.__nCalibTouch = quanteVolteToccaIlSensore - uint8_t(getCamSignal()); //rimuove uno se è già attivo il finecorsa
+  MoveQueue_t HomeQueueDatas =
+  {
+    .__SwitchMove = HOMING,
+    .__home_steps_us = getPeriodDelay(HomeVelocity_gradi_sec),
+    .__PostHomeVal = gradiToSteps(gradiDopoHome),
+    .__speed_steps_us = 10,
+    .__dir = searchDirection
+  };
 
   /// Abbassa il Flag di Home finito
-  __isHomeFinished = false;
-
-  /// Post Home position
-  HomeQueueDatas.__absPostHomeVal = gradiToSteps(gradiDopoHome);
-  
-  /// Setta il selettore dello switch case 
-  HomeQueueDatas.__SwitchMove = HOMING;
+  this->__isHomeFinished = false;
 
   /// Invia i dati alla coda
   MoveSendToQueue(HomeQueueDatas);
-
-  /// Nel caso in cui non sia definito l'handler dell'interrupt allora lo inizializza
-  if(HOME_IT.getHandlerIT() == NULL)
-    /// Task per l'handling dell'interrupt dell'Homing
-    HOME_IT.Init<MOTION>("Motion Homing Interrupt", calibrationPin, inputModePin, triggerMode, 2048, 20, this, &MOTION::HomingReachedISR);
-  else
-    HOME_IT.resumeISR();
 }
 
 
@@ -345,6 +524,18 @@ void MOTION::Halt()
 }
 
 /**
+ *  @brief Abortisce (cancella) il comando attuale
+ * 
+ *  @attention IsStepDone = true dopo l'esecuzione
+ */
+void MOTION::abortCurrentCommand()
+{
+  this->selettore = STAND_STILL;
+  this->Motion.abortCurrentMovement();
+}
+
+
+/**
  *  @brief Muove il motore in una direzione specificata alla velocità specificata o alla velocità precedentemente impostata in modo Relativo
  *
  *  @param gradi il segno determina la direzione e sono i gradi di cui si sposta
@@ -353,7 +544,7 @@ void MOTION::Halt()
 void MOTION::moveRel(double gradi, double speed_gradi_al_secondo)
 {
   /// Struttura temporanea da inviare in coda
-  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__nCalibTouch = 1, .__speed_steps_us = 10 };
+  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__speed_steps_us = 10 };
 
   /// Setta la direzione
   QueueDatasToSend.__dir = gradi < 0.0 ? DIR_NEGATIVE : DIR_POSITIVE; //isola il segno per riconoscere la direzione
@@ -390,7 +581,7 @@ void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
   int64_t tmpSteps = gradiToSteps(gradi);
 
   /// Struttura temporanea da inviare in coda
-  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__nCalibTouch = 1, .__speed_steps_us = 10 };
+  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__speed_steps_us = 10 };
 
   /// Salva e setta la direzione, va bene qualsiasi siano i segni degli step e dell'absoluteStepCounter
   QueueDatasToSend.__dir = tmpSteps < absoluteStepCounter ? DIR_NEGATIVE : DIR_POSITIVE; 
@@ -418,7 +609,7 @@ void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
 void MOTION::moveContinuous(Direction_t direzione, double speed_gradi_al_secondo)
 {  
   /// Struttura temporanea da inviare in coda
-  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__nCalibTouch = 1, .__speed_steps_us = 10 };
+  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__speed_steps_us = 10 };
 
   QueueDatasToSend.__dir = direzione;
   
@@ -469,10 +660,7 @@ void MOTION::reset()
 
     /// Dati Homing
     .__home_steps_us = 10,             /*!< Velocità dell'homing in step/secondo  */
-    .__calibPin = 63,                  /*!< indica il pin di calibrazione (finecorsa), 6 bits = 64pin max  */
-    .__calibSig = false,               /*!< è il valore che assume il sensore quando viene attivato  */
-    .__nCalibTouch = 1,                /*!< indica quante volte viene toccato il sensore per far sì che sia calibrato  */
-    .__absPostHomeVal = 0,             /*!< è il valore assoluto che viene associato dopo l'homing  */
+    .__PostHomeVal = 0,             /*!< è il valore assoluto che viene associato dopo l'homing  */
 
     /// Altri Dati
     .__speed_steps_us = 10,            /*!< Velocità step/secondo  */
@@ -536,7 +724,7 @@ double MOTION::stepsToGradi(int64_t steps)
 void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t priority)
 {
   /// Definisce la funzione di Interrupt Service Routine del pin nFAULT
-  __FaultISR = FaultISR;
+  this->__FaultISR = FaultISR;
   
 
   /// collega il pin nFAULT all'Interrupt
@@ -559,7 +747,7 @@ void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultIS
 double MOTION::getPosition()
 {
   /// @note getAbsPosition appartiene alla @class DRV8825
-  return gradiToSteps(getAbsPosition());
+  return gradiToSteps(Motion.getAbsPosition());
 }
 
 /**
@@ -568,7 +756,7 @@ double MOTION::getPosition()
 int64_t MOTION::getPositionInSteps()
 {
   /// @note getAbsPosition appartiene alla @class DRV8825
-  return getAbsPosition();
+  return Motion.getAbsPosition();
 }
 
 
@@ -591,44 +779,6 @@ uint64_t MOTION::getPeriodDelay(const double gradiSecondo)
 }
 
 
-
-/**
- *  @private Element Of The Class
- *
- *  @brief Interrupt Service Routine per il segnale del finecorsa che viene eseguito su una task dedicata, @see @ref @file Interrupts.hpp --> @class INTERRUPTS
- */
-void MOTION::HomingReachedISR()
-{
-  if(getCamSignal()) /// Se non è stato fermato e il segnale è valido allora...
-  {
-    if(receiverQueue.__nCalibTouch > 0)
-    {
-      /// si assicura che NON abbia finito l'homing
-      __isHomeFinished = false;
-
-      /// ha toccato una volta il sensore quindi decrementa i tocchi
-      receiverQueue.__nCalibTouch--;    
-
-      /// fa un passo finché viene chiamata la task e non viene fatto l'interrupt sul __calibPin
-      /// trova la frequenza necessaria per il delay in microsecondi
-      Motion.step(1, receiverQueue.__home_steps_us);    
-
-    }
-    else if(!__isHomeFinished && receiverQueue.__nCalibTouch == 0)
-    {
-      /// ha finito l'homing
-      __isHomeFinished = true;
-
-      /// Disattiva l'interrupt per saturare meno la CPU
-      HOME_IT.suspendISR();
-
-      /// Setta la nuova posizione assoluta e anche quella relativa
-      absoluteStepCounter = receiverQueue.__absPostHomeVal;
-    }
-  }    
-}
-
-
 BaseType_t MOTION::MoveSendToQueue(MoveQueue_t StructToSend)
 {
   BaseType_t queueValue;
@@ -644,30 +794,4 @@ BaseType_t MOTION::MoveSendToQueue(MoveQueue_t StructToSend)
   }
 
   return queueValue;
-}
-
-
-/**
- *  @private Element Of The Class
- *
- *  @brief Funzione che restituisce 1 quando il finecorsa è attivo
- *
- *  @return bool OUTPUT della truth table:
- *
- *  @note Casi possibili con la XNOR tra __calibPin e __calibSig TRUTH-TABLE :
- *        ╔══════════╦══════════╦════════╗
- *        ║ calibPin ║ calibSig ║ OUTPUT ║
- *        ╠══════════╬══════════╬════════╣
- *        ║     0    ║     0    ║    1   ║
- *        ╠══════════╬══════════╬════════╣
- *        ║     0    ║     1    ║    0   ║
- *        ╠══════════╬══════════╬════════╣
- *        ║     1    ║     0    ║    0   ║
- *        ╠══════════╬══════════╬════════╣
- *        ║     1    ║     1    ║    1   ║
- *        ╚══════════╩══════════╩════════╝
- */
-bool MOTION::getCamSignal()
-{
-  return !(digitalReadFast(receiverQueue.__calibPin) ^ receiverQueue.__calibSig);
 }

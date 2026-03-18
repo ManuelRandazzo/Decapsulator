@@ -25,6 +25,7 @@
 #include "Tasks.hpp"   /// Creazione delle tasks
 #include "Interrupts.hpp"
 #include "Debug.hpp"
+#include "DebouncePinHandler.hpp"
 
 /*-----------------------------------------------
   |                                             |
@@ -51,6 +52,7 @@ typedef enum : uint8_t
 {
   ACTIVE_LOW = LOW,
   ACTIVE_HIGH = HIGH,
+  UNKNOWN = 255,
 } CalibSignal_t;
 
 
@@ -60,6 +62,7 @@ typedef enum : int8_t
 {
   DIR_NEGATIVE = DRV8825_COUNTERCLOCK_WISE,
   DIR_POSITIVE = DRV8825_CLOCK_WISE,
+  NO_DIR = 0,
 } Direction_t;
 
 
@@ -90,7 +93,7 @@ typedef enum : uint8_t
  *
  */
 
-class MOTION : private DRV8825
+class MOTION/*: private DRV8825*/
 {
   public :
     /// Costruttore
@@ -102,6 +105,9 @@ class MOTION : private DRV8825
     /// Inizializza il Motion Controller
     drv_err_t Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin,
                    UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin = 255, void (*FaultISR)() = nullptr, uint32_t FaultISR_Heap = 4096, UBaseType_t FaultISR_priority = 15);
+
+    /// Setta i limiti massimi e minimi oltre ai quali il motore non può arrivare
+    void setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll, uint32_t debounce_ms = 30, uint8_t input_mode = INPUT, CalibSignal_t levelActive = UNKNOWN);
 
     /// Mette in coppia il motore
     void attach();    
@@ -116,8 +122,8 @@ class MOTION : private DRV8825
     bool isDetached();
 
     /// Inizializza il motore con l'Homing in modo che si sappia il punto di partenza
-    void home(uint8_t calibrationPin, uint8_t inputModePin, uint8_t triggerMode, double HomeVelocity_gradi_sec, Direction_t searchDirection,
-              double gradiDopoHome, uint8_t quanteVolteToccaIlSensore, CalibSignal_t calibCamSignal);
+    /// @attention Prima dell'home bisogna chiamate setHardLimits o ritornerà senza fare homing
+    void home(double HomeVelocity_gradi_sec, Direction_t searchDirection, double gradiDopoHome);
 
     /// @return se è finito(true) o no(false) l'homing
     bool isHomeDone();
@@ -136,6 +142,9 @@ class MOTION : private DRV8825
 
     /// @return true se il motore può essere comandato
     bool isStarted();
+
+    /// @brief abortisce (cancella) il comando attuale e IsStepDone = true
+    void abortCurrentCommand();
 
     /// Muove il motore in una direzione e alla velocità specificata in modo RELATIVO
     void moveRel(double gradi, double speed_gradi_al_secondo = 0.0);
@@ -173,6 +182,9 @@ class MOTION : private DRV8825
 
   private : /// Dato che la libreria del driver fornisce come protected delle variabili la classe MOTION le eredita
     DRV8825 Motion; /// Oggetto del driver usato per il motore
+    
+    DebPinHandler* HardMax = nullptr; /// Puntatori all'oggetto del driver per rilevare il limite massimo
+    DebPinHandler* HardMin = nullptr; /// Puntatori all'oggetto del driver per rilevare il limite minimo
 
     typedef enum : uint8_t { STAND_STILL, HOMING, MOVE_REL, MOVE_ABS, CONTINUOUS } SwitchMove_t;
     
@@ -200,10 +212,7 @@ class MOTION : private DRV8825
 
       /// Dati Homing
       uint64_t __home_steps_us;                 /*!< Velocità dell'homing in step/secondo  */
-      unsigned __calibPin : 6;                  /*!< indica il pin di calibrazione (finecorsa), 6 bits = 64pin max  */
-      unsigned __calibSig : 1;                  /*!< è il valore che assume il sensore quando viene attivato  */
-      uint8_t __nCalibTouch : 4;                /*!< indica quante volte viene toccato il sensore per far sì che sia calibrato  */
-      int64_t __absPostHomeVal;                 /*!< è il valore assoluto che viene associato dopo l'homing  */
+      int64_t __PostHomeVal;                    /*!< è il valore di cui si deve rispostare in avanti in cui vi sarà la posizione 0 dopo l'homing  */
 
       /// Altri Dati
       uint64_t __speed_steps_us;                /*!< Velocità step/secondo  */
@@ -222,15 +231,6 @@ class MOTION : private DRV8825
     
     void MoveHandler();                         /*!< Funzione che esegue la task  */
 
-    INTERRUPTS HOME_IT;                         /*!< Definisce l'oggetto di homing  */
-   
-    /// Funzione per gestire l'interruzione da parte del sensore di calibrazione, 
-    /// non viene più eseguita quando finisce l'homing e non viene più chiamato l'homing
-    void HomingReachedISR();
-
-    /// Funzione per ottenere 1 se il segnale della camma è attivo oppure 0 se non è attivo
-    bool getCamSignal(); 
-
     /// Funzione per ottenere il delay per poter cambiare la velocità del movimento
     uint64_t getPeriodDelay(const double gradiSecondo);   
     
@@ -243,4 +243,11 @@ class MOTION : private DRV8825
 
     bool __isAttached = false;                /*!< Flag di motore stoppato o avviato modificato da Start() e Stop() e restituito da
                                                    isStopped e isStarted  */
+
+    
+    enum HomingState_t { HOMING_IDLE, HOMING_SEARCH, HOMING_BACKOFF };
+    HomingState_t __homing_state = HOMING_IDLE;
+
+    CalibSignal_t __calib_signal = UNKNOWN;
+    Direction_t __limit_direction = NO_DIR;
 };
