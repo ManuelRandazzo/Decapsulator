@@ -68,6 +68,7 @@
  */
 #define RALLA_MOTOR_STEPS     200
 #define RALLA_TASK_PRIORITY   1           /** @attention: è importante che sia <= della priorità della task */
+#define RALLA_MICROSTEP       FULL_STEP //STEP_1_TO_16
 #define RALLA_SPEED_MOVEMENT  2000        // Velocità di esecuzione relativo al tamburo in gradi al secondo [°/s]
 #define GEAR_RATIO_RALLA      3           // Imposta un gear ratio 1/3 per la ralla
 
@@ -84,11 +85,9 @@
 #define RALLA_CALIB_PIN       14            /** @attention  Ancora da definire*/
 #define RALLA_TRIGGER_MODE    FALLING
 #define RALLA_HOME_SPEED      30            /** Gradi al secondo*/
-#define RALLA_MICROSTEP       FULL_STEP //STEP_1_TO_16
 #define RALLA_CAM_SIGNAL      ACTIVE_LOW
 #define RALLA_HOME_DIR        DIR_NEGATIVE
-#define RALLA_POST_HOME_POS   NULL          /** @attention  Ancora da definire*/
-#define RALLA_TOCCHI_SENSORE  2             /** @attention  Ancora da definire*/
+#define RALLA_POST_HOME_POS   -1.0 /*Gradi*//** @attention  Ancora da definire*/
 
 
 /**
@@ -99,10 +98,11 @@
 
 #define PUNZ_MOTOR_STEPS           200
 #define PUNZ_TASK_PRIORITY         1             /** @attention: è importante che sia <= della priorità della task */
+#define PUNZ_MICROSTEP             FULL_STEP //STEP_1_TO_16
 #define PUNZ_LOW_TORQUE_MOVEMENT   2800.0        // Velocità di esecuzione relativo al punzone in gradi al secondo [°/s]
 #define PUNZ_HIGH_TORQUE_MOVEMENT  180.0
 #define PUNZ_LOW_TORQUE_ROTATIONS  10.0
-#define PUNZ_HIGH_TORQUE_ROTATIONS 15.0
+#define PUNZ_HIGH_TORQUE_ROTATIONS 25.0 - PUNZ_LOW_TORQUE_ROTATIONS
 
 
 /// Driver DRV8825 pins
@@ -117,14 +117,12 @@
 #define PUNZ_MAX_POS_PIN 13 /** @attention  Ancora da definire*/
 #define PUNZ_MIN_POS_PIN 21 /** @attention  Ancora da definire*/
 
-#define PUNZ_CALIB_PIN          PUNZ_MAX_POS_PIN
+#define PUNZ_HARD_LIM_INTR_OR_POLL INTR
 #define PUNZ_TRIGGER_MODE       FALLING
-#define PUNZ_HOME_SPEED         30            /** Gradi al secondo*/
-#define PUNZ_MICROSTEP          FULL_STEP //STEP_1_TO_16
+#define PUNZ_HOME_SPEED         30            /* Gradi al secondo */
 #define PUNZ_CAM_SIGNAL         ACTIVE_LOW
 #define PUNZ_HOME_DIR           DIR_POSITIVE
-#define PUNZ_POST_HOME_POS      NULL          /** @attention  Ancora da definire*/
-#define PUNZ_TOCCHI_SENSORE     2             /** @attention  Ancora da definire*/
+#define PUNZ_POST_HOME_POS      2.0/*Gradi*/  /** @attention  Ancora da definire*/
 
 
 
@@ -198,7 +196,7 @@ void prgDecapsulatorTask(void *pvParameters)
   TickType_t getLastTick = xTaskGetTickCount();
 
   ///ATTENZIONE: Programma con variabili a caso ancora da definire
-  ///            e da rendere THREAD SAFE
+  ///            e da rendere THREAD SAFE tramite notifiche
   bool FORCE_THE_STARTUP = false;//true;
   bool startCycleFromHMI = false;
   int nCicliRimanenti = 0; // prende il numero dalla SD Card
@@ -210,23 +208,29 @@ void prgDecapsulatorTask(void *pvParameters)
 
 
   /// Motore Tamburo
-  drv_err_t drvErr = MotRalla.Init(RALLA_MOTOR_STEPS, RALLA_DIRECTION_PIN, RALLA_STEP_PIN, RALLA_ENABLE_PIN, RALLA_RESET_PIN, RALLA_SLEEP_PIN,
-                RALLA_TASK_PRIORITY, RALLA_MICROSTEP);
+  drv_err_t drvErr;
+  drvErr = MotRalla.Init(RALLA_MOTOR_STEPS, RALLA_DIRECTION_PIN, RALLA_STEP_PIN, RALLA_ENABLE_PIN, RALLA_RESET_PIN, RALLA_SLEEP_PIN,
+                         RALLA_TASK_PRIORITY, RALLA_MICROSTEP);
+
   while(drvErr != DRV_OK)
   {
     LogError("Main Prg", "Errore nell'inizializzazione del MOTION della Ralla, codice errore = %s (%d)", drv_err_to_name(drvErr), drvErr);
     while(1);
   }
+
   LogDebug("Main Prg", "Prima dell'init PUNZONE");
-  
   /// Motore Punzone
   drvErr = MotPunzone.Init(PUNZ_MOTOR_STEPS, PUNZ_DIRECTION_PIN, PUNZ_STEP_PIN, PUNZ_ENABLE_PIN, PUNZ_RESET_PIN, PUNZ_SLEEP_PIN,
-                  PUNZ_TASK_PRIORITY, PUNZ_MICROSTEP);
+                           PUNZ_TASK_PRIORITY, PUNZ_MICROSTEP);
+                
   while(drvErr != DRV_OK)
   {
     LogError("Main Prg", "Errore nell'inizializzazione del MOTION del Punzone, codice errore = %s (%d)", drv_err_to_name(drvErr), drvErr);
     while(1);
   }
+
+  MotPunzone.setHardLimits(PUNZ_MAX_POS_PIN, PUNZ_MIN_POS_PIN, PUNZ_HARD_LIM_INTR_OR_POLL, 30, INPUT, PUNZ_CAM_SIGNAL);
+
 
   /// Inizializzazione Servo e relativi suoi timer[0-4] dell'hardware ledc
   for(uint8_t i = 0; i < 4; i++)
@@ -237,9 +241,7 @@ void prgDecapsulatorTask(void *pvParameters)
   DebPinHandler autoKill     (INTR, AUTOKILL_DETECT_PIN, "Autokill Detection Pin", 10/* ms */, FALLING, INPUT);
   DebPinHandler cadutaCaps   (INTR, PIECE_PASSED_PIN   , "Caduta Capsule Pin"    , 30/* ms */, RISING , INPUT);
   DebPinHandler presenzaCaps (POLL, PIECE_PRESENCE_PIN , "Presenza Capsule Pin"  , 30/* ms */, FALLING, INPUT);
-  DebPinHandler ralla        (INTR, RALLA_CALIB_PIN    , "Ralla Calibration Pin" , 30/* ms */, RALLA_TRIGGER_MODE , INPUT);
-  DebPinHandler punzMin      (INTR, PUNZ_MIN_POS_PIN   , "Punzone FC Minimo"     , 30/* ms */, PUNZ_TRIGGER_MODE , INPUT);
-  DebPinHandler punzMax      (INTR, PUNZ_MAX_POS_PIN   , "Punzone FC Massimo"    , 30/* ms */, PUNZ_TRIGGER_MODE , INPUT);
+  DebPinHandler rallaCalib   (INTR, RALLA_CALIB_PIN    , "Ralla Calibration Pin" , 30/* ms */, RALLA_TRIGGER_MODE , INPUT);
      
 
   /**
@@ -260,9 +262,7 @@ void prgDecapsulatorTask(void *pvParameters)
     autoKill.intrUpdate();
     cadutaCaps.intrUpdate();
     presenzaCaps.pollUpdate();
-    ralla.intrUpdate();     
-    punzMin.intrUpdate();
-    punzMax.intrUpdate();
+    rallaCalib.intrUpdate();
 
 
 
@@ -277,26 +277,22 @@ void prgDecapsulatorTask(void *pvParameters)
       case MACHINE_STARTUP_STATE :
 
         LogDebug("Main Prg", "Inizializzando il macchinario ...");
-
+        
         /// Fa tutti gli attach dei motori e li prepara ad essere comandati
-        MotRalla.attach();
-        MotRalla.Start();
-        /// Esegue l'homing del tamburo
-        /*MotRalla.home(RALLA_CALIB_PIN, INPUT, RALLA_TRIGGER_MODE, RALLA_HOME_SPEED, RALLA_HOME_DIR,
-                      25.0 * 360.0, RALLA_TOCCHI_SENSORE, RALLA_CAM_SIGNAL);*/
-                      
-        /// Se non è ancora in posizione allora raggiunge una posizione nota (Posizione Home della ralla)
-        if(ralla.rawRead() != RALLA_CAM_SIGNAL)
-          MotRalla.moveContinuous(RALLA_HOME_DIR, RALLA_HOME_SPEED);
-
-        MotPunzone.attach();
-        MotPunzone.Start();
-        /// Se non è ancora in posizione arretrata allora va indietro (Posizione Home del punzone)
-        if(punzMax.rawRead() == PUNZ_CAM_SIGNAL)
-          MotPunzone.moveContinuous(DIR_NEGATIVE, PUNZ_HOME_SPEED);
 
         ServoParatia.attach(SERVO_PIN, SERVO_MIN, SERVO_MAX);
         ServoParatia.write(SERVO_CLOSED_POS); // Chiude la paratia mossa dal servomotore
+
+
+        MotPunzone.attach();
+        MotPunzone.Start();
+        MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
+        while(MotPunzone.isHomeDone() == false); // Deve assicurarsi di portare in posizione il punzone prima di poter muovere la ralla
+        LogDebug("MotPunzone Homing", "Il Motore punzone ha raggiunto la posizione di home");
+
+        MotRalla.attach();
+        MotRalla.Start();
+        MotRalla.moveContinuous(RALLA_HOME_DIR, RALLA_HOME_SPEED);
 
         sequenza = MACHINE_STARTUP_FINISHED_STATE;
         LogWarning("Decapsulator PRG", "Wait init to finish");
@@ -306,11 +302,11 @@ void prgDecapsulatorTask(void *pvParameters)
       /// Una volta Inizializzato tutto...(motori in posizione ecc.)
       /// Passa allo stato di quiete in cui attende il comando di start
       case MACHINE_STARTUP_FINISHED_STATE :
-      {            
+      {
         /// DebugOverrideVar<bool>("forceStartup/value", &FORCE_THE_STARTUP); <-- @bug
-        if(FORCE_THE_STARTUP || (punzMax.event() == true && punzMin.event() == false && ralla.event() == true))
+        if(FORCE_THE_STARTUP || (MotPunzone.isHomeDone() == true && rallaCalib.event() == true))
         {
-          ralla.detach();
+          rallaCalib.detach();
           LogWarning("Decapsulator PRG", "Entro nello stato: QUIETE");
           sequenza = QUIETE_STATE;
         }
@@ -368,7 +364,7 @@ void prgDecapsulatorTask(void *pvParameters)
 
       case PUNCHER_DOWN_HIGH_TORQUE_STATE :
       {
-        if(MotRalla.isStepDone())
+        if(MotPunzone.isStepDone())
         {
           MotPunzone.moveRel(PUNZ_HIGH_TORQUE_ROTATIONS * 360.0, PUNZ_HIGH_TORQUE_MOVEMENT);    // Fa 15 giri = 30mm lineari ad alta coppia
           LogInfo("Decapsulator PRG", "Entro nello stato: SERVO_LOADER_OPEN_STATE");
@@ -383,14 +379,16 @@ void prgDecapsulatorTask(void *pvParameters)
         {
           ServoParatia.write(SERVO_OPEN_POS);
           /// Cambio di stato dovuto dall'Interrupt della Fotocellula conferma capsula nel tamburo
+          if(cadutaCaps.event() == true)
+            sequenza = SERVO_LOADER_CLOSE_STATE;
         }
         break;
       }
 
       case SERVO_LOADER_CLOSE_STATE :
       {
-        /// Se il pezzo è passato, i 30ms di debounce sono passati e non si è intasato
-        if(!digitalRead(PIECE_PASSED_PIN))
+        /// Se il pezzo è passato, i tot ms di debounce sono passati e non si è intasato
+        if(cadutaCaps.rawRead() == LOW)
         {
           ServoParatia.write(SERVO_CLOSED_POS);
           LogInfo("Decapsulator PRG", "Entro nello stato: PUNCHER_UP_STATE");
@@ -402,20 +400,11 @@ void prgDecapsulatorTask(void *pvParameters)
       case PUNCHER_UP_STATE :
       {
         MotPunzone.moveRel((PUNZ_LOW_TORQUE_ROTATIONS + PUNZ_HIGH_TORQUE_ROTATIONS) * -360.0, PUNZ_LOW_TORQUE_MOVEMENT);
-        LogInfo("Decapsulator PRG", "Entro nello stato: PUNCHER_UP_STATE");
+        LogInfo("Decapsulator PRG", "Fine Ciclo\nEntro nello stato: REACH_NEXT_STATION_STATE");
+        sequenza = REACH_NEXT_STATION_STATE; // Ricomincia il ciclo
         break;
       }
     }
-
-     
-/*
-    debounce(&punzMaxInt);
-    debounce(&punzMinInt);
-    debounce(&cadutaCapsInt);
-    debounce(&presenzaCaps);
-    debounce(&rallaInt);
-*/
-    
 
     xTaskDelayUntil(&getLastTick, MainPrg_delay);
   }
