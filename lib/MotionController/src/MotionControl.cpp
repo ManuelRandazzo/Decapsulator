@@ -42,14 +42,18 @@ void MOTION::MoveHandler()
   else if(Motion.isStepDone() == DRV_TRUE)
   {
     /// Se era in corso il backoff dell'homing, segnala il completamento
-    if(this->selettore == HOMING && this->__homing_state == HOMING_BACKOFF)
+    if(this->selettore == HOMING)
     {
-      this->__isHomeFinished = true;
-      this->__homing_state   = HOMING_IDLE;
-      #ifdef LOG_ACTIVE_MOTION
-        LogInfo("Handler Motion", "Homing completato con successo");
-      #endif
+      if(this->__homing_state == HOMING_BACKOFF)
+      {
+        this->__isHomeFinished = true;
+        this->__homing_state   = HOMING_IDLE;
+        #ifdef LOG_ACTIVE_MOTION
+          LogInfo("Handler Motion", "Homing completato con successo");
+        #endif
+      }  
     }
+
     this->selettore = STAND_STILL;
   }
   
@@ -112,7 +116,7 @@ void MOTION::MoveHandler()
 
       /// Inverte la direzione e percorre i passi post-home
       Direction_t backDir = (receiverQueue.__dir == DIR_POSITIVE) ? DIR_NEGATIVE : DIR_POSITIVE;
-      Motion.abortCurrentMovement();
+      //Motion.abortCurrentMovement();
       Motion.setDirection(backDir);
       Motion.step(receiverQueue.__PostHomeVal, receiverQueue.__speed_steps_us);
 
@@ -127,7 +131,6 @@ void MOTION::MoveHandler()
           this->receiverQueue.__dir == DIR_NEGATIVE ? "DIR_NEGATIVE" : "DIR_POSITIVE");
       #endif
       this->abortCurrentCommand();
-      this->selettore = STAND_STILL;
       flagRunOnceCMD  = false;
     }
   }
@@ -317,28 +320,35 @@ void MOTION::setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll
   
   this->__calib_signal = levelActive;
 
-  DebPinHandler* ptrHardMax = new DebPinHandler(IntrOrPoll, pinLimMax, "MotionHardPinMax", debounce_ms, CHANGE, input_mode);
-  DebPinHandler* ptrHardMin = new DebPinHandler(IntrOrPoll, pinLimMin, "MotionHardPinMin", debounce_ms, CHANGE, input_mode);
-
-  if(ptrHardMax == 0)
+  if(pinLimMax != 255)
   {
-    #ifdef LOG_ACTIVE_MOTION
-      LogError("Hard Max Pin", "Impossibile allocare memoria per il pin Max del Motion");
-    #endif
-    return;
-  }
+    DebPinHandler* ptrHardMax = new DebPinHandler(IntrOrPoll, pinLimMax, "MotionHardPinMax", debounce_ms, CHANGE, input_mode);
+    
+    if(ptrHardMax == 0)
+    {
+      #ifdef LOG_ACTIVE_MOTION
+        LogError("Hard Max Pin", "Impossibile allocare memoria per il pin Max del Motion");
+      #endif
+      return;
+    }
 
-  if(ptrHardMin == 0)
+    this->HardMax = ptrHardMax;
+  }
+  
+  if(pinLimMin != 255)
   {
-    #ifdef LOG_ACTIVE_MOTION
-      LogError("Hard Min Pin", "Impossibile allocare memoria per il pin Min del Motion");
-    #endif
-    return;
+    DebPinHandler* ptrHardMin = new DebPinHandler(IntrOrPoll, pinLimMin, "MotionHardPinMin", debounce_ms, CHANGE, input_mode);
+
+    if(ptrHardMin == 0)
+    {
+      #ifdef LOG_ACTIVE_MOTION
+        LogError("Hard Min Pin", "Impossibile allocare memoria per il pin Min del Motion");
+      #endif
+      return;
+    }
+
+    this->HardMin = ptrHardMin;
   }
-
-
-  this->HardMax = ptrHardMax;
-  this->HardMin = ptrHardMin;
 
 }
 
@@ -530,7 +540,6 @@ void MOTION::Halt()
  */
 void MOTION::abortCurrentCommand()
 {
-  this->selettore = STAND_STILL;
   this->Motion.abortCurrentMovement();
 }
 
