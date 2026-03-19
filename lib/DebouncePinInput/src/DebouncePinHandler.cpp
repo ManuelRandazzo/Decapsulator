@@ -108,10 +108,16 @@ bool DebPinHandler::intrUpdate()
     this->changeOccurred = false;
 
     if(!this->isAttached)
+    {
+        xSemaphoreGive(this->mutex);
         return false;
+    }
 
     if(this->isInterrupt == POLL)
+    {
+        xSemaphoreGive(this->mutex);
         return false;
+    }
 
     switch(this->debState)
     {
@@ -174,10 +180,16 @@ bool DebPinHandler::pollUpdate(uint8_t trigger)
     this->changeOccurred = false;
 
     if(this->isInterrupt == INTR)
+    {
+        xSemaphoreGive(this->mutex);
         return false;
+    }
 
     if(!this->isAttached)
+    {
+        xSemaphoreGive(this->mutex);
         return false;
+    }
 
     switch(this->debState)
     {
@@ -203,6 +215,7 @@ bool DebPinHandler::pollUpdate(uint8_t trigger)
 
                 default :
                     //LogError("update", "Inserito un trigger non idoneo al pin \"%s (%d)\"", this->name, this->pin);
+                    xSemaphoreGive(this->mutex);
                     return false;
                 break;
             }
@@ -273,7 +286,17 @@ int8_t DebPinHandler::rawRead()
  */
 bool DebPinHandler::IsInterrupt()
 {
-    return this->isInterrupt == INTR;
+    bool isIntr;
+    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    {
+        Serial.printf("Errore in IsInterrupt xSemaphoreTake del pin \"%s\"\n", this->name);
+        //LogError("IsInterrupt", "Errore xSemaphoreTake del pin \"%s\"", this->name);
+        return false;
+    }
+    isIntr = this->isInterrupt == INTR;
+    xSemaphoreGive(this->mutex);
+
+    return isIntr;
 }
 
 /**
@@ -283,7 +306,17 @@ bool DebPinHandler::IsInterrupt()
  */
 bool DebPinHandler::IsPolling()
 {
-    return this->isInterrupt == POLL;
+    bool isPoll;
+    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    {
+        Serial.printf("Errore in IsPolling xSemaphoreTake del pin \"%s\"\n", this->name);
+        //LogError("IsPolling", "Errore xSemaphoreTake del pin \"%s\"", this->name);
+        return false;
+    }
+    isPoll = this->isInterrupt == POLL;
+    xSemaphoreGive(this->mutex);
+
+    return isPoll;
 }
 
 /**
@@ -310,6 +343,7 @@ void DebPinHandler::__Init()
     if(this->pin == 255)
     {
         //LogError("initDebPin", "Errore pin non fornito del pin \"%s\"", this->name);
+        xSemaphoreGive(this->mutex);
         return;
     }
 
