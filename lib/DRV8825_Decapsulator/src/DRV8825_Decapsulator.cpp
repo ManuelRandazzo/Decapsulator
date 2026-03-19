@@ -41,6 +41,7 @@ DRV8825::~DRV8825()
 
 drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uint8_t SLP, uint16_t number_of_steps_per_revolution)
 {
+  Serial.printf("[DRV8825] begin() chiamato, _rmtChannel = %p\n", this->_rmtChannel);
   /// Crea il mutex che gestirà le variabili in modo atomico
   if(this->_mutex == NULL)
   {
@@ -126,13 +127,13 @@ drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uin
     /// Necessario per risolvere l'errore descritto 
     /// in questo forum https://esp32.com/viewtopic.php?t=42301 
     /// mem = 48 * 4 = 192 bytes
-    .mem_block_symbols = 256,
+    .mem_block_symbols = 48,
     .trans_queue_depth = 4,            // profondità della coda di trasferimento
     .intr_priority = 0,                // 0 -> priorità bassa
     .flags = 
     {
       .invert_out = 0,
-      .with_dma = 1,
+      .with_dma = 0,
       .io_loop_back = 0,
       .io_od_mode = 0,
       .allow_pd = 0,
@@ -143,9 +144,27 @@ drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uin
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
     return DRV_ERR_MUX_TAKE_TIMEOUT;
 
+  /// Pulisce eventuale canale RMT precedente
+  if(this->_rmtChannel != nullptr)
+  {
+    rmt_disable(this->_rmtChannel);
+    rmt_del_channel(this->_rmtChannel);
+    this->_rmtChannel = nullptr;
+  }
+  
+  /// Pulisce eventuale canale step_encoder per RMT precedente
+  if(this->step_encoder != nullptr)
+  {
+    rmt_del_encoder(this->step_encoder);
+    this->step_encoder = nullptr;
+  }
+
   esp_err = rmt_new_tx_channel(&rmt_tx_cfg, &this->_rmtChannel);
   if(esp_err != ESP_OK)
+  {
+    Serial.printf("Errore drv: %s\n", esp_err_to_name(esp_err));
     return DRV_ERR_RMT_CREATION;
+  }
 
   /// Se il canale RMT è stato creato corretamente lo abilita
   rmt_enable(this->_rmtChannel);

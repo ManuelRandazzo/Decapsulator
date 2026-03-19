@@ -162,7 +162,7 @@ class DRV8825
     bool     _isStepDone     = true;
     int64_t  _absStepCounter = 0;
     uint16_t _stepsPerRevolution;
-    rmt_channel_handle_t _rmtChannel = NULL;
+    rmt_channel_handle_t _rmtChannel = nullptr;
 
     bool     _waitRmtAsyncTransmit   = false;
 
@@ -191,6 +191,6 @@ class DRV8825
       .flags = { .eot_level = 0 }  // livello LOW dopo la trasmissione
     };
     
-    rmt_encoder_handle_t step_encoder = NULL;
+    rmt_encoder_handle_t step_encoder = nullptr;
 };
 //  -- END OF FILE --
