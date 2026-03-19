@@ -159,7 +159,7 @@ class DRV8825
     uint64_t  _stepsLeft     = 0;
     bool     _isContinuous   = false;
     bool     _abortCommand   = false;
-    bool     _isStepDone     = true;
+    bool     _isStepDone     = false;
     int64_t  _absStepCounter = 0;
     uint16_t _stepsPerRevolution;
     rmt_channel_handle_t _rmtChannel = nullptr;
