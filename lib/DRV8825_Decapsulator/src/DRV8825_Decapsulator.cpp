@@ -41,7 +41,6 @@ DRV8825::~DRV8825()
 
 drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uint8_t SLP, uint16_t number_of_steps_per_revolution)
 {
-  Serial.printf("[DRV8825] begin() chiamato, _rmtChannel = %p\n", this->_rmtChannel);
   /// Crea il mutex che gestirà le variabili in modo atomico
   if(this->_mutex == NULL)
   {
