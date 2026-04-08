@@ -319,6 +319,48 @@ bool DebPinHandler::IsPolling()
     return isPoll;
 }
 
+
+
+/**
+ * @brief Restituisce i livello in cui il pin viene triggerato
+ * 
+ * @returns LOW(0), HIGH(1), CHANGE(3), ERRORE MUTEX TAKE(-1)
+ */
+int8_t DebPinHandler::getLevelTrig()
+{
+    int8_t levelTrig;
+
+    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+        return -1;
+    levelTrig = this->levelTriggered;
+    xSemaphoreGive(this->mutex);
+
+    return levelTrig;
+}
+
+
+
+
+/**
+ * @brief Restituisce la modalità di trigger del pin
+ * 
+ * @returns RISING(1), FALLING(2) or CHANGE(3)
+ */
+int8_t DebPinHandler::getTriggerMode()
+{
+    int8_t triggerMode;
+
+    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+        return -1;
+    triggerMode = this->TRIGGER;
+    xSemaphoreGive(this->mutex);
+
+    return triggerMode;
+}
+
+
+
+
 /**
  * 
  *  PRIVATE:
@@ -349,8 +391,16 @@ void DebPinHandler::__Init()
 
     pinMode(this->pin, this->inputMode);
 
-    /// Legge il valore iniziale del pin 
-    this->level = this->precPinLevel = this->rawRead();
+    /// Legge il valore iniziale del pin
+    this->level = this->precPinLevel = digitalReadFast(this->pin);
+
+    /// Legge se l'evento all'inizio del programma è attivo
+    switch(this->TRIGGER)
+    {
+        case RISING  : this->changeOccurred = this->level == HIGH; this->levelTriggered = HIGH; break;
+        case FALLING : this->changeOccurred = this->level == LOW;  this->levelTriggered = LOW;  break;
+        case CHANGE  : this->changeOccurred = true; this->levelTriggered = CHANGE; break;
+    }
 
     if(this->isInterrupt == INTR)
         /// Associa la relativa Interrupt Service Routine se esiste

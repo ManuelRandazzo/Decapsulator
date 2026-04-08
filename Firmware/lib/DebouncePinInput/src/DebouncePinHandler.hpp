@@ -91,6 +91,20 @@ class DebPinHandler
          */
         bool IsPolling();
 
+        /**
+         * @brief Restituisce i livello in cui il pin viene triggerato
+         * 
+         * @returns LOW(0), HIGH(1)
+         */
+        int8_t getLevelTrig();
+
+        /**
+         * @brief Restituisce la modalità di trigger del pin
+         * 
+         * @returns RISING(1), FALLING(2) or CHANGE(3)
+         */
+        int8_t getTriggerMode();
+
 
         /**
          *  @brief Trasforma tutte le variabili della classe in una stringa
@@ -101,6 +115,9 @@ class DebPinHandler
         {
             String str = "";
 
+            if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+                return "Errore xSemaphoreTake del pin \"%s\"\n";
+
             str += String("mutex : ") + String((uintptr_t)mutex, HEX) + "\n";
             str += String("name : ") + name + "\n";
             str += String("level : ") + level + "\n";
@@ -108,13 +125,16 @@ class DebPinHandler
             str += String("isInterrupt : ") + isInterrupt + "\n";
             str += String("debounce_ms : ") + debounce_ms + "\n";
             str += String("inputMode : ") + inputMode + "\n";
+            str += String("levelTriggered : ") + levelTriggered + "\n";
             str += String("TRIGGER : ") + TRIGGER + "\n";
             str += String("changeOccurred : ") + changeOccurred + "\n";
             str += String("flag : ") + flag + "\n";
             str += String("precPinLevel : ") + precPinLevel + "\n";
             str += String("lastTime : ") + lastTime + "\n";
             str += String("debState : ") + debState + "\n";
-            int8_t rawReadVal = rawRead();
+            xSemaphoreGive(this->mutex);
+
+            int8_t rawReadVal = rawRead();            
             String rawReadStr;
             str += String("raw read : ");
             switch(rawReadVal)
@@ -122,7 +142,7 @@ class DebPinHandler
               case -1   : str += "MUTEX ERROR (-1)"; break;
               case HIGH : str += "HIGH (1)"; break;
               case LOW  : str += "LOW (0)"; break;
-              default   : str += "UNKNOWN : value " + String(rawReadVal);
+              default   : str += "UNKNOWN : value " + String(rawReadVal); break;
             }
             str += "\n";
 
@@ -140,6 +160,7 @@ class DebPinHandler
         bool isAttached;            /*!< Flag che indica se il pin è attached o no */
         const uint32_t debounce_ms; /*!< Tempo di debounce in millisecondi (default = 30ms) */
         uint8_t inputMode;          /*!< Modalità di ingresso del pin ex. INPUT, INPUT_PULLUP, INPUT_PULLDOWN */
+        uint8_t levelTriggered;     /*!< Livello per il quale viene considerato triggerato il pin */
         const uint8_t TRIGGER;      /*!< Trigger su cui viene rilevato un fronte di RISING, FALLING, CHANGE */
         bool changeOccurred;        /*!< Flag che segnala se è avvenuto l'evento */
 
