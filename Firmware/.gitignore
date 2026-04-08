@@ -21,3 +21,7 @@ node_modules/
 .vscode/ipch
 local_secrets.hpp
 .directory
+.venv
+build
+.python-version
+dependencies.lock
