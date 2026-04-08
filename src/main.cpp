@@ -31,11 +31,9 @@
 #include "Debug.hpp"
 #include "Safety.hpp"
 #include "OverTheAir_OTA.hpp"
-#include "Tamburo.hpp"
+#include "DecapsulatorPRG.hpp"
 #include "Contenitori.hpp"
 #include "TFT_Display.hpp"
-
-
 
 /**
  *  @brief il setupTask() crea le task e ritorna i log in caso di errore per tutte le task non create con successo 
@@ -48,7 +46,7 @@ BaseType_t setupTasks(void)
 {
   BaseType_t status = pdPASS;
   
-  //status &= xTaskCreatePinnedToCore(SafetyTask, "task SAFETY", Security_heap, NULL, Security_priority, &SafetyHandler, APP_CPU_NUM);
+  //status &= xTaskCreatePinnedToCore(SafetyTask, "task SAFETY", Security_heap, NULL, Security_priority, &SafetyHandler, PRO_CPU_NUM);
 
   //status &= OverTheAir.Init("task OTA", OTA_heap, NULL, OTA_priority, OTA_delay, OTA_Setup, OTA_Loop);
 
@@ -65,11 +63,18 @@ BaseType_t setupTasks(void)
  *  @brief Setup per la definizione delle task e inizializzazione dei componenti
  */
 void setup()
-{
+{  
   LogBegin();
 
-  /// crea le task
-  while(!setupTasks());
+  /// crea le task, superato il timeout riaccende l'esp
+  const uint32_t tmoSetupTask = millis();
+  while(!setupTasks())
+  {
+    if(millis() - tmoSetupTask >= 1000)
+      ESP.restart();
+      
+    vTaskDelay(100);
+  }
 
   LogDebug("setup", "create le tasks");
 }
