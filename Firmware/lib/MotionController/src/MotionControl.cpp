@@ -46,6 +46,8 @@ void MOTION::MoveHandler()
     {
       if(this->__homing_state == HOMING_BACKOFF)
       {
+        /// Ha finito l'homing ed è arretrato, qui c'è il punto zero (0)
+        Motion.setAbsPosition(0);
         this->__isHomeFinished = true;
         this->__homing_state   = HOMING_IDLE;
         #ifdef LOG_ACTIVE_MOTION
@@ -114,15 +116,14 @@ void MOTION::MoveHandler()
           receiverQueue.__PostHomeVal);
       #endif
 
-      /// Inverte la direzione e percorre i passi post-home
-      Direction_t backDir = (receiverQueue.__dir == DIR_POSITIVE) ? DIR_NEGATIVE : DIR_POSITIVE;
-      //Motion.abortCurrentMovement();
+      /// Inverte la direzione (a meno che __PostHomeVal non sia negativo) e percorre i passi post-home
+      Direction_t backDir = receiverQueue.__dir * (receiverQueue.__PostHomeVal < 0) ? (DIR_POSITIVE) : (DIR_NEGATIVE);
       Motion.setDirection(backDir);
-      Motion.step(receiverQueue.__PostHomeVal, receiverQueue.__speed_steps_us);
+      Motion.step(receiverQueue.__PostHomeVal, receiverQueue.__home_steps_us);
 
-      this->__homing_state    = HOMING_BACKOFF;
+      this->__homing_state = HOMING_BACKOFF;
       this->__limit_direction = NO_DIR;
-      flagRunOnceCMD          = false;
+      flagRunOnceCMD = false;
     }
     else if(receiverQueue.__dir == this->__limit_direction)
     {
@@ -256,6 +257,7 @@ drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin
   drv_err_t errDrv = Motion.begin(dir_pin, step_pin, en_pin, rst_pin, sleep_pin, numberOfSteps);
   if(errDrv != DRV_OK)
     return errDrv;
+  Motion.disable();
 
   /// Resetta i valori delle variabili della classe, fatto principalmente per portare a valori default "receiverQueue"
   reset();
@@ -318,7 +320,7 @@ void MOTION::setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll
     return;
   }
   
-  this->__calib_signal = levelActive;
+  this->__calib_signal = (CalibSignal_t)(input_mode==INPUT_PULLUP ? !levelActive : levelActive);
 
   if(pinLimMax != 255)
   {
@@ -352,6 +354,51 @@ void MOTION::setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll
 
 }
 
+/**
+ *  @brief Rimuove i limiti massimi e minimi oltre ai quali il motore non può arrivare
+ */
+void MOTION::removeHardLimits()
+{
+  if(this->HardMax != nullptr)
+  {
+    /// Copia l'istanza
+    this->HardMaxCpy = this->HardMax;
+
+    /// Rimuove il valore nel puntatore
+    this->HardMax = nullptr;
+  }
+
+  if(this->HardMin != nullptr)
+  {
+    /// Copia l'istanza
+    this->HardMinCpy = this->HardMin;
+
+    /// Rimuove il valore nel puntatore
+    this->HardMin = nullptr;
+  }
+}
+
+/**
+ *  @brief Ricollega i limiti massimi e minimi oltre ai quali il motore non può arrivare
+ */
+void MOTION::reattachHardLimits()
+{
+  if(this->HardMaxCpy != nullptr)
+  {
+    this->HardMax = this->HardMaxCpy;
+
+    /// Rimuove il valore nel puntatore di copia
+    this->HardMaxCpy = nullptr;
+  }
+
+  if(this->HardMinCpy != nullptr)
+  {
+    this->HardMin = this->HardMinCpy;
+
+    /// Rimuove il valore nel puntatore di copia
+    this->HardMinCpy = nullptr;
+  }
+}
 
 /**
  *  @brief Mette in coppia il motore
@@ -389,17 +436,10 @@ bool MOTION::isDetached()
 
 /**
  *  @brief Inizializza il motore con l'Homing in modo che si sappia il punto di partenza.
- *
- *  @param calibrationPin                 : Pin su cui viene segnalato il finecorsa
- *  @param inputModePin                   : Modalità di input del pin che può essere : INPUT, INPUT_PULLUP, INPUT_PULLDOWN
- *  @param triggerMode                    : Modalità con cui viene triggerato l'interrupt : FALLING, RISING, CHANGE, HIGH, LOW
+ * 
  *  @param HomeVelocity_gradi_sec         : Velocità con cui verrà eseguito l'homing
  *  @param searchDirection                : Direzione in cui il motore cerca il finecorsa --> DIR_NEGATIVE (default) = clockWise DIR_POSITIVE = counterClockWise
  *  @param gradiDopoHome                  : Valore di posizione dopo aver fatto l'homing
- *  @param quanteVolteToccaIlSensore      : Indica quante volte passa sul sensore per essere effettivamente calibrato
- *  @param calibCamSignal                 : Segnale del finecorsa quando attivo --> ACTIVE_LOW (default) = attivo basso, ACTIVE_HIGH = attivo alto
- *
- *  @note Se il @param calibCamSignal è ACTIVE_LOW allora il segnale viene invertito internamente nella definizione del pin
  *
  *  @warning QUESTA FUNZIONE ESCE SUBITO ED ESEGUE L'HOMING IN MODO ASINCRONO CON TASK INTERNA.
  *           Solo quando la funzione @see isHomeDone() restituisce true allora sarà effettivamente finito l'home 

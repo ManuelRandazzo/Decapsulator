@@ -93,7 +93,7 @@ typedef enum : uint8_t
  *
  */
 
-class MOTION/*: private DRV8825*/
+class MOTION
 {
   public :
     /// Costruttore
@@ -108,6 +108,12 @@ class MOTION/*: private DRV8825*/
 
     /// Setta i limiti massimi e minimi oltre ai quali il motore non può arrivare
     void setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll, uint32_t debounce_ms = 30, uint8_t input_mode = INPUT, CalibSignal_t levelActive = UNKNOWN);
+    
+    /// Rimuove i limiti massimi e minimi oltre ai quali il motore non può arrivare
+    void removeHardLimits();
+
+    /// Ricollega i limiti massimi e minimi oltre ai quali il motore non può arrivare
+    void reattachHardLimits();
 
     /// Mette in coppia il motore
     void attach();    
@@ -183,8 +189,10 @@ class MOTION/*: private DRV8825*/
   private : /// Dato che la libreria del driver fornisce come protected delle variabili la classe MOTION le eredita
     DRV8825 Motion; /// Oggetto del driver usato per il motore
     
-    DebPinHandler* HardMax = nullptr; /// Puntatori all'oggetto del driver per rilevare il limite massimo
-    DebPinHandler* HardMin = nullptr; /// Puntatori all'oggetto del driver per rilevare il limite minimo
+    DebPinHandler* HardMax = nullptr; /// Puntatore all'oggetto del driver per rilevare il limite massimo
+    DebPinHandler* HardMin = nullptr; /// Puntatore all'oggetto del driver per rilevare il limite minimo
+    DebPinHandler* HardMaxCpy = nullptr; /// Copia del puntatore all'oggetto del driver per rilevare il limite massimo
+    DebPinHandler* HardMinCpy = nullptr; /// Copia del puntatore all'oggetto del driver per rilevare il limite minimo
 
     typedef enum : uint8_t { STAND_STILL, HOMING, MOVE_REL, MOVE_ABS, CONTINUOUS } SwitchMove_t;
     
