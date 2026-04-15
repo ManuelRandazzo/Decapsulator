@@ -33,14 +33,20 @@ using namespace std;// Usato per le stringhe standard del c++
     ║             USER: LOGGER OPTIONS            ║
     ╚═════════════════════════════════════════════╝ */
 
+/// @attention Viene perso anche l'OTA e l'MQTT commentando questa riga la quale disattiva l'inizializzazione del WiFi
+//#define WiFi_ACTIVE
 /// @info: Commentando questa riga si disattivano i LOG senza il bisogno di cancellarli nel programma
 #define LOG_ACTIVE
+/// @info: Commentando questa riga non vi saranno più log da parte del Programma Principale del decapsulator
+#define LOG_ACTIVE_MAIN_PRG
 /// @info: Commentando questa riga non vi saranno più log da parte della TaskTypedef class
 //#define LOG_ACTIVE_TASK
 /// @info: Commentando questa riga non vi saranno più log da parte della motion class
 //#define LOG_ACTIVE_MOTION
 /// @info: Commentando questa riga si disattivano i LOG MQTT senza il bisogno di cancellarli nel programma
 //#define LOG_ACTIVE_MQTT
+/// @info: Commentando questa riga si disattivano i LOG delle code di trasferimento tra main prg e HMI
+//#define LOG_ACTIVE_QUEUE_TRANSFER_MAIN_PRG_AND_HMI
 /// @info: Scommentando questa riga si disattiva il restart dell'esp in caso di fail del wifi e/o dell'MQTT
 #define NO_ESP_RESTART_ON_CONNECTION_FAILURE
 
@@ -87,9 +93,13 @@ extern void DebugOverrideVar(String override_topic, varType* var);
 /*║                 LOGGER CODE                 ║*/
 /*╚═════════════════════════════════════════════╝*/
 /// Per quanti millisecondi il semaforo blocca la task al MAX se non riceve subito il semaforo
-#define __SEMAPHORE_TIMEOUT_MS__ 200
-static SemaphoreHandle_t xSemaphoreLogger;
+#define __SEMAPHORE_TIMEOUT_MS__ 150
+extern SemaphoreHandle_t xSemaphoreLogger;
 static bool isMqttConnected = false;
+
+#if !defined(WiFi_ACTIVE)
+  #undef LOG_MQTT_ACTIVE
+#endif
 
 
 /// @precompilazione: Se non è predisposto il log o non è specificata la sua attivazione definisce delle macro vuote
@@ -164,28 +174,32 @@ static bool isMqttConnected = false;
     #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
       do\
       {\
-	      if(xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__))\
-        {\
-          log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
-          if(isMqttConnected)\
+        if(xSemaphoreLogger != nullptr)\
+          if(xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__))\
           {\
-            _TOPIC_MQTT_(logType ## _LOG_TOPIC, tag);\
-            mqtt_logger_printf(topic, format, ##__VA_ARGS__);\
+            log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
+            if(isMqttConnected)\
+            {\
+              _TOPIC_MQTT_(logType ## _LOG_TOPIC, tag);\
+              mqtt_logger_printf(topic, format, ##__VA_ARGS__);\
+            }\
+            xSemaphoreGive(xSemaphoreLogger);\
           }\
-          xSemaphoreGive(xSemaphoreLogger);\
-        }\
       } while(0)
-  #else
-    /// Default Decapsulator Logger
-    #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
-      do\
-      {\
-	      if(xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__))\
+  #else 
+    #ifdef LOG_ACTIVE
+      /// Default Decapsulator Logger
+      #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
+        do\
         {\
-          log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
-          xSemaphoreGive(xSemaphoreLogger);\
-        }\
-      } while(0)  
+          if(xSemaphoreLogger != nullptr)\
+            if(xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__))\
+            {\
+              log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
+              xSemaphoreGive(xSemaphoreLogger);\
+            }\
+        } while(0)  
+    #endif 
   #endif
 
     /// Default Decapsulator Logger For Interrupt Service Routines (ISR)
@@ -193,11 +207,12 @@ static bool isMqttConnected = false;
       do\
       {\
         BaseType_t xHigherPriorityTaskWoken = pdFALSE;\
-	      if(xSemaphoreTakeFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken))\
-        {\
-          ets_printf(ARDUHAL_LOG_FORMAT(E, format), ##__VA_ARGS__);\
-          xSemaphoreGiveFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken);\
-        }\
+        if(xSemaphoreLogger != nullptr)\
+          if(xSemaphoreTakeFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken))\
+          {\
+            ets_printf(ARDUHAL_LOG_FORMAT(E, format), ##__VA_ARGS__);\
+            xSemaphoreGiveFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken);\
+          }\
       } while(0)
 
 #else // NO LOGGER DEFINES
