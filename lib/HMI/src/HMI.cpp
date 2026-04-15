@@ -13,3 +13,11 @@
 
 #include "HMI.hpp"
 
+void task(void* pvParameters)
+{
+    
+    while(1)
+    {
+
+    }
+}
