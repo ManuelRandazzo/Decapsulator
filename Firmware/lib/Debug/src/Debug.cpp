@@ -1,10 +1,14 @@
 #include "Debug.hpp"
 
+SemaphoreHandle_t xSemaphoreLogger;
 
+#if !defined(WiFi_ACTIVE)
+  #pragma message ("Warning: OTA DOWNLOAD E MQTT LOG NON DISPONIBILI --> WiFi Disattivato nelle impostazioni")
+#endif
 
 
 /**
- *  @brief Inizializza il WiFi, in primo luogo logger remoto
+ *  @brief Inizializza il WiFi
  *
  *  @note se è già inizializzato non esegue nulla
  */
@@ -34,6 +38,7 @@ void startWiFi(uint32_t timeout_for_each_initialization_ms)
   uint32_t ESP_timeoutRestart = millis();
   while(WiFi.status() != WL_CONNECTED)
   {
+    vTaskDelay(pdMS_TO_TICKS(100));
     /// Se sfora il timeout allora restarta l'ESP32
     if(millis() - ESP_timeoutRestart > DEFAULT_TIMEOUT_WIFI_CONNECTION_IN_MS)
     {
@@ -58,6 +63,7 @@ void startWiFi(uint32_t timeout_for_each_initialization_ms)
     ESP_timeoutRestart = millis();
     while(!mqttClient.isConnected())
     {
+      vTaskDelay(pdMS_TO_TICKS(100));
       /// Se sfora il timeout allora restarta l'ESP32
       if(millis() - ESP_timeoutRestart > DEFAULT_TIMEOUT_WIFI_CONNECTION_IN_MS)
       {
@@ -79,10 +85,10 @@ void startWiFi(uint32_t timeout_for_each_initialization_ms)
     isMqttConnected = true;
 
     /// Printa info sull'IP del dispositivo e sul broker MQTT in cui si è connessi
-    LogInfo("WiFi Connect", "\nWiFi connesso: %s\nBroker MQTT: %s\n\n\n\n", WiFi.localIP().toString().c_str(), MQTT_BROKER);
+    LogInfo("WiFi Connect", "\nWiFi connesso: %s\nBroker MQTT: %s", WiFi.localIP().toString().c_str(), MQTT_BROKER);
   #else
     /// Printa info sull'IP del dispositivo
-    LogInfo("WiFi Connect", "\nWiFi connesso: %s\n\n\n\n", WiFi.localIP().toString().c_str());  
+    LogInfo("WiFi Connect", "\nWiFi connesso: %s", WiFi.localIP().toString().c_str());  
   #endif
    
   /// Debug
@@ -102,35 +108,40 @@ void startWiFi(uint32_t timeout_for_each_initialization_ms)
  *         
  *  @note il timeout totale della funzione è derivato dalla moltiplicazione tra 
  *        @param timeout_for_each_initialization_ms e il numero di inizializzazioni
- *        che devono essere eseguite: ex. n_inizializzazioni = WiFi.begin() + Insights.begin() = 2, fTimeoutTot = n_inizializzazioni * timeout = 2*timeout
+ *        che devono essere eseguite: ex. n_inizializzazioni = WiFi.begin() = 2, fTimeoutTot = n_inizializzazioni * timeout = 2*timeout
  *
  */
 void LogBegin(uint32_t timeout_for_each_initialization_ms)
 {
-  /// Limita il baud al massimo consentito per la Serial port di Arduino IDE
-  /// @warning Viene Inizializzata comunque la seriale per fare dei test rapidi
-  ///          anche se è disabilita la funione di Log con dei classici metodi dell'oggetto "Serial"
-  Serial.begin(115200); 
-  
-  /// Permette i log dalla WiFi Library
-  Serial.setDebugOutput(true);    
+  #ifdef LOG_ACTIVE
+    /// Limita il baud al massimo consentito per la Serial port di Arduino IDE
+    Serial.begin(115200); 
+    
+    /// Permette i log dalla WiFi Library
+    Serial.setDebugOutput(true);    
 
 
-  xSemaphoreLogger = xSemaphoreCreateMutex();
+    xSemaphoreLogger = xSemaphoreCreateMutex();
 
-  if(xSemaphoreLogger == NULL)
-  {
-    Serial.print("Errore nella creazione del Semaforo del logger, riavvio in...3");
-    delay(1000);
-    Serial.print("...2");
-    delay(1000);
-    Serial.println("...1\n\n");
-    delay(1000);
-    ESP.restart();
-  }
+    if(xSemaphoreLogger == NULL)
+    {
+      Serial.print("Errore nella creazione del Semaforo del logger, riavvio in...3");
+      delay(1000);
+      Serial.print("...2");
+      delay(1000);
+      Serial.println("...1\n\n");
+      delay(1000);
+      ESP.restart();
+    }
 
-  /// Inizializza il WiFi @ref @file "WiFi_secrets.hpp"
-  startWiFi(timeout_for_each_initialization_ms);
+    #ifdef WiFi_ACTIVE
+      /// Inizializza il WiFi @ref @file "WiFi_secrets.hpp"
+      startWiFi(timeout_for_each_initialization_ms);
+    #else
+      /// Delay per aspettare che la seriale sia inizializzata
+      vTaskDelay(pdMS_TO_TICKS(2500));
+    #endif
+  #endif
 }
 
 
