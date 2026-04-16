@@ -11,7 +11,7 @@
 /// del programmatore (salvato solo nel PC in locale e non su github, escluso da .gitignore)
 #include "local_secrets.hpp"
 
-#define DEFAULT_TIMEOUT_WIFI_CONNECTION_IN_MS 4000
+#define DEFAULT_TIMEOUT_WIFI_CONNECTION_IN_MS 5000
 
 
 /// Test Mosquitto MQTT broker, @see https://test.mosquitto.org
