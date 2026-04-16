@@ -234,6 +234,10 @@ void TaskTypeDef::ClassInternalUsage_Task(void *pvParameters)
     vTaskDelay(portMAX_DELAY);
   }
 
+  #ifdef LOG_ACTIVE_TASK
+    LogInfo("setup", "Creata la task \"%s\" - Free Stack Space : %dB", Instance->name, uxTaskGetStackHighWaterMark(NULL));
+  #endif
+
   for(;;)
   {
     /// se esiste la funzione di loop la esegue
@@ -250,4 +254,7 @@ void TaskTypeDef::ClassInternalUsage_Task(void *pvParameters)
     /// attende
     Instance->__TaskWait();
   }
+  
+  /// Se per qualsiasi ragione dovesse uscire elimina la task
+  vTaskDelete(NULL);
 }

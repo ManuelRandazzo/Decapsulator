@@ -33,11 +33,8 @@
  */
 enum taskHeapSize_t
 {
-  Security_heap   = 8192,
-  OTA_heap        = 8192,
+  OTA_heap        = 2048,
   MainPrg_heap    = 8192,
-  PesoCont_heap   = 512,
-  PesoCaffe_heap  = 512, 
 };
 
 /**
@@ -48,11 +45,8 @@ enum taskHeapSize_t
  */
 enum taskPriority_t
 {
-  Security_priority   = configMAX_PRIORITIES - 1, //PRIORITA' MASSIMA SEMPRE, il massimo è 24
   OTA_priority        = 20,
   MainPrg_priority    = 4,
-  PesoCont_priority   = 3,
-  PesoCaffe_priority  = 3, 
 };
 
 /**
@@ -60,9 +54,8 @@ enum taskPriority_t
  */
 enum taskDelays_t
 {
-  Security_delay   = 5,
-  MainPrg_delay    = 10,
-  OTA_delay        = 15,
+  MainPrg_delay    = 100,
+  OTA_delay        = 200,
 };
 
 
