@@ -29,11 +29,10 @@
 #include "Arduino.h" // Per il supporto da altri IDE (Integrated Development Environment)
 #include "Tasks.hpp"
 #include "Debug.hpp"
-#include "Safety.hpp"
 #include "OverTheAir_OTA.hpp"
 #include "DecapsulatorPRG.hpp"
 #include "Contenitori.hpp"
-#include "TFT_Display.hpp"
+#include "HMI.hpp"
 
 /**
  *  @brief il setupTask() crea le task e ritorna i log in caso di errore per tutte le task non create con successo 
@@ -46,14 +45,9 @@ BaseType_t setupTasks(void)
 {
   BaseType_t status = pdPASS;
   
-  //status &= xTaskCreatePinnedToCore(SafetyTask, "task SAFETY", Security_heap, NULL, Security_priority, &SafetyHandler, PRO_CPU_NUM);
-
   //status &= OverTheAir.Init("task OTA", OTA_heap, NULL, OTA_priority, OTA_delay, OTA_Setup, OTA_Loop);
 
-  status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PROGRAM", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM);
-
-  //status &= Contenitori.Init("task PESO CONTENITORI", PesoCont_heap, NULL, PesoCont_priority, BALANCE_DELAY_BETWEEN_READINGS);
-  
+  status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PROGRAM", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM); 
   
 
   return status; //restituisce lo stato generale di errore di almeno una delle task, comunque ci sono i log
@@ -63,20 +57,21 @@ BaseType_t setupTasks(void)
  *  @brief Setup per la definizione delle task e inizializzazione dei componenti
  */
 void setup()
-{  
+{
   LogBegin();
 
-  /// crea le task, superato il timeout riaccende l'esp
+  /// crea le task, superato il timeout restarta l'esp32
   const uint32_t tmoSetupTask = millis();
   while(!setupTasks())
   {
     if(millis() - tmoSetupTask >= 1000)
+    {
+      LogError("setup", "Impossibile creare le task nel tempo specificato");
       ESP.restart();
-      
-    vTaskDelay(100);
+    }
   }
 
-  LogDebug("setup", "create le tasks");
+  LogInfo("setup", "create le tasks - Free Stack Space: %d", uxTaskGetStackHighWaterMark(NULL));
 }
 
 /**
@@ -87,4 +82,4 @@ void setup()
  *  @attention Non eliminare la task perchè serve al WiFi
  * 
  */
-void loop() {}
+void loop(){}
