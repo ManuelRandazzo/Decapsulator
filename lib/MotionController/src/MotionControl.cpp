@@ -49,11 +49,11 @@ void MOTION::MoveHandler()
         /// Ha finito l'homing ed è arretrato, qui c'è il punto zero (0)
         Motion.setAbsPosition(0);
         this->__isHomeFinished = true;
-        this->__homing_state   = HOMING_IDLE;
+        this->__homing_state = HOMING_IDLE;
         #ifdef LOG_ACTIVE_MOTION
           LogInfo("Handler Motion", "Homing completato con successo");
         #endif
-      }  
+      }
     }
 
     this->selettore = STAND_STILL;
@@ -116,10 +116,9 @@ void MOTION::MoveHandler()
           receiverQueue.__PostHomeVal);
       #endif
 
-      /// Inverte la direzione (a meno che __PostHomeVal non sia negativo) e percorre i passi post-home
-      Direction_t backDir = receiverQueue.__dir * (receiverQueue.__PostHomeVal < 0) ? (DIR_POSITIVE) : (DIR_NEGATIVE);
-      Motion.setDirection(backDir);
-      Motion.step(receiverQueue.__PostHomeVal, receiverQueue.__home_steps_us);
+      /// Percorre i passi post-home
+      Motion.setDirection(receiverQueue.__backDir);
+      Motion.step(receiverQueue.__PostHomeVal, uint64_t(receiverQueue.__home_steps_us/4));
 
       this->__homing_state = HOMING_BACKOFF;
       this->__limit_direction = NO_DIR;
@@ -247,7 +246,7 @@ drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin
 
   /// Crea il buffer di coda per i movimenti del motore
   /// @link_ref: https://www.freertos.org/Documentation/02-Kernel/04-API-references/06-Queues/01-xQueueCreate
-  MoveQueueHandler = xQueueCreate(5, sizeof(MoveQueue_t));
+  MoveQueueHandler = xQueueCreate(10, sizeof(MoveQueue_t));
   
   /// Inizializza l'Interrupt Service Routine per il pin nFAULT
   if(fault_pin != 255 && FaultISR != nullptr)
@@ -257,7 +256,7 @@ drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin
   drv_err_t errDrv = Motion.begin(dir_pin, step_pin, en_pin, rst_pin, sleep_pin, numberOfSteps);
   if(errDrv != DRV_OK)
     return errDrv;
-  Motion.disable();
+  this->detach();
 
   /// Resetta i valori delle variabili della classe, fatto principalmente per portare a valori default "receiverQueue"
   reset();
@@ -320,8 +319,8 @@ void MOTION::setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll
     return;
   }
   
-  this->__calib_signal = (CalibSignal_t)(input_mode==INPUT_PULLUP ? !levelActive : levelActive);
-
+  this->__calib_signal = levelActive;
+  
   if(pinLimMax != 255)
   {
     DebPinHandler* ptrHardMax = new DebPinHandler(IntrOrPoll, pinLimMax, "MotionHardPinMax", debounce_ms, CHANGE, input_mode);
@@ -454,42 +453,33 @@ void MOTION::home(double HomeVelocity_gradi_sec, Direction_t searchDirection, do
     return;
   }
 
-  switch(searchDirection)
+  if(searchDirection == NO_DIR)
   {
-    case NO_DIR :
-      #ifdef LOG_ACTIVE_MOTION
-        LogError("Homing", "Impossibile eseguire l'homing senza avere una direzione definita (searchDirection = NO_DIR)");
-      #endif
-      return;
-    break;
-    case DIR_NEGATIVE :
-      if(this->HardMax == nullptr)
-      {
-        #ifdef LOG_ACTIVE_MOTION
-          LogError("Homing", "Impossibile eseguire l'homing perchè Hard Max non è definito");
-        #endif
-        return;
-      }
-    break;
-    case DIR_POSITIVE :
-      if(this->HardMin == nullptr)
-      {
-        #ifdef LOG_ACTIVE_MOTION
-          LogError("Homing", "Impossibile eseguire l'homing perchè Hard Min non è definito");
-        #endif
-        return;
-      }
-    break;
+    #ifdef LOG_ACTIVE_MOTION
+      LogError("Homing", "Impossibile eseguire l'homing senza avere una direzione definita (searchDirection = NO_DIR)");
+    #endif
+    return;
   }
+
+  Direction_t backDir;
+  if(gradiDopoHome < 0) /// Mantiene la stessa direzione
+  {
+    backDir = searchDirection;
+    gradiDopoHome = abs(gradiDopoHome);
+  }
+  else /// Inverte la direzione
+    backDir = (searchDirection == DIR_POSITIVE ? DIR_NEGATIVE : DIR_POSITIVE);
+  
 
   /// Struct per inviare il buffer dati
   MoveQueue_t HomeQueueDatas =
   {
     .__SwitchMove = HOMING,
     .__home_steps_us = getPeriodDelay(HomeVelocity_gradi_sec),
+    .__backDir = backDir,
     .__PostHomeVal = gradiToSteps(gradiDopoHome),
     .__speed_steps_us = 10,
-    .__dir = searchDirection
+    .__dir = searchDirection,
   };
 
   /// Abbassa il Flag di Home finito
@@ -508,7 +498,7 @@ void MOTION::home(double HomeVelocity_gradi_sec, Direction_t searchDirection, do
  */
 bool MOTION::isHomeDone()
 {
-  return __isHomeFinished;
+  return this->__isHomeFinished;
 }
 
 

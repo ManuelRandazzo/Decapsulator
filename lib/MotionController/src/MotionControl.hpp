@@ -220,6 +220,7 @@ class MOTION
 
       /// Dati Homing
       uint64_t __home_steps_us;                 /*!< Velocità dell'homing in step/secondo  */
+      Direction_t __backDir;                    /*!< Direzione di Backoff dopo l'homing */
       int64_t __PostHomeVal;                    /*!< è il valore di cui si deve rispostare in avanti in cui vi sarà la posizione 0 dopo l'homing  */
 
       /// Altri Dati
