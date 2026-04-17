@@ -32,6 +32,9 @@ using namespace std;// Usato per le stringhe standard del c++
 /** ╔═════════════════════════════════════════════╗
     ║             USER: LOGGER OPTIONS            ║
     ╚═════════════════════════════════════════════╝ */
+/// Definisce la lunghezza della coda dei log
+#define LOGGER_QUEUE_LEN 256
+#define LOGGER_MESSAGE_SIZE 2048
 
 /// @attention Viene perso anche l'OTA e l'MQTT commentando questa riga la quale disattiva l'inizializzazione del WiFi
 //#define WiFi_ACTIVE
@@ -95,6 +98,13 @@ extern void DebugOverrideVar(String override_topic, varType* var);
 /// Per quanti millisecondi il semaforo blocca la task al MAX se non riceve subito il semaforo
 #define __SEMAPHORE_TIMEOUT_MS__ 150
 extern SemaphoreHandle_t xSemaphoreLogger;
+
+struct log_msg_t
+{
+  string mqttTopic;
+  char message[LOGGER_MESSAGE_SIZE];
+};
+
 static bool isMqttConnected = false;
 
 #if !defined(WiFi_ACTIVE)
@@ -210,7 +220,7 @@ static bool isMqttConnected = false;
         if(xSemaphoreLogger != nullptr)\
           if(xSemaphoreTakeFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken))\
           {\
-            ets_printf(ARDUHAL_LOG_FORMAT(E, format), ##__VA_ARGS__);\
+            ets_printf(ARDUHAL_LOG_FORMAT(## logType, format), ##__VA_ARGS__);\
             xSemaphoreGiveFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken);\
           }\
       } while(0)
