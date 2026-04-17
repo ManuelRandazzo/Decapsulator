@@ -33,8 +33,9 @@
  */
 enum taskHeapSize_t
 {
-  OTA_heap        = 2048,
-  MainPrg_heap    = 8192,
+  OTA_heap        = 2048, // 2kiB
+  HMI_heap        = 4096, // 4kiB
+  MainPrg_heap    = 6656, // 6.5kiB
 };
 
 /**
@@ -45,8 +46,9 @@ enum taskHeapSize_t
  */
 enum taskPriority_t
 {
-  OTA_priority        = 20,
-  MainPrg_priority    = 4,
+  OTA_priority        = 10,
+  HMI_priority        = 5,
+  MainPrg_priority    = 7,
 };
 
 /**
@@ -54,7 +56,8 @@ enum taskPriority_t
  */
 enum taskDelays_t
 {
-  MainPrg_delay    = 100,
+  MainPrg_delay    = 5,
+  HMI_delay        = 100,
   OTA_delay        = 200,
 };
 
