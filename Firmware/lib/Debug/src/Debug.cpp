@@ -1,6 +1,7 @@
 #include "Debug.hpp"
 
 SemaphoreHandle_t xSemaphoreLogger;
+QueueHandle_t LoggerQueueHandler = nullptr;
 
 #if !defined(WiFi_ACTIVE)
   #pragma message ("Warning: OTA DOWNLOAD E MQTT LOG NON DISPONIBILI --> WiFi Disattivato nelle impostazioni")
@@ -121,9 +122,10 @@ void LogBegin(uint32_t timeout_for_each_initialization_ms)
     Serial.setDebugOutput(true);    
 
 
+    //LoggerQueueHandler = xQueueCreate(LOGGER_QUEUE_LEN, sizeof(log_msg_t));
     xSemaphoreLogger = xSemaphoreCreateMutex();
 
-    if(xSemaphoreLogger == NULL)
+    if(xSemaphoreLogger == NULL /*|| LoggerQueueHandler == NULL*/)
     {
       Serial.print("Errore nella creazione del Semaforo del logger, riavvio in...3");
       delay(1000);
@@ -270,3 +272,60 @@ static varType FromStringToVarType(const std::string &s)
 #else /// Definisce altrimenti una funzione vuota
   #define mqtt_logger_printf(topic, format, ...) (void)0
 #endif
+
+
+
+
+/**
+ * 
+ * @example di come dovrà essere __DECAPSULATOR_LOG
+ * 
+ * #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
+ *   do\
+ *   {\
+ *     log_msg_t msg;\
+ *     snprintf(msg.message, sizeof(msg.message), _FORMAT_(logType, format, tag), ##__VA_ARGS__);\
+ *     _TOPIC_MQTT_(logType ## _LOG_TOPIC, tag);\
+ *     msg.topic = topic;\
+ *     xQueueSend(LoggerQueueHandler, &msg, 0);\
+ *   } while(0)
+ * 
+ * 
+ * #define __ISR_DECAPSULATOR_LOG(logType, tag, format, ...)\
+ *    do\
+ *    {\
+ *       ets_printf(ARDUHAL_LOG_FORMAT(## logType, format), ##__VA_ARGS__);\
+ *    } while(0)
+ */
+
+void LoggerTask(void* pvParameters)
+{  
+  while(1)
+  {
+    log_msg_t to_log;
+
+    /// Attende all'infinito che qualcuno invii un log
+    xQueueReceive(LoggerQueueHandler, &to_log, portMAX_DELAY);
+    
+    /// Printa il messaggio
+    log_printf(to_log.message);
+
+    #ifdef LOG_MQTT_ACTIVE
+      if(isMqttConnected)
+        mqtt_logger_printf(to_log.mqttTopic, to_log.message);
+    #endif
+
+    /**
+     * 
+     *  @todo Capire con Pisan per la parte di Diagnostica nel decapsulator per salvare i dati in SD
+     *        sin da quando viene ricevuto il log o solo una volta quando viene spento oppure quando 
+     *        xQueueReceice=false sfrutta il momento per inviare i log nel file
+     * 
+     */
+  }
+  vTaskDelete(NULL);
+}
+
+
+
+
