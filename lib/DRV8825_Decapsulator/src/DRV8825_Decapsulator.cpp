@@ -252,7 +252,7 @@ drv_err_t DRV8825::update()
 
   xSemaphoreGive(this->_mutex);
 
-  esp_err_t errTxWait = rmt_tx_wait_all_done(rmtChannelSafeCopy, -1);
+  esp_err_t errTxWait = rmt_tx_wait_all_done(rmtChannelSafeCopy, 10);
     
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
     return DRV_ERR_MUX_TAKE_TIMEOUT;
