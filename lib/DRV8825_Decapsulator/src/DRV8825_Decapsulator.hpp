@@ -24,13 +24,8 @@
  */
 
 #include "Arduino.h"
-#include "freertos/FreeRTOS.h"
-#include "freertos/task.h"
-#include "freertos/semphr.h"
 #include "driver/rmt_tx.h"
-#include "soc/gpio_struct.h"
 #include "hal/gpio_ll.h"
-#include "esp_log.h"
 
 
 //  setDirection
@@ -164,10 +159,10 @@ class DRV8825
     uint64_t  _stepsLeft     = 0;
     bool     _isContinuous   = false;
     bool     _abortCommand   = false;
-    bool     _isStepDone     = true;
+    bool     _isStepDone     = false;
     int64_t  _absStepCounter = 0;
     uint16_t _stepsPerRevolution;
-    rmt_channel_handle_t _rmtChannel = NULL;
+    rmt_channel_handle_t _rmtChannel = nullptr;
 
     bool     _waitRmtAsyncTransmit   = false;
 
@@ -196,6 +191,6 @@ class DRV8825
       .flags = { .eot_level = 0 }  // livello LOW dopo la trasmissione
     };
     
-    rmt_encoder_handle_t step_encoder = NULL;
+    rmt_encoder_handle_t step_encoder = nullptr;
 };
 //  -- END OF FILE --

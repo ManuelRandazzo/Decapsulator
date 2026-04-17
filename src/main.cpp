@@ -26,16 +26,13 @@
  * HX711 ADC 24 bit per celle di carico --> @version 0.7.5 --> @link: https://github.com/bogde/HX711/blob/master
  */
 
-#include <Arduino.h> // Per il supporto da altri IDE (Integrated Development Environment)
+#include "Arduino.h" // Per il supporto da altri IDE (Integrated Development Environment)
 #include "Tasks.hpp"
 #include "Debug.hpp"
-#include "Safety.hpp"
 #include "OverTheAir_OTA.hpp"
-#include "Tamburo.hpp"
+#include "DecapsulatorPRG.hpp"
 #include "Contenitori.hpp"
-#include "TFT_Display.hpp"
-
-
+#include "HMI.hpp"
 
 /**
  *  @brief il setupTask() crea le task e ritorna i log in caso di errore per tutte le task non create con successo 
@@ -48,14 +45,9 @@ BaseType_t setupTasks(void)
 {
   BaseType_t status = pdPASS;
   
-  //status &= xTaskCreatePinnedToCore(SafetyTask, "task SAFETY", Security_heap, NULL, Security_priority, &SafetyHandler, APP_CPU_NUM);
-
   //status &= OverTheAir.Init("task OTA", OTA_heap, NULL, OTA_priority, OTA_delay, OTA_Setup, OTA_Loop);
 
-  status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PROGRAM", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM);
-
-  //status &= Contenitori.Init("task PESO CONTENITORI", PesoCont_heap, NULL, PesoCont_priority, BALANCE_DELAY_BETWEEN_READINGS);
-  
+  status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PROGRAM", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM); 
   
 
   return status; //restituisce lo stato generale di errore di almeno una delle task, comunque ci sono i log
@@ -64,35 +56,22 @@ BaseType_t setupTasks(void)
 /**
  *  @brief Setup per la definizione delle task e inizializzazione dei componenti
  */
-MOTION motoreIsolato;
-bool xBusy = false;
 void setup()
 {
   LogBegin();
 
-  /// crea le task
-  //while(!setupTasks());
-
-  LogDebug("setup", "create le tasks");
-  drv_err_t err = motoreIsolato.Init(RALLA_MOTOR_STEPS, RALLA_DIRECTION_PIN, RALLA_STEP_PIN, RALLA_ENABLE_PIN, RALLA_RESET_PIN, RALLA_SLEEP_PIN,
-                      RALLA_TASK_PRIORITY, RALLA_MICROSTEP);
-  if(DRV_OK != err)
+  /// crea le task, superato il timeout restarta l'esp32
+  const uint32_t tmoSetupTask = millis();
+  while(!setupTasks())
   {
-    LogError("Motore test Init", "Resetto l'esp32.\nErrore : %s.", drv_err_to_name(err));
-    delay(2000);
-    ESP.restart();
+    if(millis() - tmoSetupTask >= 1000)
+    {
+      LogError("setup", "Impossibile creare le task nel tempo specificato");
+      ESP.restart();
+    }
   }
 
-  motoreIsolato.attach();
-  motoreIsolato.Start();
-  
-  //while(!motoreIsolato.isStepDone());
-  /*motoreIsolato.moveRel(-270.0, 900.0);
-  while(!motoreIsolato.isStepDone());*/
-  motoreIsolato.moveContinuous(DIR_POSITIVE, 1000.0);
-  vTaskDelay(pdMS_TO_TICKS(5000));
-  motoreIsolato.Halt();
-  //vTaskSuspend(NULL);
+  LogInfo("setup", "create le tasks - Free Stack Space: %d", uxTaskGetStackHighWaterMark(NULL));
 }
 
 /**
@@ -103,19 +82,4 @@ void setup()
  *  @attention Non eliminare la task perchè serve al WiFi
  * 
  */
-bool toggle = false;
-void loop() {
-  if(motoreIsolato.isStepDone())
-  {
-    for(int i=0; i<4; i++)
-    {
-      if(!toggle)
-        motoreIsolato.moveRel(-270.0, 1400.0);
-      else
-        motoreIsolato.moveRel(+270.0, 1400.0);
-
-      vTaskDelay(pdMS_TO_TICKS(1000));
-    }
-    toggle ^= 1;
-  }
-}
+void loop(){}

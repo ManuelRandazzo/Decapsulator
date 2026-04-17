@@ -1,0 +1,836 @@
+#include "MotionControl.hpp"
+
+/**
+ *  @brief Distruttore della classe, perde la memoria delle variabili e dealloca l'oggetto
+ */
+MOTION::~MOTION()
+{
+  Stop(RELEASE);
+  /// Cancella il buffer di coda dei movimenti
+  vQueueDelete(MoveQueueHandler);
+}
+
+/**
+ *  @private Element Of The Class
+ *
+ *  @brief Questo metodo ha il compito di gestire in modo ottimale per sistema FreeRTOS il movimento e la velocità del motore
+ *
+ *  ATTENZIONE: La task viene riattivata da Start e sospesa da Stop quindi è sicuro che non venga mai chiamato MoveHandler per ragioni di sicurezza
+ */
+void MOTION::MoveHandler()
+{
+  bool flagRunOnceCMD = false;
+
+  /// Se il motore non sta eseguendo nessun comando (selettore = STAND_STILL) e non
+  /// è stato fermato (perchè lo Stop forza STAND_STILL) allora...
+  if(this->selettore == STAND_STILL)
+  {
+    BaseType_t queueErr = xQueueReceive(MoveQueueHandler, &receiverQueue, 0);
+    
+    /// Se è arrivato qualcosa in coda allora invia il comando al driver
+    if(queueErr == pdTRUE)
+    {
+      this->selettore = receiverQueue.__SwitchMove;
+
+      /// Alza il flag di comando
+      flagRunOnceCMD = true;
+    }
+    #ifdef LOG_ACTIVE_MOTION
+      LogInfo("Handler Motion", "Command %sReceived", (queueErr == pdTRUE ? "" : "Not "));
+    #endif
+  }
+  else if(Motion.isStepDone() == DRV_TRUE)
+  {
+    /// Se era in corso il backoff dell'homing, segnala il completamento
+    if(this->selettore == HOMING)
+    {
+      if(this->__homing_state == HOMING_BACKOFF)
+      {
+        /// Ha finito l'homing ed è arretrato, qui c'è il punto zero (0)
+        Motion.setAbsPosition(0);
+        this->__isHomeFinished = true;
+        this->__homing_state = HOMING_IDLE;
+        #ifdef LOG_ACTIVE_MOTION
+          LogInfo("Handler Motion", "Homing completato con successo");
+        #endif
+      }
+    }
+
+    this->selettore = STAND_STILL;
+  }
+  
+  if(this->HardMax != nullptr)
+  {
+    this->HardMax->IsInterrupt() ? this->HardMax->intrUpdate()
+                                 : this->HardMax->pollUpdate();
+    if(this->HardMax->event())
+    {
+      if(this->HardMax->rawRead() == this->__calib_signal)
+      {
+        #ifdef LOG_ACTIVE_MOTION
+          LogInfo("Handler Motion", "Hard Max Limit Pressed, blocking DIR_POSITIVE");
+        #endif
+        this->__limit_direction = DIR_NEGATIVE;
+      }
+      else if(this->__limit_direction == DIR_NEGATIVE)
+      {
+        #ifdef LOG_ACTIVE_MOTION
+          LogInfo("Handler Motion", "Hard Max Limit Released, clearing limit direction");
+        #endif
+        this->__limit_direction = NO_DIR;
+      }
+    }
+  }
+
+  if(this->HardMin != nullptr)
+  {
+    this->HardMin->IsInterrupt() ? this->HardMin->intrUpdate()
+                                 : this->HardMin->pollUpdate();
+
+    if(this->HardMin->event())
+    {
+      if(this->HardMin->rawRead() == this->__calib_signal)
+      {
+        #ifdef LOG_ACTIVE_MOTION
+          LogInfo("Handler Motion", "Hard Min Limit Pressed, blocking DIR_NEGATIVE");
+        #endif
+        this->__limit_direction = DIR_POSITIVE;
+      }
+      else if(this->__limit_direction == DIR_POSITIVE)
+      {
+        #ifdef LOG_ACTIVE_MOTION
+          LogInfo("Handler Motion", "Hard Min Limit Released, clearing limit direction");
+        #endif
+        this->__limit_direction = NO_DIR;
+      }
+    }
+  }
+
+  if(this->__limit_direction != NO_DIR)
+  {
+    /// Durante l'homing in SEARCH il finecorsa è atteso: avvia il backoff
+    if(this->selettore == HOMING && this->__homing_state == HOMING_SEARCH)
+    {
+      #ifdef LOG_ACTIVE_MOTION
+        LogInfo("Handler Motion", "Homing: finecorsa trovato, avvio backoff di %lu steps",
+          receiverQueue.__PostHomeVal);
+      #endif
+
+      /// Percorre i passi post-home
+      Motion.setDirection(receiverQueue.__backDir);
+      Motion.step(receiverQueue.__PostHomeVal, uint64_t(receiverQueue.__home_steps_us/4));
+
+      this->__homing_state = HOMING_BACKOFF;
+      this->__limit_direction = NO_DIR;
+      flagRunOnceCMD = false;
+    }
+    else if(receiverQueue.__dir == this->__limit_direction)
+    {
+      #ifdef LOG_ACTIVE_MOTION
+        LogInfo("Handler Motion", "Hard Limit active, aborting command in dir: %s",
+          this->receiverQueue.__dir == DIR_NEGATIVE ? "DIR_NEGATIVE" : "DIR_POSITIVE");
+      #endif
+      this->abortCurrentCommand();
+      flagRunOnceCMD  = false;
+    }
+  }
+  
+  /// Se è stato dato un comando di halt allora blocca la coda
+  if(this->__isHalted)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogInfo("Handler Motion", "Command Halted.\nErasing Queue");
+    #endif
+
+    /// Toglie qualsiasi movimento successivo contenuto nella coda se non è già vuota
+    if(uxQueueMessagesWaiting(MoveQueueHandler) > 0)
+      xQueueReset(MoveQueueHandler);
+
+    /// Forza il motore a stare in Halt, ovvero interrompe il comando attuale
+    this->selettore = STAND_STILL;
+
+    /// Sblocca il motore dall'Halt (Halt rimane attivo per un ciclo e basta)
+    this->__isHalted = false;
+
+    /// Resetta l'homing state interrompendolo se serve
+    this->__homing_state = HOMING_IDLE;
+
+    /// Abortisce il movimento attuale
+    Motion.abortCurrentMovement();
+    
+    /// Abbassa il flag di comando
+    flagRunOnceCMD = false;
+  }
+  
+  if(flagRunOnceCMD)
+  {
+    /// Abbassa il flag di comando
+    flagRunOnceCMD = false;
+
+    /// Imposta la direzione
+    Motion.setDirection(receiverQueue.__dir);
+
+    /// Invio dei comandi
+    switch(this->selettore)
+    {
+      case STAND_STILL :
+        // Do nothing
+      break;
+      /// Avvia il movimento continuo verso il finecorsa di calibrazione
+      case HOMING :
+        this->__homing_state = HOMING_SEARCH;
+        Motion.stepContinuous(receiverQueue.__home_steps_us);
+      break;
+      /// Invia il comando di fare un movimento di tot steps in una direzione specificata
+      case MOVE_REL :
+      case MOVE_ABS :
+        Motion.step(receiverQueue.__move_steps, receiverQueue.__speed_steps_us);
+      break;
+      /// Invia il comando che fa un passo finché non viene ricevuto un altro dato dalla queue
+      case CONTINUOUS :
+        Motion.stepContinuous(receiverQueue.__speed_steps_us);
+      break;
+    }
+    
+    /// Gestione dei log
+    #ifdef LOG_ACTIVE_MOTION
+      LogInfo("Handler Motion", "SwitchMove(MC state selector) attuale = %s (stato = %d)", SwitchMoveStr[selettore], selettore);
+    #endif
+  }
+ 
+
+  /// Aggiorna la classe del DRV8825
+  drv_err_t err = Motion.update();
+  #ifdef LOG_ACTIVE_MOTION
+    static uint32_t time = 0;
+    uint32_t actualTime = millis();
+    if(actualTime - time >= 8000)
+    {
+      time = actualTime;
+      if(err != DRV_OK && err != DRV_NO_NOTIFY && err != DRV_WAITING_RMT_TX_TO_FINISH)
+        LogError("Errore Update DRV8825", "Driver Error : %s", drv_err_to_name(err));
+      else
+        LogInfo("Update DRV8825", "%s", drv_err_to_name(err));
+    }
+  #endif
+
+
+
+  
+  //vTaskDelay(pdMS_TO_TICKS(0)); /// Permette di fare lo switch tra le task
+}
+
+/**
+ *  @brief Inizializzatore della @class MOTION
+ *
+ *  @param numberOfSteps : imposta il numero di step per rotation del motore, non tiene conto del microstepping
+ *  @param dir_pin       : imposta il pin che permette di scegliere la direzione del motore
+ *  @param step_pin      : imposta il pin che permette di eseguire un passo allo stepper in base al microstepping scelto
+ *  @param en_pin        : imposta il pin di abilitazione del pin
+ *  @param rst_pin       : imposta il pin di reset del chip
+ *  @param sleep_pin     : imposta il pin di sleep (consumo minimo)
+ *  @param taskPriority  : imposta la priorità che avrà una Task interna per la gestione dei movimenti del motore
+ *  @param microSteps    : imposta il valore di quanti microsteps farà, ovvero la risoluzione. @ref al datasheet per il collegamento dei pin MODE_0 - MODE_2
+ *
+ *  @note i prossimi due parametri possono essere settati post inizializzazione con la funzione setFaultISR.  
+ *  @param fault_pin : associazione al pin nFAULT del driver
+ *  @param FaultISR  : Viene associata una Interrupt Service Routine creata dall'utente che verrà eseguita in caso vi sia un problema : Overcurrent, Undervoltage, Overtemperature.
+ */
+drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin, UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t FaultISR_priority)
+{
+  /// Microstep scelti da HardWare
+  uStepScelti = microSteps;
+
+  /// Passi totali per ogni giro di motore
+  __stepsMotore = numberOfSteps;
+
+  /// Crea il buffer di coda per i movimenti del motore
+  /// @link_ref: https://www.freertos.org/Documentation/02-Kernel/04-API-references/06-Queues/01-xQueueCreate
+  MoveQueueHandler = xQueueCreate(10, sizeof(MoveQueue_t));
+  
+  /// Inizializza l'Interrupt Service Routine per il pin nFAULT
+  if(fault_pin != 255 && FaultISR != nullptr)
+    setFaultISR(fault_pin, FaultISR, FaultISR_Heap, FaultISR_priority);
+
+  /// Inizializza il driver e i pin
+  drv_err_t errDrv = Motion.begin(dir_pin, step_pin, en_pin, rst_pin, sleep_pin, numberOfSteps);
+  if(errDrv != DRV_OK)
+    return errDrv;
+  this->detach();
+
+  /// Resetta i valori delle variabili della classe, fatto principalmente per portare a valori default "receiverQueue"
+  reset();
+                          
+  /// Inizializza la task per il metodo move
+  BaseType_t errTaskInit = MoveHandlerTask.Init<MOTION>("Move Handler", 8192, NULL, taskPriority, 0, this, nullptr, &MOTION::MoveHandler);
+  
+  #ifdef LOG_ACTIVE_MOTION
+    if(errTaskInit != pdTRUE)
+    {
+      LogError("Motion Init", "Inizializzazione della task fallita");
+      return DRV_FAIL;
+    }
+  #endif
+  
+  
+  /// Setta la task in cui verrà chiamato l'update
+  errDrv = Motion.setUpdateTask(MoveHandlerTask.getHandler());
+  if(errDrv != DRV_OK)
+    return errDrv;
+
+  /// Il motore inizialmente non è in coppia e aspetta un segnale di Start
+  Stop(RELEASE);
+
+  return DRV_OK;
+}
+
+/**
+ *  @brief Setta i limiti massimi e minimi oltre ai quali il motore non può arrivare
+ * 
+ *  @param pinLimMax Pin che rileva il massimo a cui può arrivare il motore
+ * 
+ *  @param pinLimMin Pin che rileva il minimo a cui può arrivare il motore
+ *
+ *  @param IntrOrPoll INTERRUPT oppure POLLING
+ *   
+ *  @param debounce_ms Tempo per il debounce in millisecondi
+ *   
+ *  @param input_mode Modalità di input del pin INPUT, INPUT_PULLUP, INPUT_PULLDOWN
+ * 
+ *  @param levelActive è il segnale per il quale il sensore viene considerato come triggerato.
+ *                     Valori accetati ACTIVE_LOW, ACTIVE_HIGH
+ */
+void MOTION::setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll, uint32_t debounce_ms, uint8_t input_mode, CalibSignal_t levelActive)
+{
+
+  if(pinLimMax == 255 && pinLimMin == 255)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError("setHardLimits", "Impossibile settare hard limits senza avere almeno settato uno dei due pin diverso da 255");
+    #endif
+    return;
+  }
+
+  if(levelActive == UNKNOWN)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError("setHardLimits", "Impossibile dedurre il livello di quando gli hard limit sono attivi o no del Motion");
+    #endif
+    return;
+  }
+  
+  this->__calib_signal = levelActive;
+  
+  if(pinLimMax != 255)
+  {
+    DebPinHandler* ptrHardMax = new DebPinHandler(IntrOrPoll, pinLimMax, "MotionHardPinMax", debounce_ms, CHANGE, input_mode);
+    
+    if(ptrHardMax == 0)
+    {
+      #ifdef LOG_ACTIVE_MOTION
+        LogError("Hard Max Pin", "Impossibile allocare memoria per il pin Max del Motion");
+      #endif
+      return;
+    }
+
+    this->HardMax = ptrHardMax;
+  }
+  
+  if(pinLimMin != 255)
+  {
+    DebPinHandler* ptrHardMin = new DebPinHandler(IntrOrPoll, pinLimMin, "MotionHardPinMin", debounce_ms, CHANGE, input_mode);
+
+    if(ptrHardMin == 0)
+    {
+      #ifdef LOG_ACTIVE_MOTION
+        LogError("Hard Min Pin", "Impossibile allocare memoria per il pin Min del Motion");
+      #endif
+      return;
+    }
+
+    this->HardMin = ptrHardMin;
+  }
+
+}
+
+/**
+ *  @brief Rimuove i limiti massimi e minimi oltre ai quali il motore non può arrivare
+ */
+void MOTION::removeHardLimits()
+{
+  if(this->HardMax != nullptr)
+  {
+    /// Copia l'istanza
+    this->HardMaxCpy = this->HardMax;
+
+    /// Rimuove il valore nel puntatore
+    this->HardMax = nullptr;
+  }
+
+  if(this->HardMin != nullptr)
+  {
+    /// Copia l'istanza
+    this->HardMinCpy = this->HardMin;
+
+    /// Rimuove il valore nel puntatore
+    this->HardMin = nullptr;
+  }
+}
+
+/**
+ *  @brief Ricollega i limiti massimi e minimi oltre ai quali il motore non può arrivare
+ */
+void MOTION::reattachHardLimits()
+{
+  if(this->HardMaxCpy != nullptr)
+  {
+    this->HardMax = this->HardMaxCpy;
+
+    /// Rimuove il valore nel puntatore di copia
+    this->HardMaxCpy = nullptr;
+  }
+
+  if(this->HardMinCpy != nullptr)
+  {
+    this->HardMin = this->HardMinCpy;
+
+    /// Rimuove il valore nel puntatore di copia
+    this->HardMinCpy = nullptr;
+  }
+}
+
+/**
+ *  @brief Mette in coppia il motore
+ */
+void MOTION::attach()
+{
+  Motion.enable();
+  __isAttached = true;
+}
+
+/**
+ *  @brief Disaccoppia il motore
+ */
+void MOTION::detach()
+{
+  Motion.disable();
+  __isAttached = false;
+}   
+
+/**
+ *  @brief Restituisce se il motore è attached (true) o no (false)
+ */
+bool MOTION::isAttached()
+{
+  return __isAttached;
+}
+
+/**
+ *  @brief Restituisce se il motore è detached (true) o no (false)
+ */
+bool MOTION::isDetached()
+{
+  return !__isAttached;
+}
+
+/**
+ *  @brief Inizializza il motore con l'Homing in modo che si sappia il punto di partenza.
+ * 
+ *  @param HomeVelocity_gradi_sec         : Velocità con cui verrà eseguito l'homing
+ *  @param searchDirection                : Direzione in cui il motore cerca il finecorsa --> DIR_NEGATIVE (default) = clockWise DIR_POSITIVE = counterClockWise
+ *  @param gradiDopoHome                  : Valore di posizione dopo aver fatto l'homing
+ *
+ *  @warning QUESTA FUNZIONE ESCE SUBITO ED ESEGUE L'HOMING IN MODO ASINCRONO CON TASK INTERNA.
+ *           Solo quando la funzione @see isHomeDone() restituisce true allora sarà effettivamente finito l'home 
+ */
+void MOTION::home(double HomeVelocity_gradi_sec, Direction_t searchDirection, double gradiDopoHome)
+{
+  if(HomeVelocity_gradi_sec <= 0)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError("Homing", "Impossibile eseguire l'homing con una velocità di homing di : %f", HomeVelocity_gradi_sec);
+    #endif
+    return;
+  }
+
+  if(searchDirection == NO_DIR)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError("Homing", "Impossibile eseguire l'homing senza avere una direzione definita (searchDirection = NO_DIR)");
+    #endif
+    return;
+  }
+
+  Direction_t backDir;
+  if(gradiDopoHome < 0) /// Mantiene la stessa direzione
+  {
+    backDir = searchDirection;
+    gradiDopoHome = abs(gradiDopoHome);
+  }
+  else /// Inverte la direzione
+    backDir = (searchDirection == DIR_POSITIVE ? DIR_NEGATIVE : DIR_POSITIVE);
+  
+
+  /// Struct per inviare il buffer dati
+  MoveQueue_t HomeQueueDatas =
+  {
+    .__SwitchMove = HOMING,
+    .__home_steps_us = getPeriodDelay(HomeVelocity_gradi_sec),
+    .__backDir = backDir,
+    .__PostHomeVal = gradiToSteps(gradiDopoHome),
+    .__speed_steps_us = 10,
+    .__dir = searchDirection,
+  };
+
+  /// Abbassa il Flag di Home finito
+  this->__isHomeFinished = false;
+
+  /// Invia i dati alla coda
+  MoveSendToQueue(HomeQueueDatas);
+}
+
+
+
+/**
+ *  @brief Ritorna se l'Homing è finito o no
+ *
+ *  @return Restituisce true se l'homing è finito, restituisce false se non è finito
+ */
+bool MOTION::isHomeDone()
+{
+  return this->__isHomeFinished;
+}
+
+
+
+/**
+ *  @brief Ferma il motore con il rialascio o il mantenimento della coppia, utile in caso di EMERGENZA
+ *
+ *  @param rilasciaOppureMantieniCoppia è di default in RELEASE e serve per mantenere o rilasciare la coppia del motore
+ *
+ *  @note Il motore in RELEASE mode non riceverà più corrente dal driver ma sarà libero di girare se spostato manualmente
+           Invece in HOLD mode manterrà in coppia il motore impedendo che si sposti finchè c'è ancora corrente
+ *  @note Se va in sleep consuma meno corrente e impedisce che per sbaglio vengano inviati comandi
+ */
+void MOTION::Stop(StopReleaseOrHold_t rilasciaOppureMantieniCoppia)
+{
+  /// Fin da subito non permette più il movimento ignora l'aggiornamento di step
+  __isStopped = true;
+
+  /// Rilascia o tiene in coppia il motore
+  rilasciaOppureMantieniCoppia == RELEASE ? sleep(true) : Halt();
+
+  /// Sospende la task per ragioni di siurezza in modo che non riparta finchè non riviene dato lo Start()
+  MoveHandlerTask.Suspend();
+}
+
+/**
+ *  @brief Restituisce se il motore è fermo e NON può essere comandato
+ */
+bool MOTION::isStopped()
+{
+  return __isStopped;
+}
+
+/**
+ *  @brief Permette al motore di poter essere comandato
+ *
+ *  @warning Bisogna chiamare attach() prima di poterlo startare / restartare 
+ *           se era stata tolta la coppia al motore 
+ */
+void MOTION::Start()
+{
+  /// Riprende la task che era stata precedentemente fermata per ragioni di siurezza con Stop()
+  MoveHandlerTask.Resume();
+
+  __isStopped = false;
+}
+
+/**
+ *  @brief Restituisce se il motore è startato e può essere comandato
+ */
+bool MOTION::isStarted()
+{
+  return !(__isStopped);
+}
+
+/**
+ *  @brief Interrompe il comando che sta attualmente avvenendo qualsiasi esso sia e cancella i movimenti successivi,
+ *         ma lasciando il motore in coppia e fermo ma accetta altri comandi senza ridare Start()
+ */
+void MOTION::Halt()
+{
+  __isHalted = true;
+}
+
+/**
+ *  @brief Abortisce (cancella) il comando attuale
+ * 
+ *  @attention IsStepDone = true dopo l'esecuzione
+ */
+void MOTION::abortCurrentCommand()
+{
+  this->Motion.abortCurrentMovement();
+}
+
+
+/**
+ *  @brief Muove il motore in una direzione specificata alla velocità specificata o alla velocità precedentemente impostata in modo Relativo
+ *
+ *  @param gradi il segno determina la direzione e sono i gradi di cui si sposta
+ *  @param speed_gradi_al_secondo è la velocità a cui si muove il motore
+ */
+void MOTION::moveRel(double gradi, double speed_gradi_al_secondo)
+{
+  /// Struttura temporanea da inviare in coda
+  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__speed_steps_us = 10 };
+
+  /// Setta la direzione
+  QueueDatasToSend.__dir = gradi < 0.0 ? DIR_NEGATIVE : DIR_POSITIVE; //isola il segno per riconoscere la direzione
+  
+  /// Conta quanti step deve fare (non tiene conto del segno perchè è già impostata la direzione) a __move_steps
+  QueueDatasToSend.__move_steps = gradiToSteps(abs(gradi)); //rimuove il segno se c'è e lo associa direttamente a __move_steps
+
+  /// Mantiene la velocità precedentemente data se la velocità è <= 0.0
+  if(speed_gradi_al_secondo > 0.0)
+    QueueDatasToSend.__speed_steps_us = getPeriodDelay(speed_gradi_al_secondo);
+
+  /// Setta il selettore dello switch case 
+  QueueDatasToSend.__SwitchMove = MOVE_REL;
+
+  /// Invia i dati alla coda
+  MoveSendToQueue(QueueDatasToSend);
+}
+
+
+
+/**
+ *  @brief Muove il motore in una direzione specificata alla velocità specificata o alla velocità precedentemente impostata in modo Assoluto
+ *
+ *  @param gradi il segno determina la direzione e sono i gradi di cui si sposta
+ *  @param speed_gradi_al_secondo è la velocità a cui si muove il motore
+ *
+ *  ATTENZIONE: @bug Il bug consiste nel fatto che veniva fatto un movimento relativo e non uno assoluto
+ *                   poiché non teneva conto di quanti step doveva fare e in che direzione per arrivare
+ *                   nel voluto punto assoluto
+ */
+void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
+{
+  /// In base all'attuale posizione riconosce la direzione
+  int64_t tmpSteps = gradiToSteps(gradi);
+
+  /// Struttura temporanea da inviare in coda
+  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__speed_steps_us = 10 };
+
+  /// Salva e setta la direzione, va bene qualsiasi siano i segni degli step e dell'absoluteStepCounter
+  QueueDatasToSend.__dir = tmpSteps < absoluteStepCounter ? DIR_NEGATIVE : DIR_POSITIVE; 
+
+  /// Conta quanti step deve fare (non tiene conto del segno perchè è già impostata la direzione) a __move_steps
+  QueueDatasToSend.__move_steps = absoluteStepCounter - gradiToSteps(abs(gradi)); 
+
+  /// Mantiene la velocità precedentemente data se la velocità è <= 0.0
+  if(speed_gradi_al_secondo > 0.0)
+    QueueDatasToSend.__speed_steps_us = getPeriodDelay(speed_gradi_al_secondo);
+
+  /// Setta il selettore dello switch case 
+  QueueDatasToSend.__SwitchMove = MOVE_ABS;
+
+  /// Invia i dati alla coda
+  MoveSendToQueue(QueueDatasToSend);
+}
+
+/**
+ *  @brief Muove il motore all'infinito verso la direzione specificata alla velocità specificata o alla velocità precedentemente impostata
+ *
+ *  @param Direzione in cui gira
+ *  @param speed_gradi_al_secondo è la velocità a cui si muove il motore
+ */
+void MOTION::moveContinuous(Direction_t direzione, double speed_gradi_al_secondo)
+{  
+  /// Struttura temporanea da inviare in coda
+  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__speed_steps_us = 10 };
+
+  QueueDatasToSend.__dir = direzione;
+  
+  /// Mantiene la velocità precedentemente data se la velocità è <= 0.0
+  if(speed_gradi_al_secondo > 0.0)
+    QueueDatasToSend.__speed_steps_us = getPeriodDelay(speed_gradi_al_secondo);
+
+  /// Setta il selettore dello switch case
+  QueueDatasToSend.__SwitchMove = CONTINUOUS;
+
+  /// Invia i dati alla coda
+  MoveSendToQueue(QueueDatasToSend);
+}
+
+
+/**
+ *  @brief Restituisce se il movimento è finito o no così da poterne iniziare un altro
+ *
+ *  @return se è finito o no il passo e quindi è possibile dare un altro comando
+ */
+bool MOTION::isStepDone()
+{
+  return Motion.isStepDone();
+}
+
+/**
+ *  @brief Driver in low power mode, Disaccoppia il motore, Ignora TUTTI gli Input, spegne : clock, pompa di carica, regolatore interno 
+ *         
+ *  @param state Se state = FALSE è "sveglio", se state = TRUE allora va in sleep mode, se è già spento o già acceso e viene ripetuta l'operazione non fa nulla
+ */
+void MOTION::sleep(bool state)
+{
+  state && !Motion.isSleeping() ? Motion.sleep() : (!state && Motion.isSleeping() ? Motion.wakeup() : false); //false vuol dire che non fa nulla
+}
+
+
+
+/**
+ *  @brief Resetta il driver e le variabili della classe
+ */
+void MOTION::reset()
+{
+  Motion.reset();
+
+  receiverQueue =                      /*!< Struct che contiene i dati fa il reset (default values) degli attuali dati ricevuti  */
+  {
+    .__SwitchMove = STAND_STILL,       /*!< Variabile switch per il movimento del motore nella task  */
+
+    /// Dati Homing
+    .__home_steps_us = 10,             /*!< Velocità dell'homing in step/secondo  */
+    .__PostHomeVal = 0,             /*!< è il valore assoluto che viene associato dopo l'homing  */
+
+    /// Altri Dati
+    .__speed_steps_us = 10,            /*!< Velocità step/secondo  */
+    .__move_steps = 0,                 /*!< Passi da eseguire scelti in runtime  */
+    .__dir = DIR_NEGATIVE,             /*!< Direzione che verrà impostata all'invio del comando  */
+  };        
+
+  absoluteStepCounter = 0;             /*!< Variabile di quanti step ha fatto il motore dall'accensione  */
+
+  __isHomeFinished = false;            /*!< Indica se l'homing è finito o no  */
+
+  __isStopped = true;                  /*!< Flag di motore stoppato o avviato modificato da Start() e Stop() e restituito da
+                                            isStopped e isStarted  */
+  
+  __isHalted = false;                   /*!< Flag di motore in Halt modificato da Halt e tutte le azioni di movimento  */
+
+  __isAttached = false;                /*!< Flag di motore stoppato o avviato modificato da Start() e Stop() e restituito da
+                                            isStopped e isStarted  */
+}
+
+
+
+/**
+ *  @brief Converte da gradi a step, funziona sia per la posizione che per la velocità
+ *
+ *  @param gradi sono i gradi da convertire
+ *
+ *  @return int64_t steps
+ */
+int64_t MOTION::gradiToSteps(double gradi)
+{
+  return (int64_t)((gradi / 360.0) * double(uStepScelti * __stepsMotore));
+}
+
+
+
+/**
+ *  @brief Converte da step a gradi, funziona sia per la posizione che per la velocità
+ *
+ *  @param steps sono gli steps da convertire
+ *
+ *  @return double gradi
+ */
+double MOTION::stepsToGradi(int64_t steps)
+{
+  return (double)((steps * 360) / __stepsMotore); 
+}
+
+
+
+/**
+ *  @brief Definizione di una Interrupt Service Routine (ISR) relativa al pin nFAULT del DRV8825 per monitoraggio asincrono.
+ *         Il pin nFAULT reporta dei problemi ad una MCU circa l'hardware e viene abbassato in questi casi : Overcurrent, Undervoltage, Overtemperature.
+ *  @param fault_pin hardware pin a cui è connesso il pin nFAULT
+ *  @param FaultISR Questa sarà la funzione che verrà eseguita quando ci sarà un interrupt nel fault_pin
+ *  @param priority Imposta la priorità di Interrupt che avrà a livello globale
+ *
+ *  ATTENZIONE: Il context switch tra l'ISR e la task di gestione di Interrupt è immediata 
+ *
+ */
+void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t priority)
+{
+  /// Definisce la funzione di Interrupt Service Routine del pin nFAULT
+  this->__FaultISR = FaultISR;
+  
+
+  /// collega il pin nFAULT all'Interrupt
+  if(fault_pin != 255 && FaultISR != nullptr)
+    nFAULT_ISR.Init("nFault_ISR", fault_pin, INPUT, FALLING, 8192, priority, __FaultISR);
+
+  #ifdef LOG_ACTIVE_MOTION
+    LogInfo("MOTION nFault ISR", "Sto per inizializzare nFaultISR con il pin %d", fault_pin);
+    /// collega il pin nFAULT all'Interrupt
+    if(fault_pin != 255 && FaultISR != nullptr)
+      LogInfo("MOTION nFault ISR", "Sto per Chiamare INTERRUPT.Init");
+    else
+      LogWarning("MOTION nFault ISR", "Controllare che il pin o la Interrupt Service Routine siano corretti");
+  #endif
+}
+
+/**
+ *  @return la posizione assoluta in gradi
+ */
+double MOTION::getPosition()
+{
+  /// @note getAbsPosition appartiene alla @class DRV8825
+  return gradiToSteps(Motion.getAbsPosition());
+}
+
+/**
+ *  @return la posizione assoluta in steps
+ */
+int64_t MOTION::getPositionInSteps()
+{
+  /// @note getAbsPosition appartiene alla @class DRV8825
+  return Motion.getAbsPosition();
+}
+
+
+/*---------------------------------------------
+|                                             |
+|            CLASS PRIVATE METHODS            |          
+|                                             |
+---------------------------------------------*/
+
+/**
+ *  @private Element Of The Class
+ *
+ *  @brief Funzione per ottenere il delay per poter cambiare la velocità del movimento
+ */
+uint64_t MOTION::getPeriodDelay(const double gradiSecondo)
+{
+  /// Formula Per ottenere il periodo tra uno step e l'altro tenendo conto del microstepping scelto,
+  /// vedi datasheet per ottenere la frequenza di step dato che : Tstep = (1 / Fstep)
+  return (uint64_t)(360000000.0 / (gradiSecondo * double(this->uStepScelti * this->__stepsMotore)));
+}
+
+
+BaseType_t MOTION::MoveSendToQueue(MoveQueue_t StructToSend)
+{
+  BaseType_t queueValue;
+
+  if(MoveQueueHandler != 0)
+  {
+    /// Se la coda è piena aspetta 1000 ms = 1s di tempo per inviare
+    queueValue = xQueueSend(MoveQueueHandler, &StructToSend, pdMS_TO_TICKS(1000));
+
+    #ifdef LOG_ACTIVE_MOTION
+    LogDebug("MoveSendToQueue", "Queue value after send = %s", queueValue == pdTRUE ? "pdTRUE" : "pdFALSE");
+    #endif
+  }
+
+  return queueValue;
+}

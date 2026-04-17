@@ -2,14 +2,12 @@
 
 /// Include la libreria custom per la gestione delle Task
 #include "Tasks.hpp"
-/// Include la libreria custom per la gestione degli Interrupt
-#include "Interrupts.hpp"
 /// Include la libreria custom per il Debug
 #include "Debug.hpp"
 /// Include la libreria custom per la gestione dell'SD
 #include "SavingFilesSD.hpp"
 
-
+/*
 SaveToFile SD_Card;
 
 
@@ -90,13 +88,13 @@ bool WriteAllValues()
   /// @commenti: servono solo quando si apre fisicamente il file e si legge. Non sono strettamente neccessari
   String comment = "";
 
-
+*/
 
 
   /*╔════════════════════════════════════════════════════╗*/
   /*║             SALVATAGGI NEL FILE UTENTE             ║*/
   /*╚════════════════════════════════════════════════════╝*/
-
+/*
   /// Se ancora non esiste viene creata una nuova directory
   FilePath = "/Decapsulator/UserSaveFile/UserFileDatas.txt";
   /// Crea la directory
@@ -121,13 +119,13 @@ bool WriteAllValues()
   SD_Card.drawBlock(FilePath, comment);
 
   SD_Card.setValueByKey<int>(FilePath, "NoCommentKey", 1518);
-
+*/
 
 
   /*╔═════════════════════════════════════════════════════════════════════╗*/
   /*║             SALVATAGGI NEL FILE DELLE VARIABILI INTERNE             ║*/
   /*╚═════════════════════════════════════════════════════════════════════╝*/
-
+/*
   /// Se ancora non esiste viene creata una nuova directory
   FilePath = "/Decapsulator/InternalVariables/InternalVariablesFileDatas.txt";
   /// Crea la directory
@@ -203,3 +201,4 @@ void setup()
 }
 
 void loop(){}
+*/

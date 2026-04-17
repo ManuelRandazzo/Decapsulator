@@ -1,7 +1,7 @@
 {
-  "name": "DRV8825",
-  "keywords": "DRV8825",
-  "description": "Arduino library for DRV8825 stepper motor driver.",
+  "name": "Motion Control",
+  "keywords": "Motion Control",
+  "description": "Libreria per usare i Task di freeRTOS in OOP",
   "authors":
   [
     {
@@ -14,10 +14,9 @@
     "type": "git",
     "url": "https://github.com/ManuelRandazzo/Decapsulator"
   },
-  "version": "0.2.0",
+  "version": "1.0.0",
   "license": "MIT",
   "frameworks": "*",
   "platforms": "*",
-  "headers": "DRV8825_Decapsulator.h"
+  "headers": "DRV8825.h"
 }
-  
