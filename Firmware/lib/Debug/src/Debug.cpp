@@ -35,33 +35,27 @@ void startWiFi(uint32_t timeout_for_each_initialization_ms)
   WiFi.setHostname("Decapsulator");
   LogInfo("WiFi Connect", "Connessione Wi-Fi");
 
-  /// Timeout che se supera un certo tempo riavvia l'ESP
-  uint32_t ESP_timeoutRestart = millis();
-  while(WiFi.status() != WL_CONNECTED)
+  /// Timeout che se supera un certo tempo riavvia l'ESP (se configurato per farlo)
+  if(WiFi.waitForConnectResult(DEFAULT_TIMEOUT_WIFI_CONNECTION_IN_MS) != WL_CONNECTED)
   {
-    vTaskDelay(pdMS_TO_TICKS(100));
-    /// Se sfora il timeout allora restarta l'ESP32
-    if(millis() - ESP_timeoutRestart > DEFAULT_TIMEOUT_WIFI_CONNECTION_IN_MS)
-    {
-      /// Se non è definito il NO_ESP_RESTART_ON_CONNECTION_FAILURE allora rebootta
-      #ifndef NO_ESP_RESTART_ON_CONNECTION_FAILURE
-        LogError("WiFi Connect", "CONNECTION ERROR TIMEOUT.\nRebooting...");
-        ESP.restart();
-      #else
-        LogError("WiFi Connect", "CONNECTION ERROR TIMEOUT.\nProceeding with program...");
-        /// Debug
-        uint32_t endTime = millis();
-        LogDebug("Tempo StartUp", "Delta Time WiFi Startup : %d", endTime - startTime);
-        return;
-      #endif
-    }
+    /// Se non è definito il NO_ESP_RESTART_ON_CONNECTION_FAILURE allora rebootta
+    #ifndef NO_ESP_RESTART_ON_CONNECTION_FAILURE
+      LogError("WiFi Connect", "CONNECTION ERROR TIMEOUT.\nRebooting...");
+      ESP.restart();
+    #else
+      LogError("WiFi Connect", "CONNECTION ERROR TIMEOUT.\nProceeding with program...");
+      /// Debug
+      uint32_t endTime = millis();
+      LogDebug("Tempo StartUp", "Delta Time WiFi Startup : %d", endTime - startTime);
+      return;
+    #endif
   }    
     
     
   #if defined(LOG_ACTIVE) && defined(LOG_ACTIVE_MQTT)
-    /// Timeout che se supera un certo tempo riavvia l'ESP
+    /// Timeout che se supera un certo tempo riavvia l'ESP (se configurato per farlo)
     mqttClient.loopStart();
-    ESP_timeoutRestart = millis();
+    uint32_t ESP_timeoutRestart = millis();
     while(!mqttClient.isConnected())
     {
       vTaskDelay(pdMS_TO_TICKS(100));
