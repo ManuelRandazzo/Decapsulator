@@ -234,11 +234,13 @@ class MOTION
 
     BaseType_t MoveSendToQueue(MoveQueue_t StructToSend);
 
-    //int64_t updateStepsPosition();            /*!< Aggiorna la posizione e ritorna anche la posizione assoluta  */
+    static void MoveHandler(void *pvParameters);/*!< Funzione che esegue la task  */
 
-    TaskTypeDef MoveHandlerTask;                /*!< Oggetto alla classe delle tasks  */
-    
-    void MoveHandler();                         /*!< Funzione che esegue la task  */
+    TaskHandle_t __MoveHandlerTask = NULL;    /*!< Handler della task del motion */
+
+    static void UpdateMoveHandler(void *pvParameters);/*!< Funzione che esegue la task di update */
+
+    TaskHandle_t __UpdateMoveHandlerTask = NULL;    /*!< Handler della task di update del motion */
 
     /// Funzione per ottenere il delay per poter cambiare la velocità del movimento
     uint64_t getPeriodDelay(const double gradiSecondo);   
