@@ -76,7 +76,7 @@ BaseType_t checkUpdateHMI(CommandQueueHMI_t* receivingQueue); /// Direction: Fro
 BaseType_t checkUpdateHMI(EventQueueHMI_t* receivingQueue);   /// Direction: Backend --> Frontend
 BaseType_t sendUpdateHMI(CommandQueueHMI_t* sendingQueue, bool* sendChanges); /// Direction: Frontend --> Backend
 BaseType_t sendUpdateHMI(EventQueueHMI_t* sendingQueue, bool* sendChanges);   /// Direction: Backend --> Frontend
-const char* getCurrentState(Sequence_t seq_switch);
+const char* state_name_to_string(Sequence_t seq_switch);
 
 #pragma endregion (FUNCTION_PROTOTIPES)
 
@@ -122,6 +122,8 @@ void prgDecapsulatorTask(void *pvParameters)
 
   MotRalla.setHardLimits(RALLA_CALIB_PIN, 255, RALLA_CALIB_INTR_OR_POLL, 30, RALLA_INPUT_PULL, RALLA_CAM_SIGNAL);
 
+  R_TRIG MotRalla_IsStepDone;
+
   if(drvErr != DRV_OK)
   {
     #ifdef LOG_ACTIVE_MAIN_PRG
@@ -134,6 +136,8 @@ void prgDecapsulatorTask(void *pvParameters)
   drvErr = MotPunzone.Init(PUNZ_MOTOR_STEPS, PUNZ_DIRECTION_PIN, PUNZ_STEP_PIN, PUNZ_ENABLE_PIN, PUNZ_RESET_PIN, PUNZ_SLEEP_PIN,
                            PUNZ_TASK_PRIORITY, PUNZ_MICROSTEP);
   MotPunzone.detach();
+  
+  R_TRIG MotPunzone_IsStepDone;
                 
   if(drvErr != DRV_OK)
   {
@@ -181,7 +185,7 @@ void prgDecapsulatorTask(void *pvParameters)
   uint32_t tmoCaduta = 0;
 
   #ifdef LOG_ACTIVE_MAIN_PRG
-    LogInfo("setup main prg", "creata la tasks - Free Stack Space: %d\nSwitch Initial : %s", uxTaskGetStackHighWaterMark(NULL), getCurrentState(sequenza));
+    LogInfo("setup main prg", "creata la tasks - Free Stack Space: %d\nSwitch Initial : %s", uxTaskGetStackHighWaterMark(NULL), state_name_to_string(sequenza));
   #endif
   
   /**
@@ -205,18 +209,23 @@ void prgDecapsulatorTask(void *pvParameters)
     cadutaCaps.intrUpdate();
     presenzaCaps.intrUpdate();
 
+    MotRalla_IsStepDone.CLK(MotRalla.isStepDone());
+    MotPunzone_IsStepDone.CLK(MotPunzone.isStepDone());
+
     /// Se arriva una capsula allora bisogna può essere eseguito un altro ciclo
     if(presenzaCaps.event())
       doAnotherCycle = true;
 
     checkUpdateHMI(&FromHMI);
+
+    Serial.printf("Sequenza : %s\npresenzaCaps.event() : %d\ncadutaCaps.event() : %d", state_name_to_string(sequenza), presenzaCaps.event(), cadutaCaps.event());
     
     switch(sequenza)
     {
       case EMERGENCY_STATE :
       {        
         /// @todo
-        MainProgramEmergencyFunction();
+        MainPrgStopAllMotors();
         LogError("EMERGENCY", "Si è entrati in uno stato di EMERGENZA");
 
         break;
@@ -227,7 +236,7 @@ void prgDecapsulatorTask(void *pvParameters)
         if(!cmd_exec)
         {
           if(ToHMI.xErrorInitPunz || ToHMI.xErrorInitRalla)
-            MainProgramEmergencyFunction();
+            MainPrgStopAllMotors();
 
           cmd_exec = true;
         }
@@ -249,12 +258,9 @@ void prgDecapsulatorTask(void *pvParameters)
       /// Inizializza il macchinario
       case MACHINE_STARTUP_STATE :
       {
-        if(cntContainerFull <= MAX_CAPSULE_CONTAINER) // Impedisce che scendano le capsule quando il contatore segnala  
-        {
-          /// Fa tutti gli attach dei motori e li prepara ad essere comandati
-          ServoParatia.attach(SERVO_PIN);
-          ServoParatia.write(SERVO_CLOSED_POS); // Chiude la paratia mossa dal servomotore
-        }
+        /// Fa tutti gli attach dei motori e li prepara ad essere comandati
+        ServoParatia.attach(SERVO_PIN);
+        ServoParatia.write(SERVO_CLOSED_POS); // Chiude la paratia mossa dal servomotore
 
         cmd_exec = false;
 
@@ -332,8 +338,6 @@ void prgDecapsulatorTask(void *pvParameters)
 
       case QUIETE_STATE :
       {
-        /// @attention TEMPORANEO
-        FromHMI.StartMachine = true;
         /// Se sono presenti le capsule nello scivolo e c'è stato il segnale di start inizia il ciclo
         if(FromHMI.StartMachine)
         {
@@ -350,30 +354,39 @@ void prgDecapsulatorTask(void *pvParameters)
       {
         if(doAnotherCycle == true)
         {
-          if(!cmd_exec) // Da il comando
+          if(cntContainerFull <= MAX_CAPSULE_CONTAINER) // Impedisce che scendano le capsule quando il contatore segnala  
           {
-            ServoParatia.write(SERVO_OPEN_POS);
-            tmoCaduta = MILLIS;
-            cmd_exec = true;
+            if(!cmd_exec) // Da il comando
+            {
+              ServoParatia.write(SERVO_OPEN_POS);
+              tmoCaduta = MILLIS;
+              cmd_exec = true;
+            }
+            else
+            {
+             if(1/*MILLIS - tmoCaduta <= TIMEOUT_CADUTA_CAPS_MS*/)
+              {
+                /// Cambio di stato dovuto dall'Interrupt della Fotocellula conferma capsula nel tamburo
+                if(cadutaCaps.event() == true)
+                {
+                  //cntContainerFull++;
+                  doAnotherCycle = false;
+                  sequenza = SERVO_LOADER_CLOSE_STATE;
+                  cmd_exec = false;
+                }
+              }
+              else
+              {
+                ToHMI.xErrorCapsIncastrata = true;
+                sequenza = TIMEOUT_STATE;
+                cmd_exec = false;
+              }
+            }
           }
           else
           {
-            /*if(MILLIS - tmoCaduta <= TIMEOUT_CADUTA_CAPS_MS)
-            {*/
-              /// Cambio di stato dovuto dall'Interrupt della Fotocellula conferma capsula nel tamburo
-              if(cadutaCaps.event() == true)
-              {
-                doAnotherCycle = false;
-                sequenza = SERVO_LOADER_CLOSE_STATE;
-                cmd_exec = false;
-              }
-            /*}
-            else
-            {
-              ToHMI.xErrorCapsIncastrata = true;
-              sequenza = TIMEOUT_STATE;
-              cmd_exec = false;
-            }*/
+            cmd_exec = false;
+            sequenza = CONTAINER_FULL;
           }
         }
         else
@@ -397,13 +410,11 @@ void prgDecapsulatorTask(void *pvParameters)
         {
           /// Setta la direzione di marcia del tamburo e si muove alla posizione successiva
           MotRalla.moveRel(+90.0 * GEAR_RATIO_RALLA, RALLA_SPEED);
-
           cmd_exec = true;
         }
-        else if(MotRalla.isStepDone() == true) // Aspetta la fine del comando
+        else if(MotRalla_IsStepDone.Q() == true) // Aspetta la fine del comando
         {
           sequenza = PUNCHER_DOWN_FAST_STATE;
-
           cmd_exec = false;
         }
         
@@ -416,14 +427,12 @@ void prgDecapsulatorTask(void *pvParameters)
         {
           /// Setta la direzione di marcia del punzone e mette in coda 
           /// due movimenti uno veloce (bassa coppia) e uno lento (alta coppia)
-          MotPunzone.moveRel(PUNZ_FAST_ROTATIONS * 360.0, PUNZ_FAST_SPEED); // Fa 10 giri = 20mm lineari ad alta velocità
-
+          MotPunzone.moveRel(PUNZ_FAST_ROTATIONS * -360.0, PUNZ_FAST_SPEED); // Fa 10 giri = 20mm lineari ad alta velocità
           cmd_exec = true;
         }
-        else if(MotPunzone.isStepDone() == true) // Aspetta la fine del comando
+        else if(MotPunzone_IsStepDone.Q() == true) // Aspetta la fine del comando
         {
           sequenza = PUNCHER_DOWN_SLOW_STATE;
-
           cmd_exec = false;
         }
 
@@ -435,13 +444,12 @@ void prgDecapsulatorTask(void *pvParameters)
         if(!cmd_exec) // Dà il comando
         {
           /// Fa 15 giri = 30mm lineari ad alta coppia
-          MotPunzone.moveRel(PUNZ_SLOW_ROTATIONS * 360.0, PUNZ_SLOW_SPEED);    
+          MotPunzone.moveRel(PUNZ_SLOW_ROTATIONS * -360.0, PUNZ_SLOW_SPEED);    
           cmd_exec = true;
         }
-        else if(MotPunzone.isStepDone() == true) // Aspetta la fine del comando
+        else if(MotPunzone_IsStepDone.Q() == true) // Aspetta la fine del comando
         {
           sequenza = PUNCHER_UP_FAST_STATE;     
-
           cmd_exec = false;
         }
 
@@ -452,13 +460,14 @@ void prgDecapsulatorTask(void *pvParameters)
       {
         if(!cmd_exec) // Dà il comando
         {
-          MotPunzone.moveRel(PUNZ_ROTATIONS_TOT * -360.0, PUNZ_FAST_SPEED); 
+          /// Torna nella posizione 
+          MotPunzone.moveRel(PUNZ_ROTATIONS_TOT * +360.0, PUNZ_FAST_SPEED);
+          vTaskDelay(100);
           cmd_exec = true;
         }
-        else if(MotPunzone.isStepDone() == true) // Aspetta la fine del comando
+        else if(MotPunzone_IsStepDone.Q() == true) // Aspetta la fine del comando
         {
           sequenza = SERVO_LOADER_OPEN_STATE; // Ricomincia il ciclo
-
           cmd_exec = false;
         }
 
@@ -485,11 +494,13 @@ void prgDecapsulatorTask(void *pvParameters)
 
 
 /**
- *  @brief funzione chiamata in caso di emergenza o di timeout
+ *  @brief funzione chiamata in caso di emergenza, di servizio o di timeout
+ * 
+ *  @note Dopo aver chiamato questa funzione va rifatto l'homing
  * 
  *  @details Fa l'ABORT dei commandi attuali dei motori, FERMA i motori e fa DETACH dei pin RILASCIANDO la coppia
  */
-void MainProgramEmergencyFunction()
+void MainPrgStopAllMotors()
 {  
   /// Abort dei comandi attuali ai motori
   MotPunzone.abortCurrentCommand();
@@ -651,7 +662,7 @@ BaseType_t sendUpdateHMI(EventQueueHMI_t* sendingQueue, bool* sendChanges)
 /**
  * @brief Restituisce una stringa dello stato corrente (SOLO SE LOG ATTIVI)
  */
-const char* getCurrentState(Sequence_t seq_switch)
+const char* state_name_to_string(Sequence_t seq_switch)
 {
   #ifdef LOG_ACTIVE_MAIN_PRG
     switch(seq_switch)
