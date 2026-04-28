@@ -10,9 +10,24 @@
 #include "DRV8825_Decapsulator.hpp"
 #include "esp_timer.h"
 
-#define __MUTEX_TIMEOUT_TICKS__ pdMS_TO_TICKS(20)
-#define __TIMEOUT_WAIT_ALL_DONE_RMT_TX_MS__ 10    /// NON E' BLOCCANTE, MA TENERLO BREVE COMUNQUE
+#define __MUTEX_TIMEOUT_TICKS__ pdMS_TO_TICKS(25)
 
+
+bool IRAM_ATTR drv8825_rmt_tx_done_cb(rmt_channel_handle_t channel, const rmt_tx_done_event_data_t *edata, void *user_data)
+{
+  DRV8825 *drv = static_cast<DRV8825*>(user_data);
+
+  BaseType_t HigherPriorityTaskWoken = pdFALSE;
+
+  /// Setta a false _rmtBusy in modo atomico
+  drv->_rmtBusy.store(false, std::memory_order_release);
+
+  /// Se è stato fornito l'handler di una task a cui inviare la notifica viene fatto
+  if(drv->TaskHandler != nullptr)
+    xTaskNotifyFromISR(drv->TaskHandler, 1, eSetBits, &HigherPriorityTaskWoken);
+
+  return HigherPriorityTaskWoken == pdTRUE;
+}
 
 DRV8825::DRV8825()
 {
@@ -20,13 +35,6 @@ DRV8825::DRV8825()
 
 DRV8825::~DRV8825()
 {
-  /// Elimina il timer
-  if(this->DRV8825_timer != nullptr)
-  {
-    esp_timer_stop(this->DRV8825_timer);
-    esp_timer_delete(this->DRV8825_timer);
-  }
-
   /// Elimina il canale RMT
   if(this->_rmtChannel != nullptr)
   {
@@ -36,11 +44,16 @@ DRV8825::~DRV8825()
 
   /// Elimina il mutex
   if(this->_mutex != nullptr)
-    vSemaphoreDelete(_mutex);
+    vSemaphoreDelete(this->_mutex);
 }
 
 drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uint8_t SLP, uint16_t number_of_steps_per_revolution)
 {
+  esp_err_t esp_err = ESP_OK;
+
+  /// Disattiva dei log fastidiosissimi di quando la payload dell'RMT non è finita
+  esp_log_level_set("*", ESP_LOG_NONE);
+  
   /// Crea il mutex che gestirà le variabili in modo atomico
   if(this->_mutex == NULL)
   {
@@ -62,24 +75,6 @@ drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uin
   this->_stepsPerRevolution = number_of_steps_per_revolution;
   xSemaphoreGive(this->_mutex);
 
-  esp_err_t esp_err;
-
-  /// Configura il timer MoveHandlerTMR
-  const esp_timer_create_args_t DRV8825_timer_args =
-  {
-    .callback = &__CallBackSteps,
-    .arg = this,
-    .dispatch_method = ESP_TIMER_TASK,
-    .name = "DRV8825_timer"
-  };
-
-  /// Si salva il nuovo timer
-  esp_timer_handle_t tmrDRV8825;
-
-  /// Crea il timer MoveHandlerTMR
-  esp_err = esp_timer_create(&DRV8825_timer_args, &tmrDRV8825);
-  if(esp_err != ESP_OK || tmrDRV8825 == nullptr)
-    return DRV_ERR_TMR_CREATION;
 
   if(DIR == 255)
     return DRV_ERR_NO_DIR_PIN;
@@ -102,33 +97,19 @@ drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uin
     digitalWriteFast(RST, HIGH);
   }
 
-  if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
-    return DRV_ERR_MUX_TAKE_TIMEOUT;
-    
-  /// Ricopia l'handler del timer
-  this->DRV8825_timer = tmrDRV8825;
-  
-  /// Crea impulso HIGH per 2.2µs + LOW per 2.2µs, questo è fisso così da non rompere...
-  /// duration = _stepPulse.durationX * rmtTick = 1 * 2.2us
-  _stepPulse[0].level0 = 1;
-  _stepPulse[0].duration0 = 1;
-  _stepPulse[0].level1 = 0;
-  _stepPulse[0].duration1 = 1;
-  xSemaphoreGive(this->_mutex);
-
   /// Setup RMT per il pin STEP -> @doc: https://docs.espressif.com/projects/esp-idf/en/stable/esp32s3/api-reference/peripherals/rmt.html
   rmt_tx_channel_config_t rmt_tx_cfg =
   {
     .gpio_num = (gpio_num_t)_stepPin,
     .clk_src = RMT_CLK_SRC_DEFAULT,    // clock source (default)
-    .resolution_hz = 80000000 / 176,   // periodo = 1/clk_freq = 176/80MHz = 2.2us          
-    
+    .resolution_hz = 80000000 / DRV8825_RMT_PSC,   // Prescaler : 176 / 80MHz = 2.2us (periodo di uno step)
+
     /// Necessario per risolvere l'errore descritto 
     /// in questo forum https://esp32.com/viewtopic.php?t=42301 
     /// mem = 48 * 4 = 192 bytes
     .mem_block_symbols = 48,
     .trans_queue_depth = 4,            // profondità della coda di trasferimento
-    .intr_priority = 0,                // 0 -> priorità bassa
+    .intr_priority = 2,                // 0 -> priorità bassa
     .flags = 
     {
       .invert_out = 0,
@@ -142,6 +123,7 @@ drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uin
 
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
     return DRV_ERR_MUX_TAKE_TIMEOUT;
+
 
   /// Pulisce eventuale canale RMT precedente
   if(this->_rmtChannel != nullptr)
@@ -165,16 +147,18 @@ drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uin
     return DRV_ERR_RMT_CREATION;
   }
 
-  /// Se il canale RMT è stato creato corretamente lo abilita
-  rmt_enable(this->_rmtChannel);
+  rmt_tx_event_callbacks_t tx_event_callback = { .on_trans_done = drv8825_rmt_tx_done_cb, };
+
+  esp_err = rmt_tx_register_event_callbacks(this->_rmtChannel, &tx_event_callback, this);
+
   if(esp_err != ESP_OK)
-    return DRV_ERR_RMT_ENABLE;
+    return DRV_ERR_RMT_CREATION;
   
   rmt_copy_encoder_config_t enc_cfg = {};
   esp_err = rmt_new_copy_encoder(&enc_cfg, &this->step_encoder);
   if(esp_err != ESP_OK)
     return DRV_ERR_RMT_COPY_ENCODER;
-  
+
   xSemaphoreGive(this->_mutex);
 
   return DRV_OK;
@@ -182,115 +166,39 @@ drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uin
 
 drv_err_t DRV8825::update()
 {
-  //uint32_t startTime = micros();
+  if(this->_isStepDone.load(std::memory_order_acquire))
+    return DRV_OK;
 
-  if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
-    return DRV_ERR_MUX_TAKE_TIMEOUT;
+  /// @link https://en.cppreference.com/cpp/atomic/atomic/load
+  if(this->_rmtBusy.load(std::memory_order_acquire))
+    return DRV_RMT_TX_BUSY;
 
-  if(this->_abortCommand)
+  /// Acquisice una volta gli stepsLeft e protegge atomicamente in lettura (acquire)
+  uint64_t localStepsLeft = this->_stepsLeft.load(std::memory_order_acquire);
+
+  if(localStepsLeft == 0)
   {
-    this->_isStepDone = true;
-    this->_isContinuous = false;
-
-    this->_stepsLeft = 0;
-      
-    this->_waitRmtAsyncTransmit = false;
-
-    /// Dura solo una chiamata dell'update (eccezione quando non riesce a prendere il mutex)
-    this->_abortCommand = false;
-
-    /// Ferma il timer
-    if(this->DRV8825_timer)
-      esp_timer_stop(this->DRV8825_timer);
-
-    xSemaphoreGive(this->_mutex);
-    return DRV_CMD_ABORTED;
+    this->_isStepDone.store(true, std::memory_order_release);
+    return DRV_OK;
   }
 
-  if(this->_waitRmtAsyncTransmit == false)
-  {
-    xSemaphoreGive(this->_mutex);
+  uint16_t next_tx_steps = std::min<uint32_t>(localStepsLeft, DRV8825_RMT_MAX_LOOP_COUNT);
 
-    /// Aspetta la notifica e se non arriva esce subito dalla funzione update
-    if(ulTaskNotifyTake(pdTRUE, 0) <= 0)
-      return DRV_NO_NOTIFY;
+  /// Feed degli steps all'hardware
+  this->transmit_cfg.loop_count = next_tx_steps;
 
-    if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
-      return DRV_ERR_MUX_TAKE_TIMEOUT;
-  
-    /// Il movimento non è ancora finito
-    this->_isStepDone = false;
+  esp_err_t errTx = rmt_transmit(this->_rmtChannel, this->step_encoder, &this->_stepPulse, this->STEP_PULSE_SIZE, &this->transmit_cfg);
 
-    /// @return se ha finito gli steps che doveva fare...
-    if(!_isContinuous && _stepsLeft == 0)
-    {
-      _isStepDone = true;
-      
-      /// Ferma il timer
-      if(DRV8825_timer)
-        esp_timer_stop(DRV8825_timer);
+  if(errTx != ESP_OK)
+    return DRV_ERR_RMT_TRANSMIT_CMD;
 
-      xSemaphoreGive(this->_mutex);
+  /// E' come fare (stepsLeft -= next_tx_steps) @link https://en.cppreference.com/cpp/atomic/atomic/fetch_sub
+  this->_stepsLeft.fetch_sub(next_tx_steps, std::memory_order_release);
 
-      return DRV_OK;
-    }
-    
-    /// Impulso di 2.2us HIGH e 2.2us LOW
-    esp_err_t errTx = rmt_transmit(this->_rmtChannel, this->step_encoder, this->_stepPulse, sizeof(this->_stepPulse), &this->transmit_cfg);
-    if(errTx != ESP_OK)
-    {
-      xSemaphoreGive(this->_mutex);
-      return DRV_ERR_RMT_TRANSMIT_CMD;
-    }
+  /// Setta a true _rmtBusy in modo atomico @link https://en.cppreference.com/cpp/atomic/atomic/store
+  this->_rmtBusy.store(true, std::memory_order_release);
 
-    /// Aspetta la trasmissione in modo asincrono
-    this->_waitRmtAsyncTransmit = true;
-    this->_timeoutRmtTransmit = millis();
-  }
-
-  rmt_channel_handle_t rmtChannelSafeCopy = this->_rmtChannel;
-
-  xSemaphoreGive(this->_mutex);
-
-  esp_err_t errTxWait = rmt_tx_wait_all_done(rmtChannelSafeCopy, 10);
-    
-  if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
-    return DRV_ERR_MUX_TAKE_TIMEOUT;
-  
-  /// Timeout in ms che aspetta la fine della trasmissione 
-  if(errTxWait != ESP_OK)
-  {
-    if(millis() - this->_timeoutRmtTransmit >= __TIMEOUT_WAIT_ALL_DONE_RMT_TX_MS__)
-    {
-      xSemaphoreGive(this->_mutex); 
-      return DRV_ERR_RMT_TX_TIMEOUT;
-    }
-    xSemaphoreGive(this->_mutex); 
-    return DRV_WAITING_RMT_TX_TO_FINISH;
-  }
-
-  this->_waitRmtAsyncTransmit = false;
-  
-  if(!this->_isContinuous && this->_stepsLeft > 0)
-  {
-    this->_stepsLeft--;
-    if(this->_stepsLeft == 0)
-    {
-      this->_isStepDone = true;
-
-      if(this->DRV8825_timer)
-        esp_timer_stop(this->DRV8825_timer);
-    }
-  }
-  this->_absStepCounter += this->_direction;
-  
-  xSemaphoreGive(this->_mutex);
-  
-
-  //uint32_t stopTime = micros();
-  //Serial.printf("Tempo di esecuzione __CallbackSteps: %d\n\n", stopTime - startTime);
-
-  return DRV_OK;
+  return DRV_RMT_TX_BUSY;
 }
 
 drv_err_t DRV8825::setUpdateTask(TaskHandle_t handler)
@@ -330,7 +238,6 @@ drv_err_t DRV8825::setDirection(drv_direction_t direction)
   return DRV_OK;
 }
 
-
 drv_direction_t DRV8825::getDirection()
 {
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
@@ -347,8 +254,11 @@ drv_err_t DRV8825::setAbsPosition(int64_t absolute_position)
 {
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
     return DRV_ERR_MUX_TAKE_TIMEOUT;
-  _absStepCounter = absolute_position;
+
+  this->_absStepCounter = absolute_position;
+
   xSemaphoreGive(this->_mutex);
+
   return DRV_OK;
 }
 
@@ -356,40 +266,73 @@ int64_t DRV8825::getAbsPosition()
 {
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
     return DRV_FAIL;
-  int64_t absolute_position = _absStepCounter;
+
+  int64_t absolute_position = this->_absStepCounter;
+
   xSemaphoreGive(this->_mutex);
 
   return absolute_position;
 }
 
 drv_err_t DRV8825::isStepDone()
-{
-  if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
-    return DRV_ERR_MUX_TAKE_TIMEOUT;
-
-  drv_err_t tmpIsStepDone = this->_isStepDone ? DRV_TRUE : DRV_FALSE;
-  xSemaphoreGive(this->_mutex);
-  
-  return tmpIsStepDone;
+{  
+  return this->_isStepDone.load(std::memory_order_acquire) ? DRV_TRUE : DRV_FALSE;
 }
 
 drv_err_t DRV8825::step(uint64_t numberOfStepsToDo, uint64_t period_us)
 {
+  /// Se il numero di step è più alto di 32767 (max di loop_count)
+  /// deve essere fatto ripartire più volte
+  this->_stepsLeft.store(numberOfStepsToDo, std::memory_order_release);
+
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
     return DRV_ERR_MUX_TAKE_TIMEOUT;
+    
+  /// Imposta l'RMT per andare per un certo numero di step
+  this->setAndEnableRMT(period_us);
 
-  this->_isContinuous = false;
-
-  this->_stepsLeft = numberOfStepsToDo;
   xSemaphoreGive(this->_mutex);
+  
+  this->_isStepDone.store(false, std::memory_order_release);
 
-  return setTmr(period_us);
+  return DRV_OK;
 }
 
 
-void DRV8825::abortCurrentMovement()
+drv_err_t DRV8825::abortCurrentMovement()
 {
-  this->_abortCommand = true;
+  const uint32_t tmrEndSteps = millis();
+  rmt_channel_handle_t rmtCh;
+
+  /// release = protegge atomicamente in scrittura
+  this->_isStepDone.store(true, std::memory_order_release);
+
+  /// release = protegge atomicamente in scrittura
+  this->_stepsLeft.store(0, std::memory_order_release); 
+
+  if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
+    return DRV_ERR_MUX_TAKE_TIMEOUT;
+
+  if(this->_period_us > 0)
+  {
+    int64_t stepsFatti = (tmrEndSteps - this->_tmrStartOfRmtTransmit) / this->_period_us;
+    this->_absStepCounter += this->_direction * stepsFatti;
+  }
+
+  this->_period_us = 0;
+
+  this->_tmrStartOfRmtTransmit = 0;
+
+  rmtCh = this->_rmtChannel;
+
+  xSemaphoreGive(this->_mutex);
+    
+  /// Setta a false _rmtBusy in modo atomico
+  this->_rmtBusy.store(false, std::memory_order_release);
+
+  rmt_disable(rmtCh);
+
+  return DRV_CMD_ABORTED;
 }
 
 drv_err_t DRV8825::stepContinuous(uint64_t period_us)
@@ -397,12 +340,17 @@ drv_err_t DRV8825::stepContinuous(uint64_t period_us)
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
     return DRV_ERR_MUX_TAKE_TIMEOUT;
 
-  this->_isContinuous = true;
-
-  this->_stepsLeft = 0;
+  /// Imposta l'RMT per andare all'infinito (fino a quando non si chiama abortCurrentCommand())
+  this->setAndEnableRMT(period_us);
+  this->transmit_cfg.loop_count = -1;
+  this->_tmrStartOfRmtTransmit = millis();
+  rmt_transmit(this->_rmtChannel, this->step_encoder, &this->_stepPulse, this->STEP_PULSE_SIZE, &this->transmit_cfg);
+  
   xSemaphoreGive(this->_mutex);
 
-  return setTmr(period_us);
+  this->_isStepDone.store(false, std::memory_order_release);
+  
+  return DRV_OK;
 }
 
 
@@ -523,66 +471,19 @@ bool DRV8825::isSleeping()
   return (digitalReadFast(slpPin) == LOW);
 }
 
-
-drv_err_t DRV8825::setTmr(uint64_t period_us)
+void DRV8825::setAndEnableRMT(uint64_t period_us)
 {
   /// Per proprietà hardware del DRV8825 3.8us è il periodo minimo di lavoro dello step pin
   if(period_us <= DRV8825_MIN_PERIOD_US)
     period_us = DRV8825_MIN_PERIOD_US;
-  
-  uint64_t __prev_period_us;
 
-  if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
-    return DRV_ERR_MUX_TAKE_TIMEOUT;
-    
-  esp_timer_handle_t tmrDRV8825;
+  this->_period_us = period_us;
+  /// duration = _stepPulse.durationX * rmtTick
+  this->_stepPulse[0].duration1 = (period_us / DRV8825_RMT_PULSE_US) - 1; // level LOW,   il -1 rappresenta l'HIGH
 
-  if(this->DRV8825_timer)
-    tmrDRV8825 = this->DRV8825_timer;
-  else
-  {
-    xSemaphoreGive(this->_mutex);
-    return DRV_ERR_TMR_UNDEFINED;
-  }
-  xSemaphoreGive(this->_mutex);
-
-  esp_timer_get_period(tmrDRV8825, &__prev_period_us);
-
-  /// Se il periodo è diverso e il timer è già attivo...
-  if(period_us != __prev_period_us)
-  {
-    /// Fermiamo il timer (richiesto esplicitamente dalla documentazione)
-    esp_timer_stop(tmrDRV8825);
-      
-    /// Avvia il timer con il ritardo specificato in microsecondi
-    esp_timer_start_periodic(tmrDRV8825, period_us);
-  }
-  
-  return DRV_OK;
+  /// Abilita il canale RMT
+  rmt_enable(this->_rmtChannel);
 }
-
-
-/**
- *  @private Element Of The Class
- *
- *  @brief Questo metodo aggiorna la posizione del motore tramite 
- *         una task ad alta priorità se .dispatch_method del timer = ESP_TIMER_TASK
- */
-void DRV8825::__CallBackSteps(void* args)
-{
-  DRV8825 *INST = static_cast<DRV8825*>(args);
-
-  /// Se diventa pdTRUE passa subito alla task se non ci sono task più prioritarie di questa
-  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-
-  /// Crea la notifica dell'interrupt
-  vTaskNotifyGiveFromISR(INST->TaskHandler, &xHigherPriorityTaskWoken);
-
-  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
-}
-
-
-
 
 
 /**
@@ -610,7 +511,7 @@ const char *drv_err_to_name(drv_err_t code)
     case DRV_ERR_NO_EN_PIN :            return "DRV_ERR_NO_EN_PIN";
     case DRV_ERR_NO_SLP_PIN :           return "DRV_ERR_NO_SLP_PIN";
     case DRV_ERR_NO_RST_PIN :           return "DRV_ERR_NO_RST_PIN"; 
-    case DRV_WAITING_RMT_TX_TO_FINISH : return "DRV_WAITING_RMT_TX_TO_FINISH";
+    case DRV_RMT_TX_BUSY :              return "DRV_RMT_TX_BUSY";
     case DRV_ERR_RMT_CREATION :         return "DRV_ERR_RMT_CREATION";
     case DRV_ERR_RMT_ENABLE :           return "DRV_ERR_RMT_ENABLE";
     case DRV_ERR_RMT_COPY_ENCODER :     return "DRV_ERR_RMT_COPY_ENCODER";
