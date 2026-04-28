@@ -26,6 +26,10 @@
 #include "DebouncePinHandler.hpp"
 /// Include il file per la gestione della coda
 #include "queue.h"
+/// Include una classe per rilevare i Rising Trigger
+#include "R_TRIG.hpp"
+/// Include una classe per rilevare i Falling Trigger
+#include "F_TRIG.hpp"
 
 /**
  * @other_defines:
@@ -86,10 +90,10 @@
 #define RALLA_CALIB_INTR_OR_POLL INTR
 #define RALLA_CALIB_PIN         9
 #define RALLA_INPUT_PULL      INPUT_PULLUP /// Input pullup desidera che l'uscita del sensore sia dritta per funzionare in falling
-#define RALLA_HOME_SPEED      120.0 /** Gradi al secondo*/
+#define RALLA_HOME_SPEED      240.0 /** Gradi al secondo*/
 #define RALLA_CAM_SIGNAL      ACTIVE_LOW
 #define RALLA_HOME_DIR        DIR_NEGATIVE
-#define RALLA_POST_HOME_POS   -120.0 /*Gradi*//** @attention  Ancora da definire*/
+#define RALLA_POST_HOME_POS   (-120.0) /*Gradi*//** @attention  Ancora da definire*/
 
 #pragma endregion (TAMBURO_SETTINGS)
 
@@ -102,14 +106,13 @@
  */
 
 #define PUNZ_MOTOR_STEPS      200  
-#define PUNZ_TASK_PRIORITY      2             /** @attention: è importante che sia <= della priorità della task */
+#define PUNZ_TASK_PRIORITY      2 /** @attention: è importante che sia <= della priorità della task */
 #define PUNZ_MICROSTEP        FULL_STEP //STEP_1_TO_16
 #define PUNZ_FAST_SPEED       MAX_STABLE_MOTOR_SPEED / (double)(PUNZ_MICROSTEP) // Velocità di esecuzione relativo al punzone in gradi al secondo [°/s]
-#define PUNZ_SLOW_SPEED       180.0  /** @attention  Ancora da definire*/
+#define PUNZ_SLOW_SPEED       500.0  /** @attention  Ancora da definire*/
 #define PUNZ_ROTATIONS_TOT     15.8
 #define PUNZ_SLOW_ROTATIONS    15.0 /** Altezza della capsula + 1mm *//** @attention  Ancora da definire*/
-#define PUNZ_FAST_ROTATIONS   PUNZ_ROTATIONS_TOT - PUNZ_SLOW_ROTATIONS
-
+#define PUNZ_FAST_ROTATIONS   (PUNZ_ROTATIONS_TOT - PUNZ_SLOW_ROTATIONS)
 
 /// Driver DRV8825 pins
 #define PUNZ_DIRECTION_PIN     47
@@ -124,12 +127,14 @@
 #define PUNZ_MAX_POS_PIN       18
 #define PUNZ_MIN_POS_PIN        8
 #define PUNZ_INPUT_PULL       INPUT_PULLUP /// Input pullup desidera che l'uscita del sensore sia dritta per funzionare in falling
-#define PUNZ_HOME_SPEED       120.0  /* Gradi al secondo */  /** @attention  Ancora da definire*/
+#define PUNZ_HOME_SPEED       240.0  /* Gradi al secondo */  /** @attention  Ancora da definire*/
 #define PUNZ_CAM_SIGNAL       ACTIVE_LOW
 #define PUNZ_HOME_DIR         DIR_POSITIVE
-#define PUNZ_POST_HOME_POS    1.5 * 360.0 /*Gradi*/  /// Torna indietro di 1.5 giri
+#define PUNZ_POST_HOME_POS    (1.5 * 360.0) /*Gradi*/  /// Torna indietro di 1.5 giri
 
 #pragma endregion (PUNZONE_SETTINGS)
+
+
 
 #pragma region (TIMEOUTS)
 
@@ -139,7 +144,7 @@
 
 #define TIMEOUT_RALLA_HOME_MS (uint32_t)(200 + ((GEAR_RATIO_RALLA*90.0 / RALLA_HOME_SPEED) * 1000.0))
 
-#define TIMEOUT_CADUTA_CAPS_MS 2 * (uint32_t)(TEMPO_CADUTA_CAPSULA_MS)
+#define TIMEOUT_CADUTA_CAPS_MS (2 * (uint32_t)(TEMPO_CADUTA_CAPSULA_MS))
 
 #pragma endregion (TIMEOUTS)
 
@@ -157,7 +162,7 @@ extern TaskHandle_t MainPrgHandler;
 extern void prgDecapsulatorTask(void *pvParameters);
 
 /// @brief funzione chiamata in caso di emergenza
-extern void MainProgramEmergencyFunction();
+extern void MainPrgStopAllMotors();
 
 #pragma endregion (EXTERNS)
 
@@ -177,7 +182,7 @@ extern void MainProgramEmergencyFunction();
 /// @brief Handler della coda che riceve i comandi che arrivano dall'HMI
 extern QueueHandle_t QueueHandlerHMI_CMD;
 
-/// @brief Direction: Fontend --> Backend 
+/// @brief Direction: Frontend --> Backend 
 struct CommandQueueHMI_t
 {
   unsigned StartMachine : 1;
@@ -215,7 +220,7 @@ struct EventQueueHMI_t
   unsigned xErrorCapsIncastrata : 1;
   //unsigned  xError : 1;
   
-  unsigned unusedBits : 28; // = 32 - n° bit occupati dagli altri membri
+  unsigned unusedBits : 27; // = 32 - n° bit occupati dagli altri membri
 };
 
 /// Struct di inizializzazione (evita errori nell'utilizzo di membri non inizializzati)
