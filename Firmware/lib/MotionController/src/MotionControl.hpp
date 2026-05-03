@@ -129,7 +129,7 @@ class MOTION
 
     /// Inizializza il motore con l'Homing in modo che si sappia il punto di partenza
     /// @attention Prima dell'home bisogna chiamate setHardLimits o ritornerà senza fare homing
-    void home(double HomeVelocity_gradi_sec, Direction_t searchDirection, double gradiDopoHome);
+    void home(double HomeVelocity_gradi_sec, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro, Direction_t searchDirection, double gradiDopoHome);
 
     /// @return se è finito(true) o no(false) l'homing
     bool isHomeDone();
@@ -154,10 +154,10 @@ class MOTION
     uint64_t abortCurrentCommand();
 
     /// Muove il motore in una direzione e alla velocità specificata in modo RELATIVO
-    void moveRel(double gradi, double speed_gradi_al_secondo = 0.0);
+    void moveRel(double gradi, double speed_gradi_al_secondo = 0.0, double acc_gradi_al_secondo_quadro = 0.0, double dec_gradi_al_secondo_quadro = 0.0);
 
     /// Muove il motore in una direzione e alla velocità specificata in modo ASSOLUTO rispetto all'accensione
-    void moveAbs(double gradi, double speed_gradi_al_secondo = 0.0);
+    void moveAbs(double gradi, double speed_gradi_al_secondo = 0.0, double acc_gradi_al_secondo_quadro = 0.0, double dec_gradi_al_secondo_quadro = 0.0);
 
     /// Muove il motore all'infinito verso la direzione specificata
     void moveContinuous(Direction_t direzione, double speed_gradi_al_secondo = 0.0);
@@ -221,14 +221,37 @@ class MOTION
 
       /// Dati Homing
       uint64_t __home_steps_us;                 /*!< Velocità dell'homing in step/secondo  */
+      int64_t __home_acc_steps_s2;             /*!< Accelerazione dell'homing in step/secondo^2 */
+      int64_t __home_dec_steps_s2;             /*!< Decelerazione dell'homing in step/secondo^2 */ 
       Direction_t __backDir;                    /*!< Direzione di Backoff dopo l'homing */
       int64_t __PostHomeVal;                    /*!< è il valore di cui si deve rispostare in avanti in cui vi sarà la posizione 0 dopo l'homing  */
 
       /// Altri Dati
-      uint64_t __speed_steps_us;                /*!< Velocità step/secondo  */
+      uint64_t __speed_steps_us;                /*!< Velocità step/microsecondo  */
+      int64_t __acc_steps_s2;                  /*!< Accelerazione step/secondo^2  */
+      int64_t __dec_steps_s2;                  /*!< Decelerazione step/secondo^2  */ 
       int64_t __move_steps;                     /*!< Passi da eseguire scelti in runtime  */
       Direction_t __dir;                        /*!< Direzione che verrà impostata all'invio del comando  */  
     } MoveQueue_t;
+
+    const MoveQueue_t defaultReceiverQueue =                      /*!< Struct che contiene i dati fa il reset (default values) degli attuali dati ricevuti  */
+    {
+      .__SwitchMove = STAND_STILL,       /*!< Variabile switch per il movimento del motore nella task  */
+
+      /// Dati Homing
+      .__home_steps_us = 0,              /*!< Velocità dell'homing in step/secondo  */
+      .__home_acc_steps_s2 = 0,          /*!< Accelerazione dell'homing in step/secondo^2  */
+      .__home_dec_steps_s2 = 0,          /*!< Decelerazione dell'homing in step/secondo^2  */ 
+      .__backDir = NO_DIR,               /*!< Direzione di Backoff dopo l'homing */
+      .__PostHomeVal = 0,                /*!< è il valore assoluto che viene associato dopo l'homing  */
+
+      /// Altri Dati
+      .__speed_steps_us = 10,            /*!< Velocità step/secondo  */
+      .__acc_steps_s2 = 0,               /*!< Accelerazione step/secondo^2  */
+      .__dec_steps_s2 = 0,               /*!< Decelerazione step/secondo^2  */ 
+      .__move_steps = 0,                 /*!< Passi da eseguire scelti in runtime  */
+      .__dir = DIR_NEGATIVE,             /*!< Direzione che verrà impostata all'invio del comando  */
+    };
 
  
     MoveQueue_t receiverQueue;                  /*!< Struct che contiene gli attuali dati ricevuti  */
@@ -241,7 +264,7 @@ class MOTION
 
     static void UpdateMoveHandler(void *pvParameters);/*!< Funzione che esegue la task di update */
 
-    TaskHandle_t __UpdateMoveHandlerTask = NULL;    /*!< Handler della task di update del motion */
+    TaskHandle_t __UpdateMoveHandlerTask = NULL;    /*!< Handler della task di update del motion  */
 
     /// Funzione per ottenere il delay per poter cambiare la velocità del movimento
     uint64_t getPeriodDelay(const double gradiSecondo);   

@@ -149,7 +149,7 @@ void MOTION::MoveHandler(void *pvParameters)
 
         /// Percorre i passi post-home ad una velocità dimezzata
         THIS->Motion.setDirection(THIS->receiverQueue.__backDir);
-        THIS->Motion.step(THIS->receiverQueue.__PostHomeVal, uint64_t(THIS->receiverQueue.__home_steps_us*2));
+        THIS->Motion.step(THIS->receiverQueue.__PostHomeVal, uint64_t(THIS->receiverQueue.__home_steps_us*2), THIS->receiverQueue.__home_acc_steps_s2, THIS->receiverQueue.__home_dec_steps_s2);
 
         THIS->__homing_state = HOMING_BACKOFF;
         THIS->__limit_direction = NO_DIR;
@@ -214,7 +214,7 @@ void MOTION::MoveHandler(void *pvParameters)
         /// Invia il comando di fare un movimento di tot steps in una direzione specificata
         case MOVE_REL :
         case MOVE_ABS :
-          THIS->Motion.step(THIS->receiverQueue.__move_steps, THIS->receiverQueue.__speed_steps_us);
+          THIS->Motion.step(THIS->receiverQueue.__move_steps, THIS->receiverQueue.__speed_steps_us, THIS->receiverQueue.__acc_steps_s2, THIS->receiverQueue.__dec_steps_s2);
         break;
         /// Invia il comando che fa un passo finché non viene ricevuto un altro dato dalla queue
         case CONTINUOUS :
@@ -485,7 +485,7 @@ bool MOTION::isDetached()
  *  @warning QUESTA FUNZIONE ESCE SUBITO ED ESEGUE L'HOMING IN MODO ASINCRONO CON TASK INTERNA.
  *           Solo quando la funzione @see isHomeDone() restituisce true allora sarà effettivamente finito l'home 
  */
-void MOTION::home(double HomeVelocity_gradi_sec, Direction_t searchDirection, double gradiDopoHome)
+void MOTION::home(double HomeVelocity_gradi_sec, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro, Direction_t searchDirection, double gradiDopoHome)
 {
   if(HomeVelocity_gradi_sec <= 0)
   {
@@ -514,10 +514,14 @@ void MOTION::home(double HomeVelocity_gradi_sec, Direction_t searchDirection, do
   
 
   /// Struct per inviare il buffer dati
-  MoveQueue_t HomeQueueDatas =
+  
+  MoveQueue_t HomeQueueDatas = defaultReceiverQueue;
+  HomeQueueDatas =
   {
     .__SwitchMove = HOMING,
     .__home_steps_us = getPeriodDelay(HomeVelocity_gradi_sec),
+    .__home_acc_steps_s2 = gradiToSteps(abs(acc_gradi_al_secondo_quadro)),
+    .__home_dec_steps_s2 = gradiToSteps(abs(dec_gradi_al_secondo_quadro)),
     .__backDir = backDir,
     .__PostHomeVal = gradiToSteps(gradiDopoHome),
     .__speed_steps_us = 10,
@@ -626,10 +630,10 @@ uint64_t MOTION::abortCurrentCommand()
  *  @param gradi il segno determina la direzione e sono i gradi di cui si sposta
  *  @param speed_gradi_al_secondo è la velocità a cui si muove il motore
  */
-void MOTION::moveRel(double gradi, double speed_gradi_al_secondo)
+void MOTION::moveRel(double gradi, double speed_gradi_al_secondo, double acc_gradi_al_secondo_quadro = 0.0, double dec_gradi_al_secondo_quadro = 0.0)
 {
   /// Struttura temporanea da inviare in coda
-  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__speed_steps_us = 10 };
+  MoveQueue_t QueueDatasToSend = defaultReceiverQueue;
 
   /// Setta la direzione
   QueueDatasToSend.__dir = gradi < 0.0 ? DIR_NEGATIVE : DIR_POSITIVE; //isola il segno per riconoscere la direzione
@@ -637,9 +641,9 @@ void MOTION::moveRel(double gradi, double speed_gradi_al_secondo)
   /// Conta quanti step deve fare (non tiene conto del segno perchè è già impostata la direzione) a __move_steps
   QueueDatasToSend.__move_steps = gradiToSteps(abs(gradi)); //rimuove il segno se c'è e lo associa direttamente a __move_steps
 
-  /// Mantiene la velocità precedentemente data se la velocità è <= 0.0
-  if(speed_gradi_al_secondo > 0.0)
-    QueueDatasToSend.__speed_steps_us = getPeriodDelay(speed_gradi_al_secondo);
+  QueueDatasToSend.__speed_steps_us = getPeriodDelay(abs(speed_gradi_al_secondo));
+  QueueDatasToSend.__acc_steps_s2 = gradiToSteps(abs(acc_gradi_al_secondo_quadro));
+  QueueDatasToSend.__dec_steps_s2 = gradiToSteps(abs(dec_gradi_al_secondo_quadro));
 
   /// Setta il selettore dello switch case 
   QueueDatasToSend.__SwitchMove = MOVE_REL;
@@ -660,13 +664,13 @@ void MOTION::moveRel(double gradi, double speed_gradi_al_secondo)
  *                   poiché non teneva conto di quanti step doveva fare e in che direzione per arrivare
  *                   nel voluto punto assoluto
  */
-void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
+void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo, double acc_gradi_al_secondo_quadro = 0.0, double dec_gradi_al_secondo_quadro = 0.0)
 {
   /// In base all'attuale posizione riconosce la direzione
   int64_t tmpSteps = gradiToSteps(gradi);
 
   /// Struttura temporanea da inviare in coda
-  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__speed_steps_us = 10 };
+  MoveQueue_t QueueDatasToSend = defaultReceiverQueue;;
 
   /// Salva e setta la direzione, va bene qualsiasi siano i segni degli step e dell'absoluteStepCounter
   QueueDatasToSend.__dir = tmpSteps < absoluteStepCounter ? DIR_NEGATIVE : DIR_POSITIVE; 
@@ -674,9 +678,9 @@ void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
   /// Conta quanti step deve fare (non tiene conto del segno perchè è già impostata la direzione) a __move_steps
   QueueDatasToSend.__move_steps = absoluteStepCounter - gradiToSteps(abs(gradi)); 
 
-  /// Mantiene la velocità precedentemente data se la velocità è <= 0.0
-  if(speed_gradi_al_secondo > 0.0)
-    QueueDatasToSend.__speed_steps_us = getPeriodDelay(speed_gradi_al_secondo);
+  QueueDatasToSend.__speed_steps_us = getPeriodDelay(abs(speed_gradi_al_secondo));
+  QueueDatasToSend.__acc_steps_s2 = gradiToSteps(abs(acc_gradi_al_secondo_quadro));
+  QueueDatasToSend.__dec_steps_s2 = gradiToSteps(abs(dec_gradi_al_secondo_quadro));
 
   /// Setta il selettore dello switch case 
   QueueDatasToSend.__SwitchMove = MOVE_ABS;
@@ -694,13 +698,11 @@ void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
 void MOTION::moveContinuous(Direction_t direzione, double speed_gradi_al_secondo)
 {  
   /// Struttura temporanea da inviare in coda
-  MoveQueue_t QueueDatasToSend = { .__home_steps_us = 10, .__speed_steps_us = 10 };
+  MoveQueue_t QueueDatasToSend = defaultReceiverQueue;
 
   QueueDatasToSend.__dir = direzione;
   
-  /// Mantiene la velocità precedentemente data se la velocità è <= 0.0
-  if(speed_gradi_al_secondo > 0.0)
-    QueueDatasToSend.__speed_steps_us = getPeriodDelay(speed_gradi_al_secondo);
+  QueueDatasToSend.__speed_steps_us = getPeriodDelay(abs(speed_gradi_al_secondo));
 
   /// Setta il selettore dello switch case
   QueueDatasToSend.__SwitchMove = CONTINUOUS;
@@ -739,19 +741,7 @@ void MOTION::reset()
 {
   Motion.reset();
 
-  receiverQueue =                      /*!< Struct che contiene i dati fa il reset (default values) degli attuali dati ricevuti  */
-  {
-    .__SwitchMove = STAND_STILL,       /*!< Variabile switch per il movimento del motore nella task  */
-
-    /// Dati Homing
-    .__home_steps_us = 10,             /*!< Velocità dell'homing in step/secondo  */
-    .__PostHomeVal = 0,             /*!< è il valore assoluto che viene associato dopo l'homing  */
-
-    /// Altri Dati
-    .__speed_steps_us = 10,            /*!< Velocità step/secondo  */
-    .__move_steps = 0,                 /*!< Passi da eseguire scelti in runtime  */
-    .__dir = DIR_NEGATIVE,             /*!< Direzione che verrà impostata all'invio del comando  */
-  };        
+  receiverQueue = defaultReceiverQueue;        
 
   absoluteStepCounter = 0;             /*!< Variabile di quanti step ha fatto il motore dall'accensione  */
 
