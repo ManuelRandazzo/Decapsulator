@@ -173,16 +173,61 @@ drv_err_t DRV8825::update()
   if(this->_rmtBusy.load(std::memory_order_acquire))
     return DRV_RMT_TX_BUSY;
 
-  /// Acquisice una volta gli stepsLeft e protegge atomicamente in lettura (acquire)
   uint64_t localStepsLeft = this->_stepsLeft.load(std::memory_order_acquire);
-
+  
+  /// protegge atomicamente in lettura (acquire)
   if(localStepsLeft == 0)
   {
     this->_isStepDone.store(true, std::memory_order_release);
+    StatoMoto = ACCELERATION;
     return DRV_OK;
   }
 
-  uint16_t next_tx_steps = std::min<uint32_t>(localStepsLeft, DRV8825_RMT_MAX_LOOP_COUNT);
+  if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
+    return DRV_ERR_MUX_TAKE_TIMEOUT;
+
+  uint16_t next_tx_steps;
+  switch(this->StatoMoto)
+  {
+    case ACCELERATION :
+      next_tx_steps = 1;
+      
+      if(localStepsLeft <= this->_acc_end_steps)
+      {
+        this->_acc_end_steps = 0;
+        StatoMoto = CONSTANT;
+      }
+      else
+      {
+        /// duration = _stepPulse.durationX * rmtTick
+        this->_stepPulse[0].duration1 = (this->_period_us / DRV8825_RMT_PULSE_US) - 1; // level LOW,   il -1 rappresenta l'HIGH
+      
+        /// Accelera di passo in passo
+        this->_period_us -= DRV8825_RMT_PULSE_US;
+      }
+      
+
+    break;
+
+    case CONSTANT :
+      next_tx_steps = std::min<uint32_t>((localStepsLeft - this->_const_end_steps), DRV8825_RMT_MAX_LOOP_COUNT);
+      
+      StatoMoto = DECELERATION;
+    break;
+
+    case DECELERATION :
+      next_tx_steps = 1;
+      
+      /// duration = _stepPulse.durationX * rmtTick
+      this->_stepPulse[0].duration1 = (this->_period_us / DRV8825_RMT_PULSE_US) - 1; // level LOW,   il -1 rappresenta l'HIGH
+      
+      /// Accelera di passo in passo
+      this->_period_us += DRV8825_RMT_PULSE_US;
+
+    break;
+  }
+
+  xSemaphoreGive(this->_mutex);
 
   /// Feed degli steps all'hardware
   this->transmit_cfg.loop_count = next_tx_steps;
@@ -264,9 +309,17 @@ drv_err_t DRV8825::setAbsPosition(int64_t absolute_position)
 
 int64_t DRV8825::getAbsPosition()
 {
+
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
     return DRV_FAIL;
-
+ 
+  if(this->_period_us > 0)
+  {
+    /// Salva il tempo
+    uint32_t tmrEndSteps = micros();
+    int64_t stepsFatti = (tmrEndSteps - this->_tmrStartOfRmtTransmit) / this->_period_us;
+    this->_absStepCounter += this->_direction * stepsFatti;
+  }
   int64_t absolute_position = this->_absStepCounter;
 
   xSemaphoreGive(this->_mutex);
@@ -279,7 +332,7 @@ drv_err_t DRV8825::isStepDone()
   return this->_isStepDone.load(std::memory_order_acquire) ? DRV_TRUE : DRV_FALSE;
 }
 
-drv_err_t DRV8825::step(uint64_t numberOfStepsToDo, uint64_t period_us)
+drv_err_t DRV8825::step(uint64_t numberOfStepsToDo, uint64_t period_us, uint64_t acceleration_step_s2, uint64_t deceleration_step_s2)
 {
   /// Se il numero di step è più alto di 32767 (max di loop_count)
   /// deve essere fatto ripartire più volte
@@ -287,9 +340,9 @@ drv_err_t DRV8825::step(uint64_t numberOfStepsToDo, uint64_t period_us)
 
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
     return DRV_ERR_MUX_TAKE_TIMEOUT;
-    
+  
   /// Imposta l'RMT per andare per un certo numero di step
-  this->setAndEnableRMT(period_us);
+  this->setAndEnableRMT(period_us, acceleration_step_s2, deceleration_step_s2);
 
   xSemaphoreGive(this->_mutex);
   
@@ -305,13 +358,13 @@ uint64_t DRV8825::abortCurrentMovement()
 
   /// Salva il tempo in cui viene effettivamente disattivato il canale RMT
   uint32_t tmrEndSteps;
-  const uint32_t tmoRmtDisableErr = millis();
+  const uint32_t tmoRmtDisableErr = micros();
   do
   {
     err = rmt_disable(this->_rmtChannel);
 
     /// Salva il tempo in cui viene effettivamente disattivato il canale RMT
-    tmrEndSteps = millis();
+    tmrEndSteps = micros();
   }
   while(err != ESP_OK && (tmrEndSteps - tmoRmtDisableErr < 200));
 
@@ -355,9 +408,9 @@ drv_err_t DRV8825::stepContinuous(uint64_t period_us)
     return DRV_ERR_MUX_TAKE_TIMEOUT;
 
   /// Imposta l'RMT per andare all'infinito (fino a quando non si chiama abortCurrentCommand())
-  this->setAndEnableRMT(period_us);
+  this->setAndEnableRMT(0, 0, period_us);
   this->transmit_cfg.loop_count = -1;
-  this->_tmrStartOfRmtTransmit = millis();
+  this->_tmrStartOfRmtTransmit = micros();
   rmt_transmit(this->_rmtChannel, this->step_encoder, &this->_stepPulse, this->STEP_PULSE_SIZE, &this->transmit_cfg);
   
   xSemaphoreGive(this->_mutex);
@@ -485,20 +538,55 @@ bool DRV8825::isSleeping()
   return (digitalReadFast(slpPin) == LOW);
 }
 
-void DRV8825::setAndEnableRMT(uint64_t period_us)
+void DRV8825::setAndEnableRMT(uint64_t period_us, const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2)
 {
   /// Per proprietà hardware del DRV8825 3.8us è il periodo minimo di lavoro dello step pin
   if(period_us <= DRV8825_MIN_PERIOD_US)
     period_us = DRV8825_MIN_PERIOD_US;
 
   this->_period_us = period_us;
+
+  this->calcRampSteps(ACC_STEPS_S2, DEC_STEPS_S2);
+  
   /// duration = _stepPulse.durationX * rmtTick
-  this->_stepPulse[0].duration1 = (period_us / DRV8825_RMT_PULSE_US) - 1; // level LOW,   il -1 rappresenta l'HIGH
+  //this->_stepPulse[0].duration1 = (period_us / DRV8825_RMT_PULSE_US) - 1; // level LOW,   il -1 rappresenta l'HIGH
 
   /// Abilita il canale RMT
   rmt_enable(this->_rmtChannel);
 }
 
+void DRV8825::calcRampSteps(const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2)
+{
+  /// acquire = protegge atomicamente in lettura
+  uint64_t spazio_tot = this->_stepsLeft.load(std::memory_order_acquire);
+
+  this->_const_end_steps = 0; // Inizialmente da per scontato non ci siano né acc. che dec. nel caso in cui esca dalla funzione     
+  this->StatoMoto = CONSTANT;      // Inizialmente da per scontato non ci siano né acc. che dec. nel caso in cui esca dalla funzione
+
+  if(spazio_tot == 0 || ACC_STEPS_S2 == 0 || DEC_STEPS_S2 == 0)
+    return;
+
+  double k = (ACC_STEPS_S2 + DEC_STEPS_S2) / (2 * ACC_STEPS_S2 * DEC_STEPS_S2);
+
+  /// Tempo in secondi
+  double t_tot = (double)(this->_period_us) / 1000000;
+
+  double delta = (t_tot * t_tot) - (4 * k * spazio_tot);
+
+  if(delta < 0)
+    return;
+
+  double vel_max = (t_tot - sqrt(delta)) / (2 * k);
+
+  /// Tempi del profilo trapezoidale in secondi
+  double t_acc   = vel_max / (double)(ACC_STEPS_S2);
+  double t_dec   = vel_max / (double)(DEC_STEPS_S2);
+  double t_const = t_tot - t_acc - t_dec;
+
+  /// A che step finisce ogni sezione, acc, const e dec=0 sempre
+  this->_acc_end_steps = spazio_tot - (uint64_t)(t_acc * 1000000.0 / DRV8825_RMT_PULSE_US);
+  this->_const_end_steps = spazio_tot - this->_acc_end_steps - (uint64_t)(t_const * 1000000.0 / DRV8825_RMT_PULSE_US);
+}
 
 /**
   * @brief Ritorna una stringa di codici errori di tipo drv_err_t 

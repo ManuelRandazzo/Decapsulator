@@ -132,7 +132,7 @@ class DRV8825
     int64_t       getAbsPosition();
 
     //       STEPS
-    drv_err_t     step(uint64_t numberOfStepsToDo, uint64_t period_us);
+    drv_err_t     step(uint64_t numberOfStepsToDo, uint64_t period_us, uint64_t acceleration_step_s2 = 0, uint64_t deceleration_step_s2 = 0);
     uint64_t      abortCurrentMovement();
     drv_err_t     stepContinuous(uint64_t period_us);
     drv_err_t     isStepDone();
@@ -172,6 +172,19 @@ class DRV8825
 
     uint32_t _tmrStartOfRmtTransmit  = 0;
 
+    uint64_t _acc_end_steps = 0;
+    uint64_t _const_end_steps   = 0;
+
+
+    typedef enum __stati_moto__ : uint8_t
+    {
+      ACCELERATION,
+      CONSTANT,
+      DECELERATION,
+    } StatoMoto_t;
+    StatoMoto_t StatoMoto;
+    
+
     
     /// Crea impulso HIGH per 2.2µs + LOW per i µs necessari, questi sono costanti, cambia solo la duration del level LOW
     //       2.2us     period voluto​
@@ -190,11 +203,24 @@ class DRV8825
             }
     };
     
-    /// si conosce si da subito la size di _stepPulse
+    /// si conosce sin da subito la size di _stepPulse
     static constexpr size_t STEP_PULSE_SIZE = sizeof(_stepPulse);
 
-    inline void setAndEnableRMT(uint64_t period_us);
+    inline void setAndEnableRMT(const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2, uint64_t period_us);
 
+    // V[steps/s] ^            
+    //            ​​║         
+    //       Vmax ​║ ¯ ¯ ¯/¯¯¯¯¯¯¯¯¯¯¯¯¯\     
+    //            ​║     /               \           
+    //     Vmedia ​║- - / - - - - - - - - \- - ┐  <-- Detta anche Vrichiesta         
+    //            ​║   /                   \   |      
+    //            ​║  /                     \  |      
+    //            ​║ /                       \ |      
+    //            ​║/                         \_____________    
+    //            ╚════════════════════════════════════════════> t [s]          
+    //            ╠══════╬═════════════╬══════╬═══════════╣
+    //              Tacc      Tcost      Tdec     Tstop
+    void calcRampSteps(const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2);
 
   private:
     /// Questo mutex garantisce che una sola task alla volta acceda alla risorsa condivisa o alle variabili
