@@ -610,11 +610,13 @@ void MOTION::Halt()
 /**
  *  @brief Abortisce (cancella) il comando attuale
  * 
+ *  @returns Numero di step rimanenti del comando abortito
+ * 
  *  @attention IsStepDone = true dopo l'esecuzione
  */
-void MOTION::abortCurrentCommand()
+uint64_t MOTION::abortCurrentCommand()
 {
-  this->Motion.abortCurrentMovement();
+  return this->Motion.abortCurrentMovement();
 }
 
 

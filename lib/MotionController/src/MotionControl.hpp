@@ -150,7 +150,8 @@ class MOTION
     bool isStarted();
 
     /// @brief abortisce (cancella) il comando attuale e IsStepDone = true
-    void abortCurrentCommand();
+    /// @returns Numero di step rimanenti del comando abortito
+    uint64_t abortCurrentCommand();
 
     /// Muove il motore in una direzione e alla velocità specificata in modo RELATIVO
     void moveRel(double gradi, double speed_gradi_al_secondo = 0.0);

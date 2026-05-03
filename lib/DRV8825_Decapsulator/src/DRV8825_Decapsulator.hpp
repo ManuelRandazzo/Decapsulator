@@ -67,7 +67,6 @@ typedef int8_t drv_err_t;
 #define DRV_ERR_RMT_COPY_ENCODER        17      /*!< Codice (drv_err_t) che indica che un errore nella copia in memoria nel canale rmt di trasmissione */
 #define DRV_ERR_RMT_TX_TIMEOUT          18      /*!< Codice (drv_err_t) che indica un timeout nella trasmissione del canale rmt */
 #define DRV_ERR_RMT_TRANSMIT_CMD        19      /*!< Codice (drv_err_t) che indica che un errore nella trasmissione del canale rmt */
-#define DRV_CMD_ABORTED                 20      /*!< Codice (drv_err_t) che indica un comando abortito dal metodo abortCurrent Movement */
 
 /**
   * @brief Ritorna una stringa di codici errori di tipo drv_err_t 
@@ -134,7 +133,7 @@ class DRV8825
 
     //       STEPS
     drv_err_t     step(uint64_t numberOfStepsToDo, uint64_t period_us);
-    drv_err_t     abortCurrentMovement();
+    uint64_t      abortCurrentMovement();
     drv_err_t     stepContinuous(uint64_t period_us);
     drv_err_t     isStepDone();
 
