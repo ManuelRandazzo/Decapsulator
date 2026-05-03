@@ -630,7 +630,7 @@ uint64_t MOTION::abortCurrentCommand()
  *  @param gradi il segno determina la direzione e sono i gradi di cui si sposta
  *  @param speed_gradi_al_secondo è la velocità a cui si muove il motore
  */
-void MOTION::moveRel(double gradi, double speed_gradi_al_secondo, double acc_gradi_al_secondo_quadro = 0.0, double dec_gradi_al_secondo_quadro = 0.0)
+void MOTION::moveRel(double gradi, double speed_gradi_al_secondo, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro)
 {
   /// Struttura temporanea da inviare in coda
   MoveQueue_t QueueDatasToSend = defaultReceiverQueue;
@@ -664,7 +664,7 @@ void MOTION::moveRel(double gradi, double speed_gradi_al_secondo, double acc_gra
  *                   poiché non teneva conto di quanti step doveva fare e in che direzione per arrivare
  *                   nel voluto punto assoluto
  */
-void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo, double acc_gradi_al_secondo_quadro = 0.0, double dec_gradi_al_secondo_quadro = 0.0)
+void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro)
 {
   /// In base all'attuale posizione riconosce la direzione
   int64_t tmpSteps = gradiToSteps(gradi);
