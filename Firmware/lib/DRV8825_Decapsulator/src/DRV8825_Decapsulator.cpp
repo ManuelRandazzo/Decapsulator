@@ -299,19 +299,39 @@ drv_err_t DRV8825::step(uint64_t numberOfStepsToDo, uint64_t period_us)
 }
 
 
-drv_err_t DRV8825::abortCurrentMovement()
+uint64_t DRV8825::abortCurrentMovement()
 {
-  const uint32_t tmrEndSteps = millis();
-  rmt_channel_handle_t rmtCh;
+  esp_err_t err;
+
+  /// Salva il tempo in cui viene effettivamente disattivato il canale RMT
+  uint32_t tmrEndSteps;
+  const uint32_t tmoRmtDisableErr = millis();
+  do
+  {
+    err = rmt_disable(this->_rmtChannel);
+
+    /// Salva il tempo in cui viene effettivamente disattivato il canale RMT
+    tmrEndSteps = millis();
+  }
+  while(err != ESP_OK && (tmrEndSteps - tmoRmtDisableErr < 200));
+
+  if(err != ESP_OK)
+    return 0;
 
   /// release = protegge atomicamente in scrittura
   this->_isStepDone.store(true, std::memory_order_release);
 
+  /// acquire = protegge atomicamente in lettura
+  uint64_t passiRimanenti = this->_stepsLeft.load(std::memory_order_acquire);
+
   /// release = protegge atomicamente in scrittura
   this->_stepsLeft.store(0, std::memory_order_release); 
 
+  /// Setta a false _rmtBusy in modo atomico. release = protegge atomicamente in scrittura
+  this->_rmtBusy.store(false, std::memory_order_release);
+
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
-    return DRV_ERR_MUX_TAKE_TIMEOUT;
+    return passiRimanenti;
 
   if(this->_period_us > 0)
   {
@@ -323,16 +343,10 @@ drv_err_t DRV8825::abortCurrentMovement()
 
   this->_tmrStartOfRmtTransmit = 0;
 
-  rmtCh = this->_rmtChannel;
 
   xSemaphoreGive(this->_mutex);
-    
-  /// Setta a false _rmtBusy in modo atomico
-  this->_rmtBusy.store(false, std::memory_order_release);
 
-  rmt_disable(rmtCh);
-
-  return DRV_CMD_ABORTED;
+  return passiRimanenti;
 }
 
 drv_err_t DRV8825::stepContinuous(uint64_t period_us)
@@ -517,7 +531,6 @@ const char *drv_err_to_name(drv_err_t code)
     case DRV_ERR_RMT_COPY_ENCODER :     return "DRV_ERR_RMT_COPY_ENCODER";
     case DRV_ERR_RMT_TX_TIMEOUT :       return "DRV_ERR_RMT_TX_TIMEOUT";
     case DRV_ERR_RMT_TRANSMIT_CMD :     return "DRV_ERR_RMT_TRANSMIT_CMD";
-    case DRV_CMD_ABORTED :              return "DRV_CMD_ABORTED";
     //case DRV_ERR_ :                   return "DRV_ERR_"; 
     default :                           return "NOT_A_DRV_CODE";
   }
