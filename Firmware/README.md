@@ -127,11 +127,19 @@ Norme armonizzate applicate :
 
 
 <p align="center">
-  <img src="images/3D_SchedaPrincipale.png" width="800">
+  <img src="images/3D_SchedaHMI.png" width="800">
 </p>
 
 <p align="center">
   <em>Figura 5 — Scheda HMI del Decapsulator</em>
+</p>
+
+<p align="center">
+  <img src="images/3D_SchedaHMI_Logo.png" width="800">
+</p>
+
+<p align="center">
+  <em>Figura 5 — Scheda HMI del Decapsulator - Vista retro</em>
 </p>
 
 <p align="center">
