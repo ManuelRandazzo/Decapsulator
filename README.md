@@ -139,7 +139,7 @@ Norme armonizzate applicate :
 </p>
 
 <p align="center">
-  <em>Figura 6 — Schede del "Magazzino Cialde" del Decapsulator, rappresentano due foto transistor (quelli neri) e due LED IR (quelli bianchi), inoltre su una scheda è presente il connettore del servomotore della "Paratia"</em>
+  <em>Figura 6 — Schede del "Magazzino Cialde" del Decapsulator, rappresentano due foto transistor e due LED IR, inoltre su una scheda è presente il connettore 3 poli del servomotore della "Paratia"</em>
 </p>
 
 ---
