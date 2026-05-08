@@ -154,11 +154,11 @@ Norme armonizzate applicate :
 
 
 ## Dati Sui Motori Utilizzati
-Le librerie dei driver DRV8825 sono state sviluppate interamente da Manuel Randazzo il quale si è preoccupato di studiare e testare l'hardware, consultare la documentazione ufficiale per poter integrare al meglio la libreria che può essere inclusa così :
+Le librerie del driver DRV8825 sono state sviluppate interamente da Manuel Randazzo il quale si è preoccupato di studiare e testare l'hardware, consultare la documentazione ufficiale per poter integrare al meglio la libreria che può essere inclusa così :
 ```C++
-#include "Decapsulator.hpp"
+#include "DRV8825_Decapsulator.hpp"
 ```
-oppure includendo già la libreria del Motion Controller che già la utilizza internamente la precedente e che permette una gestione più semplice :
+oppure includendo la libreria del Motion Controller che già utilizza internamente la precedente libreria e che permette una gestione più semplice del Motore :
 ```C++
 #include "MotionControl.hpp"
 ```
