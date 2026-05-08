@@ -1,13 +1,15 @@
 # Decapsulator
 <p align="center">
   <img src="images/LogoDecapsulator.png" width="800">
+</p>
+
+<p align="center">
   <em>Repo condiviso con il Gruppo 1 ITS 24-26 con programma del macchinario</em>
 </p>
 
 ---
 
 ## Overview
-
 **Decapsulator** è il prototipo di un macchinario nato con lo scopo principale di ridurre rifiuti secchi automatizzando un processo ripetitivo, che tende ad essere evitato e talvolta può diventare pericoloso se non si prestano le dovute attenzioni che è quello di aprire le capsule esauste per poter separare il caffè dall'involucro esterno.
 
 **Sedi**: 
@@ -40,6 +42,12 @@ Prototipo a scopo didattico, non destinato alla vendita o all'uso continuativo. 
 - ***Christian Poletti*** - Documentation Contributor
 - ***Arun James Thanamcheril*** - Documentation Contributor
 
+
+<p align="center">
+  <img src="images/FotoGruppo1.png" width="800">
+</p>
+<em>Foto del gruppo 1 ITS 24-26 - scattata nel 2025</em>
+
 ---
 
 ## Dichiarazione di Conformità CE del prototipo
@@ -67,6 +75,9 @@ Norme armonizzate applicate :
 - ### **Parte Meccanica**
 <p align="center">
   <img src="images/DisegnoPrototipo.png" width="800">
+</p>
+
+<p align="center">
   <em>Figura 1 — Architettura generale del Decapsulator</em>
 </p>
  
@@ -87,33 +98,47 @@ Norme armonizzate applicate :
 
 <p align="center">
   <img src="images/MagazzinoCialde.png" width="800">
+</p>
+
+<p align="center">
   <em>Figura 2 — Magazzino Cialde : Serve per stoccare le capsule prima che vengano </em>
 </p>
 
 <p align="center">
   <img src="images/TamburoMeccanica.png" width="800">
-  <em>Figura 2 — Tamburo : Serve per trasportare la capsula nelle varie fasi di lavorazione (Acquisizione, Punzonatura, Raschiatura, Espulsione)</em>
+</p>
+
+<p align="center">
+  <em>Figura 3 — Tamburo : Serve per trasportare la capsula nelle varie fasi di lavorazione (Acquisizione, Punzonatura, Raschiatura, Espulsione)</em>
 </p>
 
 - ### **Parte Elettronica**
 
 <p align="center">
   <img src="images/3D_SchedaMain.png" width="800">
-  <em>Figura 2 — Scheda di controllo del Decapsulator</em>
 </p>
 
+<p align="center">
+  <em>Figura 4 — Scheda di controllo del Decapsulator</em>
+</p>
 
 
 <p align="center">
   <img src="images/3D_SchedaPrincipale.png" width="800">
-  <em>Figura 2 — Scheda HMI del Decapsulator</em>
 </p>
 
+<p align="center">
+  <em>Figura 5 — Scheda HMI del Decapsulator</em>
+</p>
 
 <p align="center">
   <img src="images/3D_SchedeMagazzino.png" width="800">
-  <em>Figura 2 — Schede del "Magazzino Cialde" del Decapsulator, rappresentano due foto transistor (quelli neri) e due LED IR (quelli bianchi), inoltre su una scheda è presente il connettore del servomotore della "Paratia"</em>
 </p>
+
+<p align="center">
+  <em>Figura 6 — Schede del "Magazzino Cialde" del Decapsulator, rappresentano due foto transistor (quelli neri) e due LED IR (quelli bianchi), inoltre su una scheda è presente il connettore del servomotore della "Paratia"</em>
+</p>
+
 ---
 
 
@@ -130,14 +155,20 @@ oppure includendo già la libreria del Motion Controller che già la utilizza in
 **Flow chart MotionController**
 <p align="center">
   <img src="images/FlowChartMotionController.png" width="800">
-  <em>Figura 2 — Flow chart MotionController</em>
+</p>
+
+<p align="center">
+  <em>Figura 7 — Flow chart MotionController</em>
 </p>
 
 
 **Simulazione Grafico Coppia-Velocità Motori Stepper**
 <p align="center">
   <img src="images/CurvaDiCoppiaMotori.png" width="800">
-  <em>Figura 3 — Simulazione curva di coppia dei motori stepper con MATLAB</em>
+</p>
+
+<p align="center">
+  <em>Figura 8 — Simulazione curva di coppia dei motori stepper con MATLAB</em>
 </p>
 
 ---
@@ -152,7 +183,6 @@ Come accedervi:
 <p align="center">
   <img src="images/ImpostazioniManutentore.png" width="500">
 </p>
-
 2. Inserire la password unica fornita ai manutentori specializzati
 <p align="center">
   <img src="images/PasswordManutentore.png" width="500">
