@@ -46,7 +46,10 @@ Prototipo a scopo didattico, non destinato alla vendita o all'uso continuativo. 
 <p align="center">
   <img src="images/FotoGruppo1.png" width="800">
 </p>
-<em>Foto del gruppo 1 ITS 24-26 - scattata nel 2025</em>
+<p align="center">
+    <em>Foto del gruppo 1 ITS 24-26 - scattata nel 2025</em>
+    <em>Partendo da sinistra : Manuel, Christian, Pisan, Pavanetto e Dorigo</em>
+</p>
 
 ---
 
