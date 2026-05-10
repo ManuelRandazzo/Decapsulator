@@ -51,11 +51,10 @@ typedef enum __sequence__ : uint8_t
 
 
 /// Crea gli oggetti
-/// Crea l'oggetto della classe TaskTypeDef, ovvero la task di gestione del decapsulator
-TaskTypeDef DecapsulatorHandleTask;
 MOTION MotRalla;
 MOTION MotPunzone;
 Servo ServoParatia;
+FanCtrl Ventola;
 
 /// Mutex e spinlock
 SemaphoreHandle_t _DecapsulatorMutex = nullptr;
@@ -113,6 +112,10 @@ void prgDecapsulatorTask(void *pvParameters)
 
   Sequence_t sequenza = MACHINE_STARTUP_STATE;  // Gestione della sequenza del movimento del Decapsulator
 
+  /// Ventola
+  Ventola.begin(VENTOLA_PIN, VENTOLA_FREQ, VENTOLA_RES);
+  Ventola.on();
+
   /// Motore Tamburo
   drv_err_t drvErr;
   drvErr = MotRalla.Init(RALLA_MOTOR_STEPS, RALLA_DIRECTION_PIN, RALLA_STEP_PIN, RALLA_ENABLE_PIN, RALLA_RESET_PIN, RALLA_SLEEP_PIN,
@@ -122,7 +125,7 @@ void prgDecapsulatorTask(void *pvParameters)
 
   MotRalla.setHardLimits(RALLA_CALIB_PIN, 255, RALLA_CALIB_INTR_OR_POLL, 30, RALLA_INPUT_PULL, RALLA_CAM_SIGNAL);
 
-  R_TRIG MotRalla_IsStepDone;
+  R_TRIG RallaStepDone;
 
   if(drvErr != DRV_OK)
   {
@@ -137,8 +140,8 @@ void prgDecapsulatorTask(void *pvParameters)
                            PUNZ_TASK_PRIORITY, PUNZ_MICROSTEP);
   MotPunzone.detach();
   
-  R_TRIG MotPunzone_IsStepDone;
-                
+  R_TRIG PunzoneStepDone;
+  
   if(drvErr != DRV_OK)
   {
     #ifdef LOG_ACTIVE_MAIN_PRG
@@ -209,8 +212,8 @@ void prgDecapsulatorTask(void *pvParameters)
     cadutaCaps.intrUpdate();
     presenzaCaps.intrUpdate();
 
-    MotRalla_IsStepDone.CLK(MotRalla.isStepDone());
-    MotPunzone_IsStepDone.CLK(MotPunzone.isStepDone());
+    RallaStepDone.CLK(MotRalla.isStepDone());
+    PunzoneStepDone.CLK(MotPunzone.isStepDone());
 
     /// Se arriva una capsula allora bisogna può essere eseguito un altro ciclo
     if(presenzaCaps.event())
@@ -226,6 +229,7 @@ void prgDecapsulatorTask(void *pvParameters)
       {        
         /// @todo
         MainPrgStopAllMotors();
+        Ventola.on();
         LogError("EMERGENCY", "Si è entrati in uno stato di EMERGENZA");
 
         break;
@@ -238,6 +242,8 @@ void prgDecapsulatorTask(void *pvParameters)
           if(ToHMI.xErrorInitPunz || ToHMI.xErrorInitRalla)
             MainPrgStopAllMotors();
 
+          Ventola.off();
+
           cmd_exec = true;
         }
         /// @todo
@@ -246,6 +252,7 @@ void prgDecapsulatorTask(void *pvParameters)
 
       case CONTAINER_FULL :
       {
+        Ventola.off();
         if(FromHMI.restartAfterContainerEmptied == true)
         {
           FromHMI.restartAfterContainerEmptied = false;
@@ -276,9 +283,10 @@ void prgDecapsulatorTask(void *pvParameters)
       {
         if(!cmd_exec) // Da il comando
         {
+          Ventola.on(); // Si assicura che la ventola sia accesa
           MotPunzone.attach();
           MotPunzone.Start();
-          MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
+          MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_ACC, PUNZ_HOME_DEC, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
           tmoPunzHome = MILLIS;
           cmd_exec = true;
         }
@@ -307,10 +315,11 @@ void prgDecapsulatorTask(void *pvParameters)
       {
         if(!cmd_exec) // Da il comando
         {
+          Ventola.on(); // Si assicura che la ventola sia accesa
           MotRalla.attach();
           MotRalla.Start();
           MotRalla.reattachHardLimits();
-          MotRalla.home(RALLA_HOME_SPEED, RALLA_HOME_DIR, RALLA_POST_HOME_POS);
+          MotRalla.home(RALLA_HOME_SPEED, RALLA_HOME_ACC, RALLA_HOME_DEC, RALLA_HOME_DIR, RALLA_POST_HOME_POS);
           tmoRallaHome = MILLIS;
           cmd_exec = true;
         }
@@ -322,6 +331,7 @@ void prgDecapsulatorTask(void *pvParameters)
             {
               /// Rimuove il sensore di calibrazione
               MotRalla.removeHardLimits();
+              Ventola.off(); // Si assicura che la ventola sia spenta
               sequenza = QUIETE_STATE;
               cmd_exec = false;
             }
@@ -344,7 +354,10 @@ void prgDecapsulatorTask(void *pvParameters)
           FromHMI.StartMachine = false;
           
           if(doAnotherCycle == true)
+          {
+            Ventola.on(); // Si assicura che la ventola sia accesa
             sequenza = SERVO_LOADER_OPEN_STATE;
+          }
         }
 
         break;
@@ -409,10 +422,10 @@ void prgDecapsulatorTask(void *pvParameters)
         if(!cmd_exec) // Dà il comando
         {
           /// Setta la direzione di marcia del tamburo e si muove alla posizione successiva
-          MotRalla.moveRel(+90.0 * GEAR_RATIO_RALLA, RALLA_SPEED);
+          MotRalla.moveRel(+90.0 * GEAR_RATIO_RALLA, RALLA_SPEED, RALLA_ACC, RALLA_DEC);
           cmd_exec = true;
         }
-        else if(MotRalla_IsStepDone.Q() == true) // Aspetta la fine del comando
+        else if(RallaStepDone.Q() == true) // Aspetta la fine del comando
         {
           sequenza = PUNCHER_DOWN_FAST_STATE;
           cmd_exec = false;
@@ -427,10 +440,10 @@ void prgDecapsulatorTask(void *pvParameters)
         {
           /// Setta la direzione di marcia del punzone e mette in coda 
           /// due movimenti uno veloce (bassa coppia) e uno lento (alta coppia)
-          MotPunzone.moveRel(PUNZ_FAST_ROTATIONS * -360.0, PUNZ_FAST_SPEED); // Fa 10 giri = 20mm lineari ad alta velocità
+          MotPunzone.moveRel(PUNZ_FAST_ROTATIONS * -360.0, PUNZ_FAST_SPEED, PUNZ_ACC, PUNZ_DEC); // Fa 10 giri = 20mm lineari ad alta velocità
           cmd_exec = true;
         }
-        else if(MotPunzone_IsStepDone.Q() == true) // Aspetta la fine del comando
+        else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
         {
           sequenza = PUNCHER_DOWN_SLOW_STATE;
           cmd_exec = false;
@@ -444,10 +457,10 @@ void prgDecapsulatorTask(void *pvParameters)
         if(!cmd_exec) // Dà il comando
         {
           /// Fa 15 giri = 30mm lineari ad alta coppia
-          MotPunzone.moveRel(PUNZ_SLOW_ROTATIONS * -360.0, PUNZ_SLOW_SPEED);    
+          MotPunzone.moveRel(PUNZ_SLOW_ROTATIONS * -360.0, PUNZ_SLOW_SPEED, PUNZ_ACC, PUNZ_DEC);    
           cmd_exec = true;
         }
-        else if(MotPunzone_IsStepDone.Q() == true) // Aspetta la fine del comando
+        else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
         {
           sequenza = PUNCHER_UP_FAST_STATE;     
           cmd_exec = false;
@@ -461,11 +474,11 @@ void prgDecapsulatorTask(void *pvParameters)
         if(!cmd_exec) // Dà il comando
         {
           /// Torna nella posizione 
-          MotPunzone.moveRel(PUNZ_ROTATIONS_TOT * +360.0, PUNZ_FAST_SPEED);
+          MotPunzone.moveRel(PUNZ_ROTATIONS_TOT * +360.0, PUNZ_FAST_SPEED, PUNZ_ACC, PUNZ_DEC);
           vTaskDelay(100);
           cmd_exec = true;
         }
-        else if(MotPunzone_IsStepDone.Q() == true) // Aspetta la fine del comando
+        else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
         {
           sequenza = SERVO_LOADER_OPEN_STATE; // Ricomincia il ciclo
           cmd_exec = false;
@@ -496,24 +509,39 @@ void prgDecapsulatorTask(void *pvParameters)
 /**
  *  @brief funzione chiamata in caso di emergenza, di servizio o di timeout
  * 
- *  @note Dopo aver chiamato questa funzione va rifatto l'homing
+ *  @param ptrStepsLeftTamburo puntatore a cui viene settato il numero di gradi rimanenti
+ *         per completare il movimento che verrà abortito chiamando questa funziione 
+ *  
+ *  @param ptrStepsLeftPunzone puntatore a cui viene settato il numero di gradi rimanenti
+ *         per completare il movimento che verrà abortito chiamando questa funziione
+ * 
+ *  @note Se non si implementa una logica per riprendere l'ultimo movimento allora
+ *        dopo aver chiamato questa funzione va rifatto l'homing
  * 
  *  @details Fa l'ABORT dei commandi attuali dei motori, FERMA i motori e fa DETACH dei pin RILASCIANDO la coppia
  */
-void MainPrgStopAllMotors()
+void MainPrgStopAllMotors(double* ptrStepsLeftTamburo, double* ptrStepsLeftPunzone)
 {  
   /// Abort dei comandi attuali ai motori
-  MotPunzone.abortCurrentCommand();
-  MotRalla.abortCurrentCommand();
+  int64_t stepsLeftRalla = (int64_t)MotRalla.abortCurrentCommand();
+  int64_t stepsLeftPunz = (int64_t)MotPunzone.abortCurrentCommand();
+
 
   /// Ferma gli stepper e rilasciano la coppia
-  MotPunzone.Stop(RELEASE);
   MotRalla.Stop(RELEASE);
+  MotPunzone.Stop(RELEASE);
 
   /// Scollega i pin dei motori
-  MotPunzone.detach();
   MotRalla.detach();
+  MotPunzone.detach();
   ServoParatia.detach();
+
+  /// Restituisce il numero di gradi rimanenti del comando abortito
+  if(ptrStepsLeftTamburo != nullptr)
+    *ptrStepsLeftTamburo = MotRalla.stepsToGradi(stepsLeftRalla);
+    
+  if(ptrStepsLeftPunzone != nullptr)
+    *ptrStepsLeftPunzone = MotPunzone.stepsToGradi(stepsLeftPunz);
 }
 
 
