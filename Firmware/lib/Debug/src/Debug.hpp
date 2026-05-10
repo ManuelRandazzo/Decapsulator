@@ -66,28 +66,6 @@ void startWiFi(uint32_t timeout_for_each_initialization_ms = DEFAULT_TIMEOUT_WIF
 
 
 
-/** ╔═════════════════════════════════════════════╗
-    ║             USER: EXTERN FUNCTION           ║
-    ╚═════════════════════════════════════════════╝ */
-/*/// @brief Inizializza sia il logger (in preprocessor) che il WiFi (runtime) e l'eventuale MQTT (runtime)
-extern void LogBegin(uint32_t timeout_for_each_initialization_ms);
-
-/// @brief Inizializza il WiFi (viene chiamato dalla funzione LogBegin)
-extern void startWiFi(uint32_t timeout_for_each_initialization_ms);
-
-/// @brief Modifica una variabile in runtime scrivendola in un determinato topic mqtt
-/// @warning il topic sarà composto così: Decapsulator_Logger/DEBUG OVERRIDE/override_topic 
-template <typename varType>
-extern void DebugOverrideVar(String override_topic, varType* var);
-*/
-
-
-
-
-
-
-
-
 
 
 
