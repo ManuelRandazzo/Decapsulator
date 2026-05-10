@@ -18,14 +18,22 @@
 
 /// Include la libreria custom per la gestione delle task
 #include "Tasks.hpp"
+/// Inlcude il file per la gestione del debugger
+#include "Debug.hpp"
 /// Include la libreria custom del motion
 #include "MotionControl.hpp"
 /// Include la libreria per la gestione del servomotore
 #include "ESP32Servo.h"
+/// Include la libreria per il controllo della ventola
+#include "FanCtrl.hpp"
 /// Include la libreria per la gestione dei pin e del debounce
 #include "DebouncePinHandler.hpp"
 /// Include il file per la gestione della coda
 #include "queue.h"
+/// Include una classe per rilevare i Rising Trigger
+#include "R_TRIG.hpp"
+/// Include una classe per rilevare i Falling Trigger
+#include "F_TRIG.hpp"
 
 /**
  * @other_defines:
@@ -36,19 +44,44 @@
 #define ALTEZZA_CAPSULA_MM  37 //millimetri [mm]
 #define TEMPO_CADUTA_CAPSULA_MS (float)(sqrt((float)DIAMETRO_CAPSULA_MM / (2 * 9.80665))) // t_caduta = sqrt( h / (2g) );
 
-/**
- * 
- *  @_not_defined_things: defines per i dati dell'oggetto del MotionControl del tamburo
- * 
- */
+
+#pragma region (SENSORI PRESENZA E CADUTA CAPSULE)
+
 #define PIECE_PRESENCE_PIN      1
 #define PIECE_PASSED_PIN        2
+
+#pragma endregion (SENSORI PRESENZA E CADUTA CAPSULE)
+
+
+#pragma region (AUTOKILL)
+
 #define AUTOKILL_DETECT_PIN    41
 #define AUTOKILL_SHUTDOWN_PIN  42
-#define CMD_VENTOLA_PIN        12
+
+#pragma endregion (AUTOKILL)
+
+
+#pragma region (VENTOLA)
+
+/**
+ * 
+ * VENTOLA: defines per i dati dell'oggetto della ventola di raffreddamento
+ * 
+ */
+/// Risoluzione in numero di bit della PWM. 
+/// Risoluzione MASSIMA @formula: log₂(f_clk_periferica / f_pwm) - 1 --> log₂(80000000 / f_pwm) - 1
+/// 7 Bit calcolato con : (log₂(f_clk_periferica / f_pwm) - 1) - 30% = (log₂(80000000 / 35000) - 1) * 0.7
+#define VENTOLA_RES             7
+/// Hz. Frequenza della PWM generata da LEDC (LED Control)
+#define VENTOLA_FREQ        35000 
+#define VENTOLA_PIN            12
+
+#pragma endregion (VENTOLA)
 
 
 
+
+#pragma region (GHIGLIOTTINA)
 
 /**
  * 
@@ -56,8 +89,11 @@
  * 
  */
 #define SERVO_PIN              11
-#define SERVO_CLOSED_POS        0
-#define SERVO_OPEN_POS        180
+#define SERVO_CLOSED_POS      180
+#define SERVO_OPEN_POS          0
+
+#pragma endregion (GHIGLIOTTINA)
+
 
 
 #pragma region (TAMBURO_SETTINGS)
@@ -71,6 +107,8 @@
 #define RALLA_TASK_PRIORITY     2           /** @attention: è importante che sia <= della priorità della task */
 #define RALLA_MICROSTEP       FULL_STEP //STEP_1_TO_16
 #define RALLA_SPEED           MAX_STABLE_MOTOR_SPEED / (double)(RALLA_MICROSTEP)  // Velocità di esecuzione relativo al tamburo in gradi al secondo [°/s]
+#define RALLA_ACC            2000.0   /* Gradi al secondo quadrato */
+#define RALLA_DEC            2000.0   /* Gradi al secondo quadrato */
 #define GEAR_RATIO_RALLA        3           // Imposta un gear ratio 1/3 per la ralla
 
 /// Driver DRV8825 pins
@@ -86,10 +124,12 @@
 #define RALLA_CALIB_INTR_OR_POLL INTR
 #define RALLA_CALIB_PIN         9
 #define RALLA_INPUT_PULL      INPUT_PULLUP /// Input pullup desidera che l'uscita del sensore sia dritta per funzionare in falling
-#define RALLA_HOME_SPEED      120.0 /** Gradi al secondo*/
+#define RALLA_HOME_SPEED      240.0   /* Gradi al secondo */
+#define RALLA_HOME_ACC        500.0   /* Gradi al secondo quadrato */
+#define RALLA_HOME_DEC        500.0   /* Gradi al secondo quadrato */
 #define RALLA_CAM_SIGNAL      ACTIVE_LOW
 #define RALLA_HOME_DIR        DIR_NEGATIVE
-#define RALLA_POST_HOME_POS   -120.0 /*Gradi*//** @attention  Ancora da definire*/
+#define RALLA_POST_HOME_POS   (-120.0) /*Gradi*//** @attention  Ancora da definire*/
 
 #pragma endregion (TAMBURO_SETTINGS)
 
@@ -102,14 +142,15 @@
  */
 
 #define PUNZ_MOTOR_STEPS      200  
-#define PUNZ_TASK_PRIORITY      2             /** @attention: è importante che sia <= della priorità della task */
+#define PUNZ_TASK_PRIORITY      2 /** @attention: è importante che sia <= della priorità della task */
 #define PUNZ_MICROSTEP        FULL_STEP //STEP_1_TO_16
 #define PUNZ_FAST_SPEED       MAX_STABLE_MOTOR_SPEED / (double)(PUNZ_MICROSTEP) // Velocità di esecuzione relativo al punzone in gradi al secondo [°/s]
-#define PUNZ_SLOW_SPEED       180.0  /** @attention  Ancora da definire*/
+#define PUNZ_SLOW_SPEED       500.0  /** @attention  Ancora da definire*/
+#define PUNZ_ACC             2000.0  /* Gradi al secondo quadrato */
+#define PUNZ_DEC             2000.0  /* Gradi al secondo quadrato */
 #define PUNZ_ROTATIONS_TOT     15.8
 #define PUNZ_SLOW_ROTATIONS    15.0 /** Altezza della capsula + 1mm *//** @attention  Ancora da definire*/
-#define PUNZ_FAST_ROTATIONS   PUNZ_ROTATIONS_TOT - PUNZ_SLOW_ROTATIONS
-
+#define PUNZ_FAST_ROTATIONS   (PUNZ_ROTATIONS_TOT - PUNZ_SLOW_ROTATIONS)
 
 /// Driver DRV8825 pins
 #define PUNZ_DIRECTION_PIN     47
@@ -124,12 +165,16 @@
 #define PUNZ_MAX_POS_PIN       18
 #define PUNZ_MIN_POS_PIN        8
 #define PUNZ_INPUT_PULL       INPUT_PULLUP /// Input pullup desidera che l'uscita del sensore sia dritta per funzionare in falling
-#define PUNZ_HOME_SPEED       120.0  /* Gradi al secondo */  /** @attention  Ancora da definire*/
+#define PUNZ_HOME_SPEED       240.0   /* Gradi al secondo */  /** @attention  Ancora da definire*/
+#define PUNZ_HOME_ACC         500.0   /* Gradi al secondo quadrato */
+#define PUNZ_HOME_DEC         500.0   /* Gradi al secondo quadrato */
 #define PUNZ_CAM_SIGNAL       ACTIVE_LOW
 #define PUNZ_HOME_DIR         DIR_POSITIVE
-#define PUNZ_POST_HOME_POS    1.5 * 360.0 /*Gradi*/  /// Torna indietro di 1.5 giri
+#define PUNZ_POST_HOME_POS    (1.5 * 360.0) /*Gradi*/  /// Torna indietro di 1.5 giri
 
 #pragma endregion (PUNZONE_SETTINGS)
+
+
 
 #pragma region (TIMEOUTS)
 
@@ -139,7 +184,7 @@
 
 #define TIMEOUT_RALLA_HOME_MS (uint32_t)(200 + ((GEAR_RATIO_RALLA*90.0 / RALLA_HOME_SPEED) * 1000.0))
 
-#define TIMEOUT_CADUTA_CAPS_MS 2 * (uint32_t)(TEMPO_CADUTA_CAPSULA_MS)
+#define TIMEOUT_CADUTA_CAPS_MS (2 * (uint32_t)(TEMPO_CADUTA_CAPSULA_MS))
 
 #pragma endregion (TIMEOUTS)
 
@@ -152,12 +197,29 @@
 
 /// @brief Handler della task del programma
 extern TaskHandle_t MainPrgHandler;
+extern MOTION MotRalla;
+extern MOTION MotPunzone;
+extern Servo ServoParatia;
+extern FanCtrl Ventola;
 
 /// @brief PROGRAMMA PRINCIPALE
 extern void prgDecapsulatorTask(void *pvParameters);
 
-/// @brief funzione chiamata in caso di emergenza
-extern void MainProgramEmergencyFunction();
+/**
+ *  @brief funzione chiamata in caso di emergenza, di servizio o di timeout
+ * 
+ *  @param ptrStepsLeftTamburo puntatore a cui viene settato il numero di gradi rimanenti
+ *         per completare il movimento che verrà abortito chiamando questa funziione 
+ *  
+ *  @param ptrStepsLeftPunzone puntatore a cui viene settato il numero di gradi rimanenti
+ *         per completare il movimento che verrà abortito chiamando questa funziione
+ * 
+ *  @note Se non si implementa una logica per riprendere l'ultimo movimento allora
+ *        dopo aver chiamato questa funzione va rifatto l'homing
+ * 
+ *  @details Fa l'ABORT dei commandi attuali dei motori, FERMA i motori e fa DETACH dei pin RILASCIANDO la coppia
+ */
+extern void MainPrgStopAllMotors(double* ptrStepsLeftTamburo = nullptr, double* ptrStepsLeftPunzone = nullptr);
 
 #pragma endregion (EXTERNS)
 
@@ -174,17 +236,46 @@ extern void MainProgramEmergencyFunction();
 
 #pragma region (COMMAND_QUEUE)
 
+typedef enum : int8_t
+{
+  NO_CMD = -1,
+  TAMBURO_ENABLE,
+  TAMBURO_DISABLE,
+  TAMBURO_JOG_POSITIVE,
+  TAMBURO_JOG_NEGATIVE,
+
+  PUNZONE_ENABLE,
+  PUNZONE_DISABLE,
+  PUNZONE_JOG_POSITIVE,
+  PUNZONE_JOG_NEGATIVE,
+  
+  HOMING,
+
+} JogState;
+
+
 /// @brief Handler della coda che riceve i comandi che arrivano dall'HMI
 extern QueueHandle_t QueueHandlerHMI_CMD;
 
-/// @brief Direction: Fontend --> Backend 
+/// @brief Direction: Frontend --> Backend 
 struct CommandQueueHMI_t
 {
   unsigned StartMachine : 1;
   unsigned StopMachine : 1;
   unsigned restartAfterContainerEmptied : 1;
 
-  unsigned unusedBits : 29; // = 32 - n° bit occupati dagli altri membri
+  /// JOG
+  unsigned jogPageActive : 1;
+
+  JogState jogStateCMD;
+
+  float    jogRallaGradiPerClick;   /// Quanti gradi fa ad ogni click del pulsante
+  float    jogRallaSpeed;           /// Velocità del jog in gradi al secondo
+
+  float    jogPunzoneGradiPerClick;   /// Quanti gradi fa ad ogni click del pulsante
+  float    jogPunzoneSpeed;           /// Velocità del jog in gradi al secondo
+
+  unsigned unusedBits : 20; // = 32 - n° bit occupati dagli altri membri
 };
 
 /// Struct di inizializzazione (evita errori nell'utilizzo di membri non inizializzati)
@@ -193,7 +284,18 @@ constexpr CommandQueueHMI_t defaultCommandQueueHMI =
   .StartMachine = false,
   .StopMachine = false,
   .restartAfterContainerEmptied = false,
+  
+  /// JOG
+  .jogPageActive = false,
 
+  .jogStateCMD = NO_CMD,
+  
+  .jogRallaGradiPerClick = 0,     /// Quanti gradi fa ad ogni click del pulsante
+  .jogRallaSpeed = 0.0,         /// Velocità del jog in gradi al secondo
+  
+  .jogPunzoneGradiPerClick = 0.0, /// Quanti gradi fa ad ogni click del pulsante
+  .jogPunzoneSpeed = 0.0,         /// Velocità del jog in gradi al secondo
+  
   .unusedBits = 0,
 };
 
@@ -215,7 +317,14 @@ struct EventQueueHMI_t
   unsigned xErrorCapsIncastrata : 1;
   //unsigned  xError : 1;
   
-  unsigned unusedBits : 28; // = 32 - n° bit occupati dagli altri membri
+  /// JOG
+  unsigned jogRallaIsMoving : 1;    /// Indica se il motore si sta muovendo
+  unsigned jogRallaCalibrationStatus : 1;
+  unsigned jogPunzoneIsMoving : 1;    /// Indica se il motore si sta muovendo
+  unsigned jogPunzoneFineCorsaMaxStatus : 1;
+  unsigned jogPunzoneFineCorsaMinStatus : 1;
+
+  unsigned unusedBits : 23; // = 32 - n° bit occupati dagli altri membri
 };
 
 /// Struct di inizializzazione (evita errori nell'utilizzo di membri non inizializzati)
@@ -224,6 +333,14 @@ constexpr EventQueueHMI_t defaultEventQueueHMI =
   .xErrorInitPunz = false,
   .xErrorInitRalla = false,
   .xErrorCapsIncastrata = false,
+
+
+  /// JOG
+  .jogRallaIsMoving = false,   /// Indica se il motore si sta muovendo
+  .jogRallaCalibrationStatus = false,
+  .jogPunzoneIsMoving = false, /// Indica se il motore si sta muovendo
+  .jogPunzoneFineCorsaMaxStatus = false,
+  .jogPunzoneFineCorsaMinStatus = false,
 
   .unusedBits = 0,
 };
