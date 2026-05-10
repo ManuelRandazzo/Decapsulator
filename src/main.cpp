@@ -31,7 +31,7 @@
 #include "Debug.hpp"
 #include "OverTheAir_OTA.hpp"
 #include "DecapsulatorPRG.hpp"
-#include "Contenitori.hpp"
+#include "JogMotoriPRG.hpp"
 #include "HMI.hpp"
 
 /**
@@ -49,6 +49,7 @@ BaseType_t setupTasks(void)
 
   status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PROGRAM", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM); 
   
+  status &= xTaskCreatePinnedToCore(prgJogMotoriTask, "task JOG MOTORI PROGRAM", JogMotori_heap, NULL, JogMotori_priority, &JogMotoriPrgHandler, APP_CPU_NUM);
 
   return status; //restituisce lo stato generale di errore di almeno una delle task, comunque ci sono i log
 }
