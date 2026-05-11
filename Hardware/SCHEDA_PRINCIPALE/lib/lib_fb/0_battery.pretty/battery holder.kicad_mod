@@ -1,0 +1,97 @@
+(footprint "battery holder"
+	(version 20241229)
+	(generator "pcbnew")
+	(generator_version "9.0")
+	(layer "F.Cu")
+	(property "Reference" "BATT**"
+		(at 17.75 -1 0)
+		(unlocked yes)
+		(layer "F.SilkS")
+		(uuid "96078387-4d43-4875-8ea4-dd1b90f05e8f")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.1)
+			)
+		)
+	)
+	(property "Value" "Battery holder"
+		(at 17 70 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "fbf523fc-d0dd-45e3-b0c1-efc99a88e26f")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Datasheet" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "620c7b06-0b7b-4e96-9cb2-9bbf0b813b59")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(property "Description" ""
+		(at 0 0 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(hide yes)
+		(uuid "cfdc1f80-26f9-480c-a374-fb8f1450a512")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(attr through_hole)
+	(fp_rect
+		(start 0 0)
+		(end 34.3 68.7)
+		(stroke
+			(width 0.1)
+			(type solid)
+		)
+		(fill no)
+		(layer "F.SilkS")
+		(uuid "05119a5c-c3ea-4bff-a6d8-01d9b18b75e0")
+	)
+	(fp_text user "${REFERENCE}"
+		(at 17 71.5 0)
+		(unlocked yes)
+		(layer "F.Fab")
+		(uuid "bc9c19a5-c670-45e6-a60b-0cf06e7c535e")
+		(effects
+			(font
+				(size 1 1)
+				(thickness 0.15)
+			)
+		)
+	)
+	(pad "+" thru_hole circle
+		(at 28.3 12.2)
+		(size 3.81 3.81)
+		(drill 1)
+		(layers "*.Cu" "F.Mask")
+		(remove_unused_layers no)
+		(uuid "9c129088-008e-47d3-9a37-b77e78034923")
+	)
+	(pad "-" thru_hole circle
+		(at 6 12.2)
+		(size 3.81 3.81)
+		(drill 1)
+		(layers "*.Cu" "B.Mask" "Eco1.User")
+		(remove_unused_layers no)
+		(uuid "1237c205-a460-4e81-8881-ccdec39db7c1")
+	)
+	(embedded_fonts no)
+)
