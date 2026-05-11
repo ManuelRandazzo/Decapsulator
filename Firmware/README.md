@@ -1,6 +1,6 @@
 # Decapsulator
 <p align="center">
-  <img src="RepoFiles/images/LogoDecapsulator.png" width="800">
+  <img src="images/LogoDecapsulator.png" width="800">
 </p>
 
 <p align="center">
@@ -44,7 +44,7 @@ Prototipo a scopo didattico, non destinato alla vendita o all'uso continuativo. 
 
 
 <p align="center">
-  <img src="RepoFiles/images/FotoGruppo1.png" width="800">
+  <img src="images/FotoGruppo1.png" width="800">
 </p>
 <p align="center">
     <em>Foto del gruppo 1 ITS 24-26 - scattata nel 2025</em>
@@ -77,7 +77,7 @@ Norme armonizzate applicate :
 ## Disegno prototipo e Componenti Principali
 - ### **Parte Meccanica**
 <p align="center">
-  <img src="RepoFiles/images/DisegnoPrototipo.png" width="800">
+  <img src="images/DisegnoPrototipo.png" width="800">
 </p>
 
 <p align="center">
@@ -100,7 +100,7 @@ Norme armonizzate applicate :
 | 10 | Ventola di raffreddamento (lato sinistro del macchinario) |
 
 <p align="center">
-  <img src="RepoFiles/images/MagazzinoCialde.png" width="800">
+  <img src="images/MagazzinoCialde.png" width="800">
 </p>
 
 <p align="center">
@@ -108,7 +108,7 @@ Norme armonizzate applicate :
 </p>
 
 <p align="center">
-  <img src="RepoFiles/images/TamburoMeccanica.png" width="800">
+  <img src="images/TamburoMeccanica.png" width="800">
 </p>
 
 <p align="center">
@@ -118,7 +118,7 @@ Norme armonizzate applicate :
 - ### **Parte Elettronica**
 
 <p align="center">
-  <img src="RepoFiles/images/3D_SchedaMain.png" width="800">
+  <img src="images/3D_SchedaMain.png" width="800">
 </p>
 
 <p align="center">
@@ -127,7 +127,7 @@ Norme armonizzate applicate :
 
 
 <p align="center">
-  <img src="RepoFiles/images/3D_SchedaHMI.png" width="800">
+  <img src="images/3D_SchedaHMI.png" width="800">
 </p>
 
 <p align="center">
@@ -135,7 +135,7 @@ Norme armonizzate applicate :
 </p>
 
 <p align="center">
-  <img src="RepoFiles/images/3D_SchedaHMI_Logo.png" width="800">
+  <img src="images/3D_SchedaHMI_Logo.png" width="800">
 </p>
 
 <p align="center">
@@ -143,7 +143,7 @@ Norme armonizzate applicate :
 </p>
 
 <p align="center">
-  <img src="RepoFiles/images/3D_SchedeMagazzino.png" width="800">
+  <img src="images/3D_SchedeMagazzino.png" width="800">
 </p>
 
 <p align="center">
@@ -165,7 +165,7 @@ oppure includendo la libreria del Motion Controller che già utilizza internamen
 
 **Flow chart MotionController**
 <p align="center">
-  <img src="RepoFiles/images/FlowChartMotionController.png" width="800">
+  <img src="images/FlowChartMotionController.png" width="800">
 </p>
 
 <p align="center">
@@ -175,7 +175,7 @@ oppure includendo la libreria del Motion Controller che già utilizza internamen
 
 **Simulazione Grafico Coppia-Velocità Motori Stepper**
 <p align="center">
-  <img src="RepoFiles/images/CurvaDiCoppiaMotori.png" width="800">
+  <img src="images/CurvaDiCoppiaMotori.png" width="800">
 </p>
 
 <p align="center">
@@ -192,9 +192,9 @@ Per aiutare il manutentore ad individuare i problemi è possibile ottenere dei p
 Come accedervi:  
 1. Individuare nella pagina principale l’icona dell’ingranaggio indicata in figura
 <p align="center">
-  <img src="RepoFiles/images/ImpostazioniManutentore.png" width="500">
+  <img src="images/ImpostazioniManutentore.png" width="500">
 </p>
 2. Inserire la password unica fornita ai manutentori specializzati
 <p align="center">
-  <img src="RepoFiles/images/PasswordManutentore.png" width="500">
+  <img src="images/PasswordManutentore.png" width="500">
 </p>
