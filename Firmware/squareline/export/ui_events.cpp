@@ -4,13 +4,15 @@
 // Project name: HMI_Decapsulator
 
 #include "ui.h"
+#include "DecapsulatorPRG.hpp" 
+#define SEND()(do{xQueueSend(QueueHandlerHMI_CMD, e, 0);}while(0))
 
 void avvio_macchina(lv_event_t * e)
 {
-	// Your code here
+	SEND();
 }
 
 void Stop_Macchina(lv_event_t * e)
 {
-	// Your code here
+	SEND();
 }
