@@ -9,15 +9,19 @@
  * This program is NOT free software: you can NOT redistribute it and/or modify it.
  *
  * The Documentation is made following the Doxygen standard documentation style
+ * 
+ * @author Alessio Pisan
  */
 
 #include "HMI.hpp"
 
 void task(void* pvParameters)
 {
-    
+    /// @todo Metti Qua il contenuto di
+    ///       void setup() nel @file ui.ino
     while(1)
     {
-
+        /// @todo Metti Qua il contenuto di
+        ///       void loop() nel @file ui.ino 
     }
 }
