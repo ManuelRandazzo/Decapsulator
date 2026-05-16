@@ -564,7 +564,7 @@ BaseType_t checkUpdateHMI(CommandQueueHMI_t* receivingQueue)
     if(receivingQueue == NULL)
     {
       LogError("checkUpdateHMI HMI-->Backend", "Il parametro \"receivingQueue\" is a null pointer");
-      return;
+      return pdFALSE;
     }
   #endif
 
@@ -589,7 +589,7 @@ BaseType_t checkUpdateHMI(EventQueueHMI_t* receivingQueue)
     if(receivingQueue == NULL)
     {
       LogError("checkUpdateHMI Backend-->HMI", "Il parametro \"receivingQueue\" is a null pointer");
-      return;
+      return pdFALSE;
     }
   #endif
 
@@ -617,13 +617,13 @@ BaseType_t sendUpdateHMI(CommandQueueHMI_t* sendingQueue, bool* sendChanges)
     if(sendingQueue == NULL)
     {
       LogError("sendUpdateHMI HMI-->Backend", "Il parametro \"sendingQueue\" is a null pointer");
-      return;
+      return pdFALSE;
     }
 
     if(sendChanges == NULL)
     {
       LogError("sendUpdateHMI HMI-->Backend", "Il parametro \"sendChanges\" is a null pointer");
-      return;
+      return pdFALSE;
     }
   #endif
 
@@ -661,13 +661,13 @@ BaseType_t sendUpdateHMI(EventQueueHMI_t* sendingQueue, bool* sendChanges)
     if(sendingQueue == NULL)
     {
       LogError("sendUpdateHMI Backend-->HMI", "Il parametro \"sendingQueue\" is a null pointer");
-      return;
+      return pdFALSE;
     }
     
     if(sendChanges == NULL)
     {
       LogError("sendUpdateHMI Backend-->HMI", "Il parametro \"sendChanges\" is a null pointer");
-      return;
+      return pdFALSE;
     }
   #endif
 

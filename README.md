@@ -44,11 +44,19 @@ Prototipo a scopo didattico, non destinato alla vendita o all'uso continuativo. 
 
 
 <p align="center">
-  <img src="RepoFiles/images/FotoGruppo1.png" width="800">
+  <img src="RepoFiles/images/FotoGruppo1--2024-2025.png" width="800">
 </p>
 <p align="center">
-    <em>Foto del gruppo 1 ITS 24-26 - scattata nel 2025</em>
-    <em>Partendo da sinistra : Manuel, Christian, Pisan, Pavanetto e Dorigo</em>
+    <em>Foto del gruppo 1 ITS 24-25 - foto scattata nel 2025</em>
+    <em>Partendo da sinistra : Manuel, Christian, Alessio, Riccardo e Federico</em>
+</p>
+
+<p align="center">
+  <img src="RepoFiles/images/FotoGruppo1--2025-2026.png" width="800">
+</p>
+<p align="center">
+    <em>Foto del gruppo 1 ITS 25-26 - foto scattata nel 2026</em>
+    <em>Partendo da sinistra : Federico, Christian, Riccardo, Arun James, Manuel e Alessio</em>
 </p>
 
 ---
