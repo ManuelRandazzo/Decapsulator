@@ -24,9 +24,14 @@
 class DebPinHandler
 {
     public :
+        DebPinHandler();
+
+        /// @brief Distruttore del Debounce pin
+        ~DebPinHandler();
+
         /**
-         * @brief Costruttore del Debounce pin
-         * @attention Non serve e non bisogna fare i pinMode dei pin, viene gestito tutto dal costruttore
+         * @brief Inizializzazione del Debounce pin
+         * @attention Non serve e non bisogna fare i pinMode dei pin
          * 
          * @param IntrOrPoll    INTERRUPT oppure POLLING
          * @param pinNumber     Numero del pin di input
@@ -35,11 +40,9 @@ class DebPinHandler
          * @param level_trigger Livello a cui viene triggerato il cambio di stato del pin
          * @param input_mode    Modalità di input del pin INPUT, INPUT_PULLUP, INPUT_PULLDOWN
          */
-        DebPinHandler(bool IntrOrPoll, uint8_t pinNumber, const char* pinName = "No Pin Name",
-                      uint32_t debounce_ms = 30, uint8_t level_trigger = CHANGE, uint8_t input_mode = INPUT);
+        void begin(bool IntrOrPoll, uint8_t pinNumber, const char* pinName = "No Pin Name",
+                   uint32_t debounce_ms = 30, uint8_t level_trigger = CHANGE, uint8_t input_mode = INPUT);
 
-        /// @brief Distruttore del Debounce pin
-        ~DebPinHandler();
 
         /// @brief Dopo aver fatto il detach permette di ricollegare il pin con i dati impostati
         void reattach();
@@ -155,13 +158,13 @@ class DebPinHandler
         /// Parametri da settare
         const char* name;           /*!< Optional: Nome amichevole del pin che serve per il debug */
         unsigned level : 1;         /*!< Stato reale del pin dopo il debounce */
-        const uint8_t pin;          /*!< Pin in cui viene fatto il debounce */
+        uint8_t pin;          /*!< Pin in cui viene fatto il debounce */
         bool isInterrupt;           /*!< Flag che indica se è interrupt o polling */
         bool isAttached;            /*!< Flag che indica se il pin è attached o no */
-        const uint32_t debounce_ms; /*!< Tempo di debounce in millisecondi (default = 30ms) */
+        uint32_t debounce_ms; /*!< Tempo di debounce in millisecondi (default = 30ms) */
         uint8_t inputMode;          /*!< Modalità di ingresso del pin ex. INPUT, INPUT_PULLUP, INPUT_PULLDOWN */
         uint8_t levelTriggered;     /*!< Livello per il quale viene considerato triggerato il pin */
-        const uint8_t TRIGGER;      /*!< Trigger su cui viene rilevato un fronte di RISING, FALLING, CHANGE */
+        uint8_t TRIGGER;      /*!< Trigger su cui viene rilevato un fronte di RISING, FALLING, CHANGE */
         bool changeOccurred;        /*!< Flag che segnala se è avvenuto l'evento */
 
         volatile unsigned flag : 1; /*!< Flag da usare nell'ISR con accesso atomico di natura */
@@ -170,8 +173,6 @@ class DebPinHandler
         uint8_t precPinLevel;
         uint32_t lastTime;
         unsigned debState : 5;
-
-        void __Init();
 
         static void __ISR(void* thisPtr);
 };

@@ -1,5 +1,12 @@
 #include "DebouncePinHandler.hpp"
 
+DebPinHandler::DebPinHandler()
+    : mutex(nullptr), level(0), pin(255), 
+      debounce_ms(30), isInterrupt(INTR), isAttached(false), inputMode(INPUT), flag(0), 
+      precPinLevel(0), lastTime(0), debState(0), TRIGGER(CHANGE), changeOccurred(false)
+{
+
+}
 
 /**
  * @brief Costruttore del Debounce pin
@@ -12,13 +19,53 @@
  * @param input_mode    Modalità di input del pin INPUT, INPUT_PULLUP, INPUT_PULLDOWN
  * @param level_trigger Livello a cui viene triggerato il cambio di stato del pin
  */
-DebPinHandler::DebPinHandler(bool IntrOrPoll, uint8_t pinNumber, const char* pinName,
-                             uint32_t debounce_ms, uint8_t level_trigger, uint8_t input_mode)
-    : mutex(nullptr), name((pinName != "") ? pinName : "No Pin Name"), level(0), pin(pinNumber), 
-      debounce_ms(debounce_ms), isInterrupt(IntrOrPoll), isAttached(true), inputMode(input_mode), flag(0), 
-      precPinLevel(0), lastTime(0), debState(0), TRIGGER(level_trigger), changeOccurred(false)
+void DebPinHandler::begin(bool IntrOrPoll, uint8_t pinNumber, const char* pinName,
+                          uint32_t debounce_ms, uint8_t level_trigger, uint8_t input_mode)
 {
-    this->__Init();
+    this->mutex = xSemaphoreCreateMutex();
+
+    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    {
+        Serial.printf("Errore xSemaphoreTake del pin \"%s\"\n", this->name);
+        //LogError("initDebPin", "Errore xSemaphoreTake del pin \"%s\"", this->name);
+        return;
+    }
+
+    /// Inizializza l'input pin con la modalità voluta
+    if(pinNumber == 255)
+    {
+        //LogError("initDebPin", "Errore pin non fornito del pin \"%s\"", this->name);
+        xSemaphoreGive(this->mutex);
+        return;
+    }
+
+    this->isInterrupt = IntrOrPoll;
+    this->pin = pinNumber;
+    this->name = pinName != "" ? pinName : "No Pin Name";
+    this->debounce_ms = debounce_ms;
+    this->TRIGGER = level_trigger;
+    this->inputMode = input_mode;
+
+    pinMode(this->pin, this->inputMode);
+
+    /// Legge il valore iniziale del pin
+    this->level = this->precPinLevel = digitalReadFast(this->pin);
+
+    /// Legge se l'evento all'inizio del programma è attivo
+    switch(this->TRIGGER)
+    {
+        case RISING  : this->changeOccurred = this->level == HIGH; this->levelTriggered = HIGH; break;
+        case FALLING : this->changeOccurred = this->level == LOW;  this->levelTriggered = LOW;  break;
+        case CHANGE  : this->changeOccurred = true; this->levelTriggered = CHANGE; break;
+    }
+
+    if(this->isInterrupt == INTR)
+        /// Associa la relativa Interrupt Service Routine se esiste
+        attachInterruptArg(digitalPinToInterrupt(this->pin), &this->__ISR, this, this->TRIGGER);
+
+    this->isAttached = true;
+
+    xSemaphoreGive(this->mutex);
 }
 
 /**
@@ -366,48 +413,6 @@ int8_t DebPinHandler::getTriggerMode()
  *  PRIVATE:
  * 
  */
-
-/**
- * @brief Inizializza un determinato input pin per avere un debounce
- */
-void DebPinHandler::__Init()
-{
-    this->mutex = xSemaphoreCreateMutex();
-
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
-    {
-        Serial.printf("Errore xSemaphoreTake del pin \"%s\"\n", this->name);
-        //LogError("initDebPin", "Errore xSemaphoreTake del pin \"%s\"", this->name);
-        return;
-    }
-
-    /// Inizializza l'input pin con la modalità voluta
-    if(this->pin == 255)
-    {
-        //LogError("initDebPin", "Errore pin non fornito del pin \"%s\"", this->name);
-        xSemaphoreGive(this->mutex);
-        return;
-    }
-
-    pinMode(this->pin, this->inputMode);
-
-    /// Legge il valore iniziale del pin
-    this->level = this->precPinLevel = digitalReadFast(this->pin);
-
-    /// Legge se l'evento all'inizio del programma è attivo
-    switch(this->TRIGGER)
-    {
-        case RISING  : this->changeOccurred = this->level == HIGH; this->levelTriggered = HIGH; break;
-        case FALLING : this->changeOccurred = this->level == LOW;  this->levelTriggered = LOW;  break;
-        case CHANGE  : this->changeOccurred = true; this->levelTriggered = CHANGE; break;
-    }
-
-    if(this->isInterrupt == INTR)
-        /// Associa la relativa Interrupt Service Routine se esiste
-        attachInterruptArg(digitalPinToInterrupt(this->pin), &this->__ISR, this, this->TRIGGER);
-
-    xSemaphoreGive(this->mutex);
-}
 
 
 
