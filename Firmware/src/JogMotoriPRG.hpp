@@ -16,10 +16,14 @@
  *
  */
 
-/// Include la libreria custom per la gestione delle task
-#include "Tasks.hpp"
 /// Inlcude il file per la gestione del debugger
 #include "Debug.hpp"
+/// Include il file per gli handler delle tasks
+#include "tasks_cfg.hpp"
+/// Include il file che contiene gli oggetti degli IO del decapsulator
+#include "decapsulator_io.hpp"
+/// Include il file per gli handler delle tasks
+#include "ui_and_backend_cfg.hpp"
 /// Include la libreria custom del motion
 #include "MotionControl.hpp"
 /// Include la libreria per la gestione dei pin e del debounce
@@ -31,9 +35,6 @@
 
 
 #pragma region (EXTERNS)
-
-/// @brief Handler della task del programma
-extern TaskHandle_t JogMotoriPrgHandler;
 
 /// @brief PROGRAMMA JOG DEI MOTORI
 extern void prgJogMotoriTask(void *pvParameters);

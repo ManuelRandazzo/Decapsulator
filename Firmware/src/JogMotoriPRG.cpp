@@ -1,6 +1,5 @@
 #include "JogMotoriPRG.hpp"
 
-TaskHandle_t JogMotoriPrgHandler;
 
 void prgJogMotoriTask(void *pvParameters)
 {
