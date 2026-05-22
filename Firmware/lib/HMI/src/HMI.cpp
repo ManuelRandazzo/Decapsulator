@@ -15,6 +15,7 @@
 
 #include "HMI.hpp"
 
+
 #ifndef LV_COLOR_DEPTH
 #error "LV_COLOR_DEPTH is not defined!"
 #endif
@@ -85,7 +86,7 @@ void my_touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data) {
 static uint32_t my_tick_get_cb(void) { return millis(); }
 
 
-void task(void* pvParameters)
+void prgHMITask(void* pvParameters)
 {
     lv_init();
 
@@ -111,8 +112,7 @@ void task(void* pvParameters)
 
     ui_init();
 
-    Serial.println("Setup done");
-
+    LogInfo("HMI Setup", "HMI Setup Done");
 
     while(1)
     {
