@@ -1,3 +1,4 @@
+#include <cmath>
 #pragma once
 //
 //          FILE: DRV8825_Decapsulator.hpp
@@ -35,14 +36,23 @@
 //  setDirection
 typedef int8_t drv_direction_t;
 
-#define DRV8825_CLOCK_WISE         1   //  pin LOW, incremento
-#define DRV8825_COUNTERCLOCK_WISE  -1  //  pin HIGH, decremento
+#define DRV8825_CLOCK_WISE         (1)   //  pin LOW, incremento
+#define DRV8825_COUNTERCLOCK_WISE  (-1)  //  pin HIGH, decremento
 
 /// ABSOLUTE PERIOD VALUES
-#define DRV8825_MIN_PERIOD_US 900 // Tempo minimo tra uno step e l'altro in microsecondi (us)
-#define DRV8825_RMT_PSC (uint32_t)(176)  // Prescaler 
-#define DRV8825_RMT_PULSE_US ((double)(DRV8825_RMT_PSC / 80.0)) // Prescaler : 176 / 80MHz = 2.2us (periodo di uno step)
-#define DRV8825_RMT_MAX_LOOP_COUNT 32767 // Step massimi possibili in un singola trasmissione
+#define DRV8825_MIN_PERIOD_US 285 // Tempo minimo tra uno step e l'altro in microsecondi (us)
+#define DRV8825_RMT_PSC (40)  // Prescaler
+#define DRV8825_RMT_PULSE_US ((double)(DRV8825_RMT_PSC) / 80.0) // Prescaler : 40 / 80MHz = 0.5us
+constexpr uint32_t DRV8825_RMT_MAX_LOOP_COUNT = 32767; // Step massimi possibili in un singola trasmissione
+
+#define DRV8825_RMT_PULSE_US_COMPARE (DRV8825_RMT_PSC / 8)
+#if DRV8825_RMT_PULSE_US_COMPARE >= 20
+    /// Pulse maggiore o uguale a 2us quindi basta solo 1 tick
+    constexpr uint16_t DRV8825_RMT_DURATION_0 = (uint16_t)(1);
+#else
+    /// Pulse minore di 2us quindi calcola i ticks necessari per avere almeno un impulso alto >=2us (con ceil->arrotonda al numero maggiore)
+    constexpr uint16_t DRV8825_RMT_DURATION_0 = (uint16_t)(ceil(2.0 / DRV8825_RMT_PULSE_US));
+#endif
 
 /// @brief errori restituiti dal drv
 typedef int8_t drv_err_t;
@@ -82,23 +92,23 @@ extern const char *drv_err_to_name(drv_err_t code);
  *  Lettura/Scrittura dei pin a basso livello senza controllo di validità del pin
  */
 #ifndef digitaWriteFast
-  /**
-   * @brief Definisce una scrittura del pin low level (gpio_ll_set_level ha l'attributo always inline) 
-   * 
-   * @param gpio_pin è il pin che verrà scritto
-   */
-  #define digitalWriteFast(gpio_pin, level) gpio_ll_set_level(&GPIO, gpio_pin, level)
+    /**
+     * @brief Definisce una scrittura del pin low level (gpio_ll_set_level ha l'attributo always inline) 
+     * 
+     * @param gpio_pin è il pin che verrà scritto
+     */
+    #define digitalWriteFast(gpio_pin, level) gpio_ll_set_level(&GPIO, gpio_pin, level)
 #endif
 
 #ifndef digitalReadFast
-  /**
-   * @brief Definisce una lettura del pin low level (gpio_ll_get_level ha l'attributo always inline) 
-   * 
-   * @param gpio_pin è il pin che verrà letto
-   * 
-   * @return gpio digital level
-   */
-  #define digitalReadFast(gpio_pin)         gpio_ll_get_level(&GPIO, gpio_pin)
+    /**
+     * @brief Definisce una lettura del pin low level (gpio_ll_get_level ha l'attributo always inline) 
+     * 
+     * @param gpio_pin è il pin che verrà letto
+     * 
+     * @return gpio digital level
+     */
+    #define digitalReadFast(gpio_pin)         gpio_ll_get_level(&GPIO, gpio_pin)
 #endif
 
 
@@ -109,134 +119,139 @@ extern const char *drv_err_to_name(drv_err_t code);
 
 class DRV8825
 {
-  public:
-    DRV8825();
-    ~DRV8825();
+    public:
+        DRV8825();
+        ~DRV8825();
 
-    drv_err_t     begin(uint8_t DIR, uint8_t STEP, uint8_t EN = 255, uint8_t RST = 255, uint8_t SLP = 255, uint16_t number_of_steps_per_revolution = 200);
-    drv_err_t     update();
+        drv_err_t     begin(uint8_t DIR, uint8_t STEP, uint8_t EN = 255, uint8_t RST = 255, uint8_t SLP = 255, uint16_t number_of_steps_per_revolution = 200);
+        drv_err_t     update();
 
-    // Di norma non è neccesario in quanto usa la task in cui viene
-    // fatto il begin() ricavandosi l'Handler in autonomia
-    drv_err_t     setUpdateTask(TaskHandle_t handler);
+        // Di norma non è neccesario in quanto usa la task in cui viene
+        // fatto il begin() ricavandosi l'Handler in autonomia
+        drv_err_t     setUpdateTask(TaskHandle_t handler);
 
-    //       DIRECTION
-    //       +1 = DRV8825_CLOCK_WISE
-    //       -1 = DRV8825_COUNTERCLOCK_WISE
-    //       returns false if parameter out of range.
-    drv_err_t     setDirection(drv_direction_t direction = DRV8825_CLOCK_WISE);
-    drv_err_t     getDirection();
+        //       DIRECTION
+        //       +1 = DRV8825_CLOCK_WISE
+        //       -1 = DRV8825_COUNTERCLOCK_WISE
+        //       returns false if parameter out of range.
+        drv_err_t     setDirection(drv_direction_t direction = DRV8825_CLOCK_WISE);
+        drv_err_t     getDirection();
 
-    //       ABSOLUTE POSITION
-    drv_err_t     setAbsPosition(int64_t absolute_position);
-    int64_t       getAbsPosition();
+        //       ABSOLUTE POSITION
+        drv_err_t     setAbsPosition(int64_t absolute_position);
+        int64_t       getAbsPosition();
 
-    //       STEPS
-    drv_err_t     step(uint64_t numberOfStepsToDo, uint64_t period_us, uint64_t acceleration_step_s2 = 0, uint64_t deceleration_step_s2 = 0);
-    uint64_t      abortCurrentMovement();
-    drv_err_t     stepContinuous(uint64_t period_us);
-    drv_err_t     isStepDone();
+        //       STEPS
+        drv_err_t     step(uint64_t numberOfStepsToDo, uint64_t period_us, uint64_t acceleration_step_s2 = 0, uint64_t deceleration_step_s2 = 0);
+        uint64_t      abortCurrentMovement();
+        drv_err_t     stepContinuous(uint64_t period_us);
+        drv_err_t     isStepDone();
 
-    //       ENABLE pin should be set.
-    drv_err_t     enable();
-    drv_err_t     disable();
-    drv_err_t     isEnabled();
+        //       ENABLE pin should be set.
+        drv_err_t     enable();
+        drv_err_t     disable();
+        drv_err_t     isEnabled();
 
-    //       RESET pin should be set.
-    drv_err_t     reset();
+        //       RESET pin should be set.
+        drv_err_t     reset();
 
-    //       SLEEP pin should be set.
-    drv_err_t     sleep();
-    drv_err_t     wakeup();
-    bool          isSleeping();
+        //       SLEEP pin should be set.
+        drv_err_t     sleep();
+        drv_err_t     wakeup();
+        bool          isSleeping();
 
-  protected:
-    TaskHandle_t TaskHandler = nullptr;
+    protected:
+        TaskHandle_t TaskHandler = nullptr;
 
-    uint8_t  _directionPin   = 255;
-    uint8_t  _stepPin        = 255;
-    uint8_t  _enablePin      = 255;
-    uint8_t  _resetPin       = 255;
-    uint8_t  _sleepPin       = 255;
+        uint8_t  _directionPin   = 255;
+        uint8_t  _stepPin        = 255;
+        uint8_t  _enablePin      = 255;
+        uint8_t  _resetPin       = 255;
+        uint8_t  _sleepPin       = 255;
 
-    int8_t  _direction       = DRV8825_CLOCK_WISE;
+        int8_t  _direction       = DRV8825_CLOCK_WISE;
 
-    uint64_t  _period_us     = 0;
-    std::atomic<uint64_t> _stepsLeft{0};
-    std::atomic<bool> _isStepDone{false};
-    int64_t  _absStepCounter = 0;
-    uint16_t _stepsPerRevolution;
-    rmt_channel_handle_t _rmtChannel = nullptr;
+        uint64_t  _period_us     = 0;
+        std::atomic<uint64_t> _stepsLeft{0};
+        std::atomic<bool> _isStepDone{false};
+        int64_t  _absStepCounter = 0;
+        uint16_t _stepsPerRevolution;
+        rmt_channel_handle_t _rmtChannel = nullptr;
 
-    std::atomic<bool> _rmtBusy{false};
+        std::atomic<bool> _rmtBusy{false};
 
-    uint32_t _tmrStartOfRmtTransmit  = 0;
+        uint32_t _tmrStartOfRmtTransmit  = 0;
+        uint64_t _acc_end_steps = 0;
+        uint64_t _const_end_steps   = 0;
 
-    uint64_t _acc_end_steps = 0;
-    uint64_t _const_end_steps   = 0;
 
+        typedef enum __stati_moto__ : uint8_t
+        {
+            ACCELERATION,
+            CONSTANT,
+            DECELERATION,
+        } StatoMoto_t;
+        StatoMoto_t StatoMoto;
+      
 
-    typedef enum __stati_moto__ : uint8_t
-    {
-      ACCELERATION,
-      CONSTANT,
-      DECELERATION,
-    } StatoMoto_t;
-    StatoMoto_t StatoMoto;
-    
+      
+        /// Crea impulso HIGH per 2.2µs + LOW per i µs necessari, questi sono costanti, cambia solo la duration del level LOW
+        //         2*1us    period voluto​ 
+        //        ╠═════╬═════════════════╣
+        // HIGH-> ╔═════╗
+        //        ​║     ║
+        //        ║     ║
+        //  LOW-> ╝     ╚═════════════════
+        rmt_symbol_word_t _stepPulse[1] =
+        { 
+            [0] = {
+                      .duration0 = DRV8825_RMT_DURATION_0, // HIGH
+                      .level0 = 1,     // HIGH
+                      .duration1 = 0,  // LOW
+                      .level1 = 0,     // LOW
+                  }
+        };
+        
+        /// si conosce sin da subito la size di _stepPulse
+        static constexpr size_t STEP_PULSE_SIZE = sizeof(_stepPulse);
 
-    
-    /// Crea impulso HIGH per 2.2µs + LOW per i µs necessari, questi sono costanti, cambia solo la duration del level LOW
-    //       2.2us     period voluto​
-    //        ╠═════╬═════════════════╣
-    // HIGH-> ╔═════╗
-    //        ​║     ║
-    //        ║     ║
-    //  LOW-> ╝     ╚═════════════════
-    rmt_symbol_word_t _stepPulse[1] =
-    { 
-      [0] = {
-              .duration0 = 1,  // HIGH
-              .level0 = 1,     // HIGH
-              .duration1 = 0,  // LOW
-              .level1 = 0,     // LOW
-            }
-    };
-    
-    /// si conosce sin da subito la size di _stepPulse
-    static constexpr size_t STEP_PULSE_SIZE = sizeof(_stepPulse);
+        inline void setAndEnableRMT(const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2, uint64_t period_us);
 
-    inline void setAndEnableRMT(const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2, uint64_t period_us);
+        // V[steps/s] ^            
+        //            ​​║         
+        //       Vmax ​║ ¯ ¯ ¯/¯¯¯¯¯¯¯¯¯¯¯¯¯\     
+        //            ​║     /               \           
+        //     Vmedia ​║- - / - - - - - - - - \- - ┐  <-- Detta anche Vrichiesta         
+        //            ​║   /                   \   |      
+        //            ​║  /                     \  |      
+        //            ​║ /                       \ |      
+        //            ​║/                         \_____________    
+        //            ╚════════════════════════════════════════════> t [s]          
+        //            ╠══════╬═════════════╬══════╬═══════════╣
+        //              Tacc      Tcost      Tdec     Tstop
+        void calcRampSteps(const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2);
 
-    // V[steps/s] ^            
-    //            ​​║         
-    //       Vmax ​║ ¯ ¯ ¯/¯¯¯¯¯¯¯¯¯¯¯¯¯\     
-    //            ​║     /               \           
-    //     Vmedia ​║- - / - - - - - - - - \- - ┐  <-- Detta anche Vrichiesta         
-    //            ​║   /                   \   |      
-    //            ​║  /                     \  |      
-    //            ​║ /                       \ |      
-    //            ​║/                         \_____________    
-    //            ╚════════════════════════════════════════════> t [s]          
-    //            ╠══════╬═════════════╬══════╬═══════════╣
-    //              Tacc      Tcost      Tdec     Tstop
-    void calcRampSteps(const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2);
+        /// Periodo in us per ogni step in accelerazione e decelerazione pre calcolato
+        uint16_t* _duration_acc_dec = nullptr;
+        uint32_t duration_acc_dec_index = 0;
+        
+        void setAccDecDurations(uint32_t v_max_us, uint32_t n_acc_steps, double t_acc, uint32_t n_dec_steps, double t_dec);
 
-  private:
-    /// Questo mutex garantisce che una sola task alla volta acceda alla risorsa condivisa o alle variabili
-    SemaphoreHandle_t _mutex = nullptr;
+    private:
+        /// Questo mutex garantisce che una sola task alla volta acceda alla risorsa condivisa o alle variabili
+        SemaphoreHandle_t _mutex = nullptr;
 
-    bool _isDriverInitialized = false;
+        bool _isDriverInitialized = false;
 
-    rmt_transmit_config_t transmit_cfg =
-    {
-      .loop_count = 0,
-      .flags = { .eot_level = 0 }  // livello LOW dopo la trasmissione
-    };
-    
-    rmt_encoder_handle_t step_encoder = nullptr;
+        rmt_transmit_config_t transmit_cfg =
+        {
+          .loop_count = 0,
+          .flags = { .eot_level = 0 }  // livello LOW dopo la trasmissione
+        };
+        
+        rmt_encoder_handle_t step_encoder = nullptr;
 
-    /// Tocca far così perchè se no la callback dell'rmt non vede i membri della classe
-    friend bool IRAM_ATTR drv8825_rmt_tx_done_cb(rmt_channel_handle_t channel, const rmt_tx_done_event_data_t *edata, void *user_data);
+        /// Tocca far così perchè se no la callback dell'rmt non vede i membri della classe
+        friend bool IRAM_ATTR drv8825_rmt_tx_done_cb(rmt_channel_handle_t channel, const rmt_tx_done_event_data_t *edata, void *user_data);
 };
 //  -- END OF FILE --
