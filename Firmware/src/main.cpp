@@ -18,16 +18,13 @@
  * @c_plus_plus_reference_documentation_link: https://learn.microsoft.com/it-it/cpp/cpp/?view=msvc-170
  *
  * @freertos_reference_documentation: https://www.freertos.org/Documentation/00-Overview
- *
- * ESP32 Library --> @version 3.3.0 --> @link: https://github.com/espressif/arduino-esp32
- *
- * DRV8825 Stepper Driver --> @version 0.2.1 --> @link: https://github.com/RobTillaart/DRV8825
- *
- * HX711 ADC 24 bit per celle di carico --> @version 0.7.5 --> @link: https://github.com/bogde/HX711/blob/master
  */
 
 #include "Arduino.h" // Per il supporto da altri IDE (Integrated Development Environment)
 #include "Tasks.hpp"
+#include "tasks_cfg.hpp"
+#include "decapsulator_io.hpp"
+#include "ui_and_backend_cfg.hpp"
 #include "Debug.hpp"
 #include "OverTheAir_OTA.hpp"
 #include "DecapsulatorPRG.hpp"
@@ -43,15 +40,24 @@
  */
 BaseType_t setupTasks(void)
 {
-  BaseType_t status = pdPASS;
-  
-  //status &= OverTheAir.Init("task OTA", OTA_heap, NULL, OTA_priority, OTA_delay, OTA_Setup, OTA_Loop);
+    BaseType_t status = pdPASS;
 
-  status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PROGRAM", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM); 
-  
-  status &= xTaskCreatePinnedToCore(prgJogMotoriTask, "task JOG MOTORI PROGRAM", JogMotori_heap, NULL, JogMotori_priority, &JogMotoriPrgHandler, APP_CPU_NUM);
+    status &= decapsulator_io_begin();
+    
+    status &= hmi_queues_begin();
+    
+    //status &= OverTheAir.Init("task OTA", OTA_heap, NULL, OTA_priority, OTA_delay, OTA_Setup, OTA_Loop);
 
-  return status; //restituisce lo stato generale di errore di almeno una delle task, comunque ci sono i log
+    status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PROGRAM", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM);
+
+    status &= xTaskCreatePinnedToCore(prgHMITask, "task HMI PROGRAM", HMI_heap, NULL, HMI_priority, &HMIPrgHandler, APP_CPU_NUM); 
+
+    status &= xTaskCreatePinnedToCore(prgJogMotoriTask, "task JOG MOTORI PROGRAM", JogMotori_heap, NULL, JogMotori_priority, &JogMotoriPrgHandler, APP_CPU_NUM);
+
+    
+
+    /// Restituisce lo stato generale di errore di almeno una delle task, comunque ci sono i log
+    return status;
 }
 
 /**
@@ -59,20 +65,20 @@ BaseType_t setupTasks(void)
  */
 void setup()
 {
-  LogBegin();
+    LogBegin();
 
-  /// crea le task, superato il timeout restarta l'esp32
-  const uint32_t tmoSetupTask = millis();
-  while(!setupTasks())
-  {
-    if(millis() - tmoSetupTask >= 1000)
+    /// crea le task, superato il timeout restarta l'esp32
+    const uint32_t tmoSetupTask = millis();
+    while(!setupTasks())
     {
-      LogError("setup", "Impossibile creare le task nel tempo specificato");
-      ESP.restart();
+        if(millis() - tmoSetupTask >= 1000)
+        {
+            LogError("setup", "Impossibile creare le task nel tempo specificato");
+            ESP.restart();
+        }
     }
-  }
 
-  LogInfo("setup", "create le tasks - Free Stack Space: %d", uxTaskGetStackHighWaterMark(NULL));
+    LogInfo("setup", "create le tasks - Free Stack Space: %d", uxTaskGetStackHighWaterMark(NULL));
 }
 
 /**
@@ -83,4 +89,7 @@ void setup()
  *  @attention Non eliminare la task perchè serve al WiFi
  * 
  */
-void loop(){}
+void loop()
+{
+    
+}
