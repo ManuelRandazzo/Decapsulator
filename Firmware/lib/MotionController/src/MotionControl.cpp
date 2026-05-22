@@ -365,7 +365,9 @@ void MOTION::setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll
   
   if(pinLimMax != 255)
   {
-    DebPinHandler* ptrHardMax = new DebPinHandler(IntrOrPoll, pinLimMax, "MotionHardPinMax", debounce_ms, CHANGE, input_mode);
+    DebPinHandler* ptrHardMax = new DebPinHandler();
+    
+    ptrHardMax->begin(IntrOrPoll, pinLimMax, "MotionHardPinMax", debounce_ms, CHANGE, input_mode);
     
     if(ptrHardMax == 0)
     {
@@ -380,7 +382,9 @@ void MOTION::setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll
   
   if(pinLimMin != 255)
   {
-    DebPinHandler* ptrHardMin = new DebPinHandler(IntrOrPoll, pinLimMin, "MotionHardPinMin", debounce_ms, CHANGE, input_mode);
+    DebPinHandler* ptrHardMin = new DebPinHandler();
+    
+    ptrHardMin->begin(IntrOrPoll, pinLimMin, "MotionHardPinMin", debounce_ms, CHANGE, input_mode);
 
     if(ptrHardMin == 0)
     {
