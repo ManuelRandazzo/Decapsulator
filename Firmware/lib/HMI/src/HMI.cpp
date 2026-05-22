@@ -39,9 +39,9 @@ static uint16_t buf[SCREENBUFFER_SIZE_PIXELS] __attribute__((aligned(4)));
 /* -------------------------------------------------------------------------- */
 
 #if LV_USE_LOG != 0
-void my_print(const char *buf) {
-  Serial.printf(buf);
-  Serial.flush();
+    void my_print(const char *buf) {
+        Serial.printf(buf);
+        Serial.flush();
 }
 #endif
 
@@ -50,15 +50,15 @@ void my_print(const char *buf) {
 /* -------------------------------------------------------------------------- */
 
 void my_disp_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *pixelmap) {
-  uint32_t w = (area->x2 - area->x1 + 1);
-  uint32_t h = (area->y2 - area->y1 + 1);
+    uint32_t w = (area->x2 - area->x1 + 1);
+    uint32_t h = (area->y2 - area->y1 + 1);
 
-  tft.startWrite();
-  tft.setAddrWindow(area->x1, area->y1, w, h);
-  tft.pushColors((uint16_t *)pixelmap, w * h, true);
-  tft.endWrite();
+    tft.startWrite();
+    tft.setAddrWindow(area->x1, area->y1, w, h);
+    tft.pushColors((uint16_t *)pixelmap, w * h, true);
+    tft.endWrite();
 
-  lv_disp_flush_ready(disp);
+    lv_disp_flush_ready(disp);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -66,17 +66,17 @@ void my_disp_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *pixelmap)
 /* -------------------------------------------------------------------------- */
 
 void my_touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data) {
-  uint16_t touchX = 0, touchY = 0;
+    uint16_t touchX = 0, touchY = 0;
 
-  bool touched = false;  // tft.getTouch(&touchX, &touchY, 600);
+    bool touched = false;  // tft.getTouch(&touchX, &touchY, 600);
 
-  if (!touched) {
-    data->state = LV_INDEV_STATE_REL;
-  } else {
-    data->state = LV_INDEV_STATE_PR;
-    data->point.x = touchX;
-    data->point.y = touchY;
-  }
+    if (!touched) {
+        data->state = LV_INDEV_STATE_REL;
+    } else {
+        data->state = LV_INDEV_STATE_PR;
+        data->point.x = touchX;
+        data->point.y = touchY;
+    }
 }
 
 /* -------------------------------------------------------------------------- */
