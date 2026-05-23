@@ -70,7 +70,7 @@ extern TaskHandle_t JogMotoriPrgHandler;
 enum taskHeapSize_t
 {
     OTA_heap        = 2048, // 2kiB
-    HMI_heap        = 4096, // 4kiB
+    HMI_heap        = 6656, // 4kiB
     JogMotori_heap  = 4096, // 4kiB 
     MainPrg_heap    = 6656, // 6.5kiB
 };
