@@ -66,7 +66,7 @@ struct CommandQueueHMI_t
 };
 
 /// Struct di inizializzazione (evita errori nell'utilizzo di membri non inizializzati)
-extern CommandQueueHMI_t defaultCommandQueueHMI;
+extern const CommandQueueHMI_t defaultCommandQueueHMI;
 
 #pragma endregion (COMMAND_QUEUE)
 
@@ -100,7 +100,7 @@ struct EventQueueHMI_t
 };
 
 /// Struct di inizializzazione (evita errori nell'utilizzo di membri non inizializzati)
-extern EventQueueHMI_t defaultEventQueueHMI;
+extern const EventQueueHMI_t defaultEventQueueHMI;
 
 #pragma endregion (EVENT_QUEUE)
 
