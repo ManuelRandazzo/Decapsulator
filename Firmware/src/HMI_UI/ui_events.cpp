@@ -12,8 +12,8 @@
  */
 
 #include "ui.h"
-#include "JogMotoriPRG.hpp"
-#include "DecapsulatorPRG.hpp"
+//#include "JogMotoriPRG.hpp"
+//#include "DecapsulatorPRG.hpp"
 
 /**
  * @example Così andranno fatte praticamente tutte le funzioni degli eventi
@@ -40,12 +40,12 @@
  */
 void avvio_macchina(lv_event_t * e)
 {
-	CommandQueueHMI_t cmd = defaultCommandQueueHMI;
+	/*CommandQueueHMI_t cmd = defaultCommandQueueHMI;
 
 	cmd.obj  = lv_event_get_original_target(e);
 	cmd.evt_type = lv_event_get_code(e);
 
-	sendUpdateHMI(cmd, bool* sendChanges);
+	sendUpdateHMI(cmd, bool* sendChanges);*/
 }
 
 void Stop_Macchina(lv_event_t * e)

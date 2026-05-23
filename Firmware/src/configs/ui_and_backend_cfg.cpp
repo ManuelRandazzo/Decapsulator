@@ -8,11 +8,11 @@
  */
 BaseType_t hmi_queues_begin(void)
 {
-    if(QueueHandlerHMI_CMD != nullptr)
+    if(QueueHandlerHMI_CMD == nullptr)
         /// @brief Handler della coda che riceve i comandi che arrivano dall'HMI
         QueueHandlerHMI_CMD = xQueueCreate(HMI_CMD_QUEUE_LEN, sizeof(CommandQueueHMI_t));
 
-    if(QueueHandlerHMI_EVT != nullptr)    
+    if(QueueHandlerHMI_EVT == nullptr)    
         /// @brief Handler della coda che invia gli eventi (errori, avvisi, ecc.) all'HMI
         QueueHandlerHMI_EVT = xQueueCreate(HMI_EVT_QUEUE_LEN, sizeof(EventQueueHMI_t));
 
@@ -24,11 +24,9 @@ BaseType_t hmi_queues_begin(void)
 
 #pragma region (COMMAND_QUEUE)
 
-
 /// @brief Handler della coda che riceve i comandi che arrivano dall'HMI
-QueueHandle_t QueueHandlerHMI_CMD;
+QueueHandle_t QueueHandlerHMI_CMD = nullptr;
 
-/// Struct di inizializzazione (evita errori nell'utilizzo di membri non inizializzati)
 constexpr CommandQueueHMI_t defaultCommandQueueHMI =
 {
     .StartMachine = false,
@@ -40,7 +38,7 @@ constexpr CommandQueueHMI_t defaultCommandQueueHMI =
 
     .jogStateCMD = NO_CMD,
     
-    .jogRallaGradiPerClick = 0,     /// Quanti gradi fa ad ogni click del pulsante
+    .jogRallaGradiPerClick = 0.0, /// Quanti gradi fa ad ogni click del pulsante
     .jogRallaSpeed = 0.0,         /// Velocità del jog in gradi al secondo
     
     .jogPunzoneGradiPerClick = 0.0, /// Quanti gradi fa ad ogni click del pulsante
@@ -48,7 +46,6 @@ constexpr CommandQueueHMI_t defaultCommandQueueHMI =
     
     .unusedBits = 0,
 };
-
 #pragma endregion (COMMAND_QUEUE)
 
 
@@ -57,11 +54,9 @@ constexpr CommandQueueHMI_t defaultCommandQueueHMI =
 #pragma region (EVENT_QUEUE)
 
 /// @brief Handler della coda che invia gli eventi (errori, avvisi, ecc.) all'HMI
-QueueHandle_t QueueHandlerHMI_EVT; 
+QueueHandle_t QueueHandlerHMI_EVT = nullptr;
 
-/// Struct di inizializzazione (evita errori nell'utilizzo di membri non inizializzati)
-constexpr EventQueueHMI_t defaultEventQueueHMI =
-{
+constexpr EventQueueHMI_t defaultEventQueueHMI ={
     .xErrorInitPunz = false,
     .xErrorInitRalla = false,
     .xErrorCapsIncastrata = false,
@@ -76,7 +71,6 @@ constexpr EventQueueHMI_t defaultEventQueueHMI =
 
     .unusedBits = 0,
 };
-
 #pragma endregion (EVENT_QUEUE)
 
 
