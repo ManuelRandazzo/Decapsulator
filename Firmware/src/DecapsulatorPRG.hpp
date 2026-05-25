@@ -31,3 +31,23 @@
 
 /// @brief PROGRAMMA PRINCIPALE
 extern void prgDecapsulatorTask(void *pvParameters);
+
+typedef enum __sequence__ : uint8_t
+{
+    EMERGENCY_STATE,
+    CONTAINER_FULL,
+    TIMEOUT_STATE,
+    MACHINE_STARTUP_STATE,
+    PUNZONE_STARTUP_STATE,
+    TAMBURO_STARTUP_STATE,
+    QUIETE_STATE,
+    SERVO_LOADER_OPEN_STATE,
+    SERVO_LOADER_CLOSE_STATE,
+    REACH_NEXT_STATION_STATE,
+    PUNCHER_DOWN_FAST_STATE,
+    PUNCHER_DOWN_SLOW_STATE,
+    PUNCHER_UP_FAST_STATE,
+} Sequence_t;
+
+/// Gestione della sequenza del movimento del Decapsulator
+extern Sequence_t sequenza;

@@ -22,24 +22,8 @@
 
 #pragma region (GLOBAL VARIABLE LIST)
 
-typedef enum __sequence__ : uint8_t
-{
-    EMERGENCY_STATE,
-    CONTAINER_FULL,
-    TIMEOUT_STATE,
-    MACHINE_STARTUP_STATE,
-    PUNZONE_STARTUP_STATE,
-    TAMBURO_STARTUP_STATE,
-    QUIETE_STATE,
-    SERVO_LOADER_OPEN_STATE,
-    SERVO_LOADER_CLOSE_STATE,
-    REACH_NEXT_STATION_STATE,
-    PUNCHER_DOWN_FAST_STATE,
-    PUNCHER_DOWN_SLOW_STATE,
-    PUNCHER_UP_FAST_STATE,
-} Sequence_t;
 
-
+Sequence_t sequenza = MACHINE_STARTUP_STATE;  // Gestione della sequenza del movimento del Decapsulator
 
 /// Mutex e spinlock
 SemaphoreHandle_t _DecapsulatorMutex = nullptr;
@@ -87,8 +71,6 @@ void prgDecapsulatorTask(void *pvParameters)
     uint8_t cntContainerFull = 0;
     int nCicliRimanenti = 0; // prende il numero dalla SD Card
 
-    Sequence_t sequenza = MACHINE_STARTUP_STATE;  // Gestione della sequenza del movimento del Decapsulator
-
     bool doAnotherCycle = false;    
     R_TRIG RallaStepDone;
     R_TRIG PunzoneStepDone;
@@ -132,7 +114,7 @@ void prgDecapsulatorTask(void *pvParameters)
 
         checkUpdateHMI(&FromHMI);
 
-        Serial.printf("Sequenza : %s\npresenzaCaps.event() : %d\ncadutaCaps.event() : %d", state_name_to_string(sequenza), presenzaCaps.event(), cadutaCaps.event());
+        LogDebug("MAIN PRG LOOP", "Sequenza : %s\npresenzaCaps.event() : %d\ncadutaCaps.event() : %d", state_name_to_string(sequenza), presenzaCaps.event(), cadutaCaps.event());
 
         switch(sequenza)
         {
@@ -142,7 +124,6 @@ void prgDecapsulatorTask(void *pvParameters)
                 MainPrgStopAllMotors();
                 Ventola.on();
                 LogError("EMERGENCY", "Si è entrati in uno stato di EMERGENZA");
-              
             }
             break;
 
