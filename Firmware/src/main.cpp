@@ -42,17 +42,17 @@ BaseType_t setupTasks(void)
 {
     BaseType_t status = pdPASS;
 
-    status &= decapsulator_io_begin();
+    //status &= decapsulator_io_begin();
     
-    status &= hmi_queues_begin();
+    //status &= hmi_queues_begin();
     
     //status &= OverTheAir.Init("task OTA", OTA_heap, NULL, OTA_priority, OTA_delay, OTA_Setup, OTA_Loop);
 
-    status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PROGRAM", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM);
+    //status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PROGRAM", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM);
 
     status &= xTaskCreatePinnedToCore(prgHMITask, "task HMI PROGRAM", HMI_heap, NULL, HMI_priority, &HMIPrgHandler, APP_CPU_NUM); 
 
-    status &= xTaskCreatePinnedToCore(prgJogMotoriTask, "task JOG MOTORI PROGRAM", JogMotori_heap, NULL, JogMotori_priority, &JogMotoriPrgHandler, APP_CPU_NUM);
+    //status &= xTaskCreatePinnedToCore(prgJogMotoriTask, "task JOG MOTORI PROGRAM", JogMotori_heap, NULL, JogMotori_priority, &JogMotoriPrgHandler, APP_CPU_NUM);
 
     
 
@@ -65,6 +65,10 @@ BaseType_t setupTasks(void)
  */
 void setup()
 {
+    pinMode(RALLA_ENABLE_PIN, OUTPUT);
+    digitalWrite(RALLA_ENABLE_PIN, HIGH); // Disabilita ralla
+    pinMode(PUNZ_ENABLE_PIN, OUTPUT);
+    digitalWrite(PUNZ_ENABLE_PIN, HIGH); // Disabilita punzone
     LogBegin();
 
     /// crea le task, superato il timeout restarta l'esp32

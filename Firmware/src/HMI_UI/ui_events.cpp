@@ -12,8 +12,9 @@
  */
 
 #include "ui.h"
-//#include "JogMotoriPRG.hpp"
-//#include "DecapsulatorPRG.hpp"
+#include "Debug.hpp"
+#include "JogMotoriPRG.hpp"
+#include "DecapsulatorPRG.hpp"
 
 /**
  * @example Così andranno fatte praticamente tutte le funzioni degli eventi
@@ -46,9 +47,10 @@ void avvio_macchina(lv_event_t * e)
 	cmd.evt_type = lv_event_get_code(e);
 
 	sendUpdateHMI(cmd, bool* sendChanges);*/
+	LogInfo("START HMI", "PRESSED");
 }
 
 void Stop_Macchina(lv_event_t * e)
 {
-	
+	LogError("STOP HMI", "PRESSED");
 }
