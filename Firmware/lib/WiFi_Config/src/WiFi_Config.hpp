@@ -28,3 +28,8 @@ extern String WIFI_PASSWORD;
 
 /// Decapsulator ESP MQTT logging "Super User Do" e "AuthKey" 
 #define __HIDDEN_PASSWORD_ESP_MQTT_FOR_DETAILED_LOGS "DecapsulatorSudo2426mb"
+
+/// Decapsulator ESP Manutenction page della ui "Super User Do" 
+#define __HIDDEN_PASSWORD_DECAPSULATOR_MANUTENCTOR "123456"
+/// Decapsulator ESP Manutenction page della ui "Super User Do" 
+#define PASSWORD_DECAPSULATOR_MANUTENCTOR __HIDDEN_PASSWORD_DECAPSULATOR_MANUTENCTOR
