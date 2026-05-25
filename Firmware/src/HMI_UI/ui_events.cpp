@@ -54,3 +54,8 @@ void Stop_Macchina(lv_event_t * e)
 {
 	LogError("STOP HMI", "PRESSED");
 }
+
+void verifica_password(lv_event_t * e)
+{
+	// Your code here
+}
