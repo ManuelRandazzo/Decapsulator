@@ -15,6 +15,7 @@
 #include "Debug.hpp"
 #include "JogMotoriPRG.hpp"
 #include "DecapsulatorPRG.hpp"
+#include "WiFi_Config.hpp"
 
 /**
  * @example Così andranno fatte praticamente tutte le funzioni degli eventi
@@ -57,5 +58,21 @@ void Stop_Macchina(lv_event_t * e)
 
 void verifica_password(lv_event_t * e)
 {
-	// Your code here
+    lv_textarea_set_placeholder_text(ui_password_TESTO_PSSW, "Inserisci PASSWORD");
+
+    // Ottieni il testo inserito nella Text Area della password
+    const char * password_inserita = lv_textarea_get_text(ui_password_TESTO_PSSW);
+
+    const bool correctPassword = strcmp(password_inserita, PASSWORD_DECAPSULATOR_MANUTENCTOR) == 0;
+
+    // Compara le due stringhe, se sono OK allora è possibile 
+    if(correctPassword == true)
+    {
+        lv_textarea_set_placeholder_text(ui_password_TESTO_PSSW, "Inserisci PASSWORD");
+        _ui_screen_change(&ui_Schermata_Diagnostica, LV_SCR_LOAD_ANIM_FADE_ON, 500, 0, &ui_Schermata_Diagnostica_screen_init);
+    }
+    else
+        lv_textarea_set_placeholder_text(ui_password_TESTO_PSSW, "Password Errata");
+        
+    lv_textarea_set_text(ui_password_TESTO_PSSW, ""); // Reset password
 }
