@@ -1,5 +1,8 @@
 #pragma once
 
+/// Include la libreria per l'Arduino Environment
+#include "Arduino.h"
+/// Include la libreria per FreeRTOS
 #include "FreeRTOS.h"
 /// Include la libreria per la gestione dei pin e del debounce
 #include "DebouncePinHandler.hpp"
@@ -9,6 +12,8 @@
 #include "ESP32Servo.h"
 /// Include la libreria per il controllo della ventola
 #include "FanCtrl.hpp"
+/// Include la libreria per la gestione della SD Card
+#include "SavingFilesSD.hpp"
 
 
 #pragma region (EXTERNS)
@@ -94,6 +99,8 @@ extern void MainPrgStopAllMotors(double* ptrStepsLeftTamburo = nullptr, double* 
 /// Hz. Frequenza della PWM generata da LEDC (LED Control)
 #define VENTOLA_FREQ        35000 
 #define VENTOLA_PIN            12
+/// [%], è il valore del duty cycle quando la macchina è inattiva ma deve comunque raffreddare i drivers
+#define VENTOLA_SLOW_DUTY      30 
 
 #pragma endregion (VENTOLA)
 

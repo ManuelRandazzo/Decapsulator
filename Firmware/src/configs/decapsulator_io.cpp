@@ -17,9 +17,22 @@ DebPinHandler presenzaCaps;
  */
 BaseType_t decapsulator_io_begin(void)
 {
+    /// SD Card - Configurazione dei pin SPI dedicati sull'ESP32-S3 (dichiarati nel platformio.ini)
+    SD_Card.Init(TFT_SCLK, TFT_MISO, TFT_MOSI, SD_CS);
+       
+
+
     /// Ventola
     Ventola.begin(VENTOLA_PIN, VENTOLA_FREQ, VENTOLA_RES);
     Ventola.on();
+
+
+
+    /// Autokill
+    autoKill.begin(INTR, AUTOKILL_DETECT_PIN, "Autokill Detection Pin", 10/* ms */, FALLING, INPUT);
+    pinMode(AUTOKILL_SHUTDOWN_PIN, OUTPUT);
+
+
 
     /// Motore Tamburo
     drv_err_t drvErr;
@@ -42,11 +55,12 @@ BaseType_t decapsulator_io_begin(void)
         }
     }
 
+
+
     /// Motore Punzone
     drvErr = MotPunzone.Init(PUNZ_MOTOR_STEPS, PUNZ_DIRECTION_PIN, PUNZ_STEP_PIN, PUNZ_ENABLE_PIN, PUNZ_RESET_PIN, PUNZ_SLEEP_PIN,
                              PUNZ_TASK_PRIORITY, PUNZ_MICROSTEP);
     MotPunzone.detach();
-    
     
     if(drvErr != DRV_OK)
     {
@@ -62,14 +76,15 @@ BaseType_t decapsulator_io_begin(void)
     MotPunzone.setHardLimits(PUNZ_MAX_POS_PIN, PUNZ_MIN_POS_PIN, PUNZ_HARD_LIM_INTR_OR_POLL, 30, PUNZ_INPUT_PULL, PUNZ_CAM_SIGNAL);
 
 
+
+    /// Scivolo
     /// Inizializzazione Servo e relativi suoi timer[0-3] dell'hardware ledc
     for(uint8_t i = 0; i < 4; i++)
         ESP32PWM::allocateTimer(i);
 	ServoParatia.setPeriodHertz(50);    // standard 50 hz servo
 
-    autoKill.begin(INTR, AUTOKILL_DETECT_PIN, "Autokill Detection Pin", 10/* ms */, FALLING, INPUT);
     cadutaCaps.begin(INTR, PIECE_PASSED_PIN   , "Caduta Capsule Pin"    , 10/* ms */, FALLING , INPUT);
-    presenzaCaps.begin(INTR, PIECE_PRESENCE_PIN , "Presenza Capsule Pin"  , 30/* ms */, FALLING, INPUT);
+    presenzaCaps.begin(INTR, PIECE_PRESENCE_PIN , "Presenza Capsule Pin"  , 30/* ms */, FALLING, INPUT); 
 
     if(cadutaCaps.event())
     {
