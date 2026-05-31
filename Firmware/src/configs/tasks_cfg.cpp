@@ -29,4 +29,10 @@ TaskHandle_t HMIPrgHandler;
 /// @brief Handler della task del programma di pilotaggio manuale dei motori (JOG)
 TaskHandle_t JogMotoriPrgHandler;
 
+/// @brief Handler della task del logger in Seriale, MQTT e SD
+TaskHandle_t LoggerHandler;
+
+/// @brief Handler della task dell'autokill
+TaskHandle_t AutokillHandler;
+
 #pragma endregion (TASKS HANDLERS)

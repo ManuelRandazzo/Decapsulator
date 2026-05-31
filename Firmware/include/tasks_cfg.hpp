@@ -30,6 +30,12 @@ extern TaskHandle_t HMIPrgHandler;
 /// @brief Handler della task del programma di pilotaggio manuale dei motori (JOG)
 extern TaskHandle_t JogMotoriPrgHandler;
 
+/// @brief Handler della task del logger in Seriale, MQTT e SD
+extern TaskHandle_t LoggerHandler;
+
+/// @brief Handler della task dell'autokill
+extern TaskHandle_t AutokillHandler;
+
 #pragma endregion (TASKS HANDLERS)
 
 
@@ -69,10 +75,12 @@ extern TaskHandle_t JogMotoriPrgHandler;
  */
 enum taskHeapSize_t
 {
-    OTA_heap        = 2048, // 2kiB
-    HMI_heap        = 6656, // 4kiB
-    JogMotori_heap  = 4096, // 4kiB 
-    MainPrg_heap    = 6656, // 6.5kiB
+    OTA_heap        =  2048, //  2.0 kiB
+    HMI_heap        =  6656, //  6.5 kiB
+    JogMotori_heap  =  4096, //  4.0 kiB 
+    MainPrg_heap    =  6656, //  6.5 kiB
+    Logger_heap     = 12288, // 12.0 kiB
+    Autokill_heap   =  4096, //  4.0 KiB
 };
 
 /**
@@ -84,9 +92,11 @@ enum taskHeapSize_t
 enum taskPriority_t
 {
     OTA_priority        = 10,
-    HMI_priority        = 5,
-    JogMotori_priority  = 7,
-    MainPrg_priority    = 7,
+    HMI_priority        =  5,
+    JogMotori_priority  =  7,
+    MainPrg_priority    =  7,
+    Logger_priority     =  3,
+    Autokill_priority   = 10,
 };
 
 /**
@@ -94,10 +104,12 @@ enum taskPriority_t
  */
 enum taskDelays_t
 {
-    MainPrg_delay    = 5,
-    JogMotori_delay  = 5,
+    MainPrg_delay    =   5,
+    JogMotori_delay  =   5,
     HMI_delay        = 100,
     OTA_delay        = 200,
+    Logger_delay     =   0,
+    Autokill_delay   =   0,
 };
 
 #pragma endregion (TASKS ENUMS)
