@@ -83,6 +83,24 @@ class FanCtrl
 
 
 
+
+        /**
+         * @brief Restituisce il duty-cycle della PWM
+         *
+         * @param duty_percentage Range 0-100. Seleziona il duty-cycle della PWM, espresso in percentuale [%].
+         *
+         * @attention se duty_percentage > 100 allora il duty viene impostato al 100%
+         *
+         * @return Valore attuale del duty-cycle
+         *
+         * @example duty_percentage = 0 ---> ventola spenta
+         *
+         * @example duty_percentage = 100 ---> ventola accesa
+         */
+        uint8_t getDuty();
+
+
+
         
         /**
          * @brief Fa una rampa a livello hardware (zero CPU load, zero overhead, zero blocking) in un certo tempo 
