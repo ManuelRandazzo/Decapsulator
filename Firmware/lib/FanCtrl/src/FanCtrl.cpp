@@ -51,7 +51,7 @@ bool FanCtrl::begin(uint8_t pin, uint32_t pwm_freq, uint8_t pwm_resolution_in_bi
         return false;
 
     /// Imposta il pin come OUTPUT
-    pinMode(this->fan_pin, OUTPUT);
+    pinMode(pin, OUTPUT);
 
     /// Tenta l'attach del nuovo pin
     bool attach_ok = ledcAttach(pin, pwm_freq, pwm_resolution_in_bits);
