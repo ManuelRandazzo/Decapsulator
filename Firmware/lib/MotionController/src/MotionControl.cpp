@@ -62,9 +62,6 @@ void MOTION::MoveHandler(void *pvParameters)
         /// Alza il flag di comando
         flagRunOnceCMD = true;
       }
-      #ifdef LOG_ACTIVE_MOTION
-        LogInfo("Handler Motion", "Command %sReceived", (queueErr == pdTRUE ? "" : "Not "));
-      #endif
     }
     else if(THIS->Motion.isStepDone() == DRV_TRUE)
     {
@@ -144,7 +141,7 @@ void MOTION::MoveHandler(void *pvParameters)
       {
         #ifdef LOG_ACTIVE_MOTION
           LogInfo("Handler Motion", "Homing: finecorsa trovato, avvio backoff di %lu steps",
-            receiverQueue.__PostHomeVal);
+            THIS->receiverQueue.__PostHomeVal);
         #endif
 
         /// Percorre i passi post-home ad una velocità dimezzata
@@ -224,27 +221,10 @@ void MOTION::MoveHandler(void *pvParameters)
       
       /// Gestione dei log
       #ifdef LOG_ACTIVE_MOTION
-        LogInfo("Handler Motion", "SwitchMove(MC state selector) attuale = %s (stato = %d)", SwitchMoveStr[selettore], selettore);
+        LogInfo("Handler Motion", "SwitchMove(MC state selector) attuale = %s (stato = %d)", THIS->SwitchMoveStr[THIS->selettore], THIS->selettore);
       #endif
     }
-  
 
-    #ifdef LOG_ACTIVE_MOTION
-      static uint32_t time = 0;
-      uint32_t actualTime = millis();
-      if(actualTime - time >= 8000)
-      {
-        time = actualTime;
-        if(err != DRV_OK && err != DRV_NO_NOTIFY && err != DRV_WAITING_RMT_TX_TO_FINISH)
-          LogError("Errore Update DRV8825", "Driver Error : %s", drv_err_to_name(err));
-        else
-          LogInfo("Update DRV8825", "%s", drv_err_to_name(err));
-      }
-    #endif
-
-
-
-    
     //vTaskDelayUntil(&getLastTick, pdMS_TO_TICKS(10)); /// Permette di fare lo switch tra le task
   }
   
