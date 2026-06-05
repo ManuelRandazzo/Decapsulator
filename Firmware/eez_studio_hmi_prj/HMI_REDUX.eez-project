@@ -478,6 +478,23 @@
         "size": null,
         "defaultValue": "\"\"",
         "persistent": false
+      },
+      {
+        "objID": "1f20b3f4-4e48-4d31-9c90-b5fcf432c501",
+        "name": "Presenza_Errore",
+        "type": "boolean",
+        "defaultValue": "false",
+        "persistent": false,
+        "native": true
+      },
+      {
+        "objID": "a5f88278-cf86-4151-b96d-741ca711c3da",
+        "name": "Nome_Errore",
+        "type": "string",
+        "size": null,
+        "defaultValue": "\"\"",
+        "persistent": false,
+        "native": true
       }
     ],
     "structures": [],
@@ -516,7 +533,15 @@
             "childStyles": []
           },
           "timeline": [],
-          "eventHandlers": [],
+          "eventHandlers": [
+            {
+              "objID": "8ef62338-1607-41aa-d8b7-e815d0dbbb9c",
+              "eventName": "PRESSED",
+              "handlerType": "flow",
+              "action": "Calibrazione_Touch",
+              "userData": 0
+            }
+          ],
           "leftUnit": "px",
           "topUnit": "px",
           "widthUnit": "px",
@@ -615,7 +640,7 @@
               "type": "LVGLLabelWidget",
               "left": 215,
               "top": 288,
-              "width": 94,
+              "width": 0,
               "height": 16,
               "customInputs": [],
               "customOutputs": [],
@@ -787,6 +812,23 @@
           "A": "Stato_Avvio_Macchina",
           "B": "true",
           "operator": "="
+        },
+        {
+          "objID": "202f37cd-b424-4e65-c7d1-f2fe8bcbbac2",
+          "type": "SetVariableActionComponent",
+          "left": 638,
+          "top": 149,
+          "width": 214,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "9ce9e7f0-79af-44f4-d64d-35fb47ad2828",
+              "variable": "Stato_Avvio_Macchina",
+              "value": "true"
+            }
+          ]
         }
       ],
       "connectionLines": [
@@ -830,6 +872,13 @@
           "source": "5f9f0e40-d4f3-4266-d732-f08a9ad5d008",
           "output": "False",
           "target": "1be44033-b51c-49cf-863f-f431a60944c0",
+          "input": "@seqin"
+        },
+        {
+          "objID": "16f7e828-ced7-4eda-d352-f3f120826b06",
+          "source": "d6661042-6b88-4b2e-8288-827695cb25dc",
+          "output": "PRESSED",
+          "target": "202f37cd-b424-4e65-c7d1-f2fe8bcbbac2",
           "input": "@seqin"
         }
       ],
@@ -1461,6 +1510,204 @@
               },
               "group": "",
               "groupIndex": 0
+            },
+            {
+              "objID": "1f3f3a7c-2fe8-401d-940f-1e882d51af9d",
+              "type": "LVGLPanelWidget",
+              "left": 92,
+              "top": 28,
+              "width": 300,
+              "height": 200,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "6d61daf0-2512-434a-d146-d94a18027f15",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [],
+              "identifier": "Finestra errore",
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [
+                {
+                  "objID": "186042a2-7d89-4490-c98d-70e64817552a",
+                  "type": "LVGLButtonWidget",
+                  "left": 78,
+                  "top": 108,
+                  "width": 108,
+                  "height": 50,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "8a5d0158-9190-4da2-98bb-118fa889969e",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "timeline": [],
+                  "eventHandlers": [
+                    {
+                      "objID": "edb95a7b-94e7-4ba4-ba7b-6a5a1dbd4c49",
+                      "eventName": "PRESSED",
+                      "handlerType": "flow",
+                      "action": "Calibrazione_Touch",
+                      "userData": 0
+                    }
+                  ],
+                  "identifier": "Puls OK",
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "px",
+                  "heightUnit": "px",
+                  "children": [
+                    {
+                      "objID": "f6e727d3-2f6b-4412-df42-92d6214e9e73",
+                      "type": "LVGLLabelWidget",
+                      "left": 0,
+                      "top": 0,
+                      "width": 35,
+                      "height": 24,
+                      "customInputs": [],
+                      "customOutputs": [],
+                      "style": {
+                        "objID": "4d8f8e52-f6b1-4b6e-a0fc-8f0147637710",
+                        "useStyle": "default",
+                        "conditionalStyles": [],
+                        "childStyles": []
+                      },
+                      "timeline": [],
+                      "eventHandlers": [],
+                      "identifier": "OK",
+                      "leftUnit": "px",
+                      "topUnit": "px",
+                      "widthUnit": "content",
+                      "heightUnit": "content",
+                      "children": [],
+                      "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                      "hiddenFlagType": "literal",
+                      "clickableFlagType": "literal",
+                      "flagScrollbarMode": "",
+                      "flagScrollDirection": "",
+                      "scrollSnapX": "",
+                      "scrollSnapY": "",
+                      "checkedStateType": "literal",
+                      "disabledStateType": "literal",
+                      "states": "",
+                      "localStyles": {
+                        "objID": "4ff661d7-01e5-4a0f-bf17-5d5f1ae42d90",
+                        "definition": {
+                          "MAIN": {
+                            "DEFAULT": {
+                              "align": "CENTER"
+                            }
+                          }
+                        }
+                      },
+                      "group": "",
+                      "groupIndex": 0,
+                      "text": "OK",
+                      "textType": "literal",
+                      "longMode": "WRAP",
+                      "recolor": false
+                    }
+                  ],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlagType": "literal",
+                  "clickableFlag": true,
+                  "clickableFlagType": "literal",
+                  "flagScrollbarMode": "",
+                  "flagScrollDirection": "",
+                  "scrollSnapX": "",
+                  "scrollSnapY": "",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "e2802c44-2d69-4de9-d98b-854be1fd0a9a"
+                  },
+                  "group": "",
+                  "groupIndex": 0
+                },
+                {
+                  "objID": "b7dfb48b-903e-456b-9c03-35ee185ad064",
+                  "type": "LVGLLabelWidget",
+                  "left": -18,
+                  "top": -18,
+                  "width": 300,
+                  "height": 116,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "dfe433d0-7d8c-4326-c69f-cfedc7498706",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "identifier": "Titolo errore",
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "px",
+                  "heightUnit": "px",
+                  "children": [],
+                  "widgetFlags": "",
+                  "hiddenFlagType": "literal",
+                  "clickableFlagType": "literal",
+                  "flagScrollbarMode": "",
+                  "flagScrollDirection": "",
+                  "scrollSnapX": "",
+                  "scrollSnapY": "",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "c8f9e518-6b86-4438-a87f-f66b56944f92",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "text_align": "CENTER"
+                        }
+                      }
+                    }
+                  },
+                  "group": "",
+                  "groupIndex": 0,
+                  "text": "Nome_Errore",
+                  "textType": "expression",
+                  "longMode": "WRAP",
+                  "recolor": false
+                }
+              ],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlag": false,
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "ed10b0a0-182a-498c-e641-3b6322d7a1e8",
+                "definition": {
+                  "MAIN": {
+                    "DEFAULT": {
+                      "bg_opa": 200,
+                      "text_font": "MONTSERRAT_22"
+                    }
+                  }
+                }
+              },
+              "group": "",
+              "groupIndex": 0
             }
           ],
           "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
@@ -1655,8 +1902,8 @@
         {
           "objID": "4c3c0e39-3763-4358-a554-a061d16b5302",
           "type": "LVGLActionComponent",
-          "left": -192,
-          "top": -122,
+          "left": 166,
+          "top": -54,
           "width": 385,
           "height": 54,
           "customInputs": [],
@@ -1700,6 +1947,103 @@
           "height": 24,
           "customInputs": [],
           "customOutputs": []
+        },
+        {
+          "objID": "8cc45fa4-4626-4f4a-bcf2-c58f29d67cd3",
+          "type": "WatchVariableActionComponent",
+          "left": -136,
+          "top": -414,
+          "width": 166,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "variable": "Presenza_Errore"
+        },
+        {
+          "objID": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "type": "CompareActionComponent",
+          "left": 73,
+          "top": -387,
+          "width": 193,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "A": "Presenza_Errore",
+          "B": "true",
+          "operator": "="
+        },
+        {
+          "objID": "5d096f73-79c5-4e97-a5a7-b4e6ae42a5f1",
+          "type": "LVGLActionComponent",
+          "left": 339,
+          "top": -361,
+          "width": 286,
+          "height": 73,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "344e3f19-7430-42e9-d05f-d0bcc936b927",
+              "action": "objSetFlagHidden",
+              "object": "finestra_errore",
+              "objectType": "literal",
+              "hidden": false,
+              "hiddenType": "literal"
+            },
+            {
+              "objID": "d3ae2a9a-1425-4eee-9a95-bd1c0e2a7517",
+              "action": "objSetStateDisabled",
+              "object": "puls_start_stop",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "712d1dea-46fb-475c-ccc4-852938cca1bd",
+          "type": "LVGLActionComponent",
+          "left": 336,
+          "top": -288,
+          "width": 293,
+          "height": 73,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "0c486529-a87f-46b1-b0b8-a3e039834e78",
+              "action": "objSetFlagHidden",
+              "object": "finestra_errore",
+              "objectType": "literal",
+              "hidden": true,
+              "hiddenType": "literal"
+            },
+            {
+              "objID": "bbd2bc94-5b97-469f-e93a-259f673d723b",
+              "action": "objSetStateDisabled",
+              "object": "puls_start_stop",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "da55010d-6c68-4f16-8416-bc4e3b6530a1",
+          "type": "SetVariableActionComponent",
+          "left": 519,
+          "top": 160,
+          "width": 189,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "23b34079-eacf-45ae-8e1d-9e4a96ec093e",
+              "variable": "Presenza_Errore",
+              "value": "false"
+            }
+          ]
         }
       ],
       "connectionLines": [
@@ -1771,6 +2115,34 @@
           "source": "13e422be-c07b-4b57-e688-93029a7d8437",
           "output": "@seqout",
           "target": "6968be6b-766d-419b-b2a4-1bb506d1c495",
+          "input": "@seqin"
+        },
+        {
+          "objID": "78248b03-1cd8-47e0-8e87-569913965b01",
+          "source": "8cc45fa4-4626-4f4a-bcf2-c58f29d67cd3",
+          "output": "variable",
+          "target": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "input": "@seqin"
+        },
+        {
+          "objID": "9be4e42c-dce6-468a-fc13-adbe2bfa0de3",
+          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "output": "True",
+          "target": "5d096f73-79c5-4e97-a5a7-b4e6ae42a5f1",
+          "input": "@seqin"
+        },
+        {
+          "objID": "ad864bc7-56a8-4596-f109-01d833bf33f2",
+          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "output": "False",
+          "target": "712d1dea-46fb-475c-ccc4-852938cca1bd",
+          "input": "@seqin"
+        },
+        {
+          "objID": "12621daa-453b-4cd6-fbd4-c993b2c4e955",
+          "source": "186042a2-7d89-4490-c98d-70e64817552a",
+          "output": "PRESSED",
+          "target": "da55010d-6c68-4f16-8416-bc4e3b6530a1",
           "input": "@seqin"
         }
       ],
@@ -2908,7 +3280,7 @@
                   },
                   "group": "",
                   "groupIndex": 0,
-                  "text": "Impossibile accedere\nmacchina in funsione",
+                  "text": "Impossibile accedere\nmacchina in funzione",
                   "textType": "literal",
                   "longMode": "WRAP",
                   "recolor": false
@@ -3250,8 +3622,8 @@
         {
           "objID": "9dec5e77-1bd5-4e29-b392-4aec80718086",
           "type": "CallActionActionComponent",
-          "left": 20,
-          "top": 354,
+          "left": 283,
+          "top": 350,
           "width": 145,
           "height": 24,
           "customInputs": [],
@@ -3263,62 +3635,10 @@
           }
         },
         {
-          "objID": "f14b0a71-4e2e-41dd-9f3e-b46c0dcf2ba9",
-          "type": "WatchVariableActionComponent",
-          "left": -42,
-          "top": 490,
-          "width": 228,
-          "height": 54,
-          "customInputs": [],
-          "customOutputs": [],
-          "catchError": false,
-          "variable": "Calibrazione_Touch_Finita"
-        },
-        {
-          "objID": "892dba38-5b7a-48cc-861d-00bdccdf2ffc",
-          "type": "CompareActionComponent",
-          "left": 228,
-          "top": 490,
-          "width": 254,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "catchError": false,
-          "A": "Calibrazione_Touch_Finita",
-          "B": "true",
-          "operator": "="
-        },
-        {
-          "objID": "3821dad6-e77e-41e3-d054-4b47d9245540",
-          "type": "LVGLActionComponent",
-          "left": 500,
-          "top": 517,
-          "width": 391,
-          "height": 54,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "6566a0b1-daba-4b95-a7e0-0b2c6cf2ffd1",
-              "action": "changeScreen",
-              "screen": "Schermata Diagnostica",
-              "screenType": "literal",
-              "fadeMode": "FADE_IN",
-              "fadeModeType": "literal",
-              "speed": 200,
-              "speedType": "literal",
-              "delay": 0,
-              "delayType": "literal",
-              "useStack": true,
-              "useStackType": "literal"
-            }
-          ]
-        },
-        {
           "objID": "e7e8f42d-970f-4f15-88e2-a92214b21f5d",
           "type": "LVGLActionComponent",
-          "left": 516,
-          "top": 244,
+          "left": 524,
+          "top": 240,
           "width": 391,
           "height": 54,
           "customInputs": [],
@@ -3332,6 +3652,32 @@
               "fadeMode": "FADE_IN",
               "fadeModeType": "literal",
               "speed": 200,
+              "speedType": "literal",
+              "delay": 0,
+              "delayType": "literal",
+              "useStack": true,
+              "useStackType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "b7a9eeaf-5b9d-4ad7-cea7-cb8b31740565",
+          "type": "LVGLActionComponent",
+          "left": 283,
+          "top": 374,
+          "width": 385,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "1b90b72a-c8d7-4203-a227-3eb49b7c98b7",
+              "action": "changeScreen",
+              "screen": "Schermata Calibrazione",
+              "screenType": "literal",
+              "fadeMode": "NONE",
+              "fadeModeType": "literal",
+              "speed": 1000,
               "speedType": "literal",
               "delay": 0,
               "delayType": "literal",
@@ -3371,13 +3717,6 @@
           "input": "@seqin"
         },
         {
-          "objID": "2dc09eb7-833f-4384-f61f-ea8737c52776",
-          "source": "f14b0a71-4e2e-41dd-9f3e-b46c0dcf2ba9",
-          "output": "variable",
-          "target": "892dba38-5b7a-48cc-861d-00bdccdf2ffc",
-          "input": "@seqin"
-        },
-        {
           "objID": "69dd1530-3769-43bf-8feb-bd5f96ebf345",
           "source": "49ca8a2c-5a80-4134-f7af-c964d098d1e4",
           "output": "PRESSED",
@@ -3385,10 +3724,10 @@
           "input": "@seqin"
         },
         {
-          "objID": "246423cc-ad0d-478f-e74e-71cb5452ea78",
-          "source": "892dba38-5b7a-48cc-861d-00bdccdf2ffc",
-          "output": "True",
-          "target": "3821dad6-e77e-41e3-d054-4b47d9245540",
+          "objID": "e6b2c937-0a80-47fe-85a8-fc16c6aa1864",
+          "source": "e023d5c5-50b3-40bb-cf05-f50f8eac9e8b",
+          "output": "PRESSED",
+          "target": "b7a9eeaf-5b9d-4ad7-cea7-cb8b31740565",
           "input": "@seqin"
         }
       ],
@@ -5324,10 +5663,10 @@
                 {
                   "objID": "27941477-fd4f-4122-856f-59b271434d42",
                   "type": "LVGLButtonWidget",
-                  "left": 24,
-                  "top": 115,
-                  "width": 100,
-                  "height": 34,
+                  "left": 20,
+                  "top": 108,
+                  "width": 108,
+                  "height": 48,
                   "customInputs": [],
                   "customOutputs": [],
                   "style": {
@@ -5961,7 +6300,7 @@
               },
               "group": "",
               "groupIndex": 0,
-              "mode": "TEXT_UPPER"
+              "mode": "NUMBER"
             }
           ],
           "widgetFlags": "CLICKABLE",
@@ -9001,21 +9340,20 @@
               "mode": "TEXT_LOWER"
             },
             {
-              "objID": "16419494-4994-423b-8bf9-538fc20fc093",
-              "type": "LVGLPanelWidget",
+              "objID": "00ff465d-1699-4f69-bcd2-82027dea842e",
+              "type": "LVGLTextareaWidget",
               "left": 90,
-              "top": 57,
+              "top": 54,
               "width": 300,
-              "height": 200,
+              "height": 125,
               "customInputs": [],
               "customOutputs": [],
               "style": {
-                "objID": "481953c6-d1b1-44bb-d702-7588ebb36f2c",
+                "objID": "edb2e331-4b61-4240-cc2d-888b436a7aad",
                 "useStyle": "default",
                 "conditionalStyles": [],
                 "childStyles": []
               },
-              "hiddenInEditor": true,
               "timeline": [],
               "eventHandlers": [],
               "identifier": "Messaggio Config WiFi",
@@ -9023,61 +9361,8 @@
               "topUnit": "px",
               "widthUnit": "px",
               "heightUnit": "px",
-              "children": [
-                {
-                  "objID": "c71ecb96-67fb-4709-d623-4587dacd02d9",
-                  "type": "LVGLLabelWidget",
-                  "left": -16,
-                  "top": 58,
-                  "width": 0,
-                  "height": 30,
-                  "customInputs": [],
-                  "customOutputs": [],
-                  "style": {
-                    "objID": "4f832f6c-572d-482b-a0b1-3e70d44a4c81",
-                    "useStyle": "default",
-                    "conditionalStyles": [],
-                    "childStyles": []
-                  },
-                  "hiddenInEditor": true,
-                  "timeline": [],
-                  "eventHandlers": [],
-                  "identifier": "Testo Messaggio_Config_WiFi",
-                  "leftUnit": "px",
-                  "topUnit": "px",
-                  "widthUnit": "content",
-                  "heightUnit": "content",
-                  "children": [],
-                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
-                  "hiddenFlagType": "literal",
-                  "clickableFlagType": "literal",
-                  "flagScrollbarMode": "",
-                  "flagScrollDirection": "",
-                  "scrollSnapX": "",
-                  "scrollSnapY": "",
-                  "checkedStateType": "literal",
-                  "disabledStateType": "literal",
-                  "states": "",
-                  "localStyles": {
-                    "objID": "2e0cbd3d-2572-47bc-d6d5-d0e803de9841",
-                    "definition": {
-                      "MAIN": {
-                        "DEFAULT": {
-                          "text_font": "MONTSERRAT_28",
-                          "text_align": "CENTER"
-                        }
-                      }
-                    }
-                  },
-                  "group": "",
-                  "groupIndex": 0,
-                  "text": "Messaggio_Config_WiFi",
-                  "textType": "expression",
-                  "longMode": "WRAP",
-                  "recolor": false
-                }
-              ],
-              "widgetFlags": "",
+              "children": [],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SNAPPABLE",
               "hiddenFlag": true,
               "hiddenFlagType": "literal",
               "clickableFlag": false,
@@ -9090,17 +9375,26 @@
               "disabledStateType": "literal",
               "states": "",
               "localStyles": {
-                "objID": "e3168c17-9ce2-4a9f-e805-9c5778ad8845",
+                "objID": "1eba6ef9-853e-4769-dc5c-4986f81e8d9a",
                 "definition": {
                   "MAIN": {
                     "DEFAULT": {
-                      "bg_opa": 150
+                      "text_align": "CENTER",
+                      "bg_opa": 200,
+                      "text_font": "MONTSERRAT_28"
                     }
                   }
                 }
               },
               "group": "",
-              "groupIndex": 0
+              "groupIndex": 0,
+              "text": "Messaggio_Config_WiFi",
+              "textType": "expression",
+              "placeholder": "",
+              "oneLineMode": false,
+              "passwordMode": false,
+              "acceptedCharacters": "",
+              "maxTextLength": 128
             }
           ],
           "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
@@ -9681,6 +9975,131 @@
       "componentGroups": [],
       "userProperties": [],
       "name": "Scheramta Config WiFi",
+      "left": 0,
+      "top": 0,
+      "width": 480,
+      "height": 320,
+      "isUsedAsUserWidget": false,
+      "createAtStart": true,
+      "deleteOnScreenUnload": false
+    },
+    {
+      "objID": "5e50b050-86e2-4700-bed9-8103c340d680",
+      "components": [
+        {
+          "objID": "0ca2e0f8-9008-48f7-e3b8-bafcede5c8eb",
+          "type": "LVGLScreenWidget",
+          "left": 0,
+          "top": 0,
+          "width": 480,
+          "height": 320,
+          "customInputs": [],
+          "customOutputs": [],
+          "style": {
+            "objID": "c06919ab-5a0a-41dc-e291-cdb18b759dfe",
+            "useStyle": "default",
+            "conditionalStyles": [],
+            "childStyles": []
+          },
+          "timeline": [],
+          "eventHandlers": [],
+          "leftUnit": "px",
+          "topUnit": "px",
+          "widthUnit": "px",
+          "heightUnit": "px",
+          "children": [],
+          "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
+          "hiddenFlagType": "literal",
+          "clickableFlag": true,
+          "clickableFlagType": "literal",
+          "checkedStateType": "literal",
+          "disabledStateType": "literal",
+          "states": "",
+          "localStyles": {
+            "objID": "6c5f0c7d-3bc5-412c-b6d8-0f302aa8d1f6",
+            "definition": {
+              "MAIN": {
+                "DEFAULT": {
+                  "bg_color": "#000000"
+                }
+              }
+            }
+          },
+          "groupIndex": 0
+        },
+        {
+          "objID": "3908d20d-c8ae-4046-b2bb-3870c37f7079",
+          "type": "WatchVariableActionComponent",
+          "left": -191,
+          "top": 353,
+          "width": 228,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "catchError": false,
+          "variable": "Calibrazione_Touch_Finita"
+        },
+        {
+          "objID": "94553ac9-301a-4b43-aca0-2a780f0ee038",
+          "type": "CompareActionComponent",
+          "left": 69,
+          "top": 364,
+          "width": 254,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "catchError": false,
+          "A": "Calibrazione_Touch_Finita",
+          "B": "true",
+          "operator": "="
+        },
+        {
+          "objID": "3a1eaafd-1b7d-4598-8e74-1c4f5524187d",
+          "type": "LVGLActionComponent",
+          "left": 351,
+          "top": 380,
+          "width": 379,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "0a133845-e26a-4258-f02b-409af0975bf2",
+              "action": "changeScreen",
+              "screen": "Schermata Diagnostica",
+              "screenType": "literal",
+              "fadeMode": "NONE",
+              "fadeModeType": "literal",
+              "speed": 1000,
+              "speedType": "literal",
+              "delay": 0,
+              "delayType": "literal",
+              "useStack": true,
+              "useStackType": "literal"
+            }
+          ]
+        }
+      ],
+      "connectionLines": [
+        {
+          "objID": "3c17e88f-441a-4621-c390-861740c14201",
+          "source": "3908d20d-c8ae-4046-b2bb-3870c37f7079",
+          "output": "variable",
+          "target": "94553ac9-301a-4b43-aca0-2a780f0ee038",
+          "input": "@seqin"
+        },
+        {
+          "objID": "8a6650c1-5167-47ca-a434-d1810b09fb33",
+          "source": "94553ac9-301a-4b43-aca0-2a780f0ee038",
+          "output": "True",
+          "target": "3a1eaafd-1b7d-4598-8e74-1c4f5524187d",
+          "input": "@seqin"
+        }
+      ],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "Schermata Calibrazione",
       "left": 0,
       "top": 0,
       "width": 480,

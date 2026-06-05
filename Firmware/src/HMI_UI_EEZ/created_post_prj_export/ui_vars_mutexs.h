@@ -52,6 +52,16 @@ extern SemaphoreHandle_t mutex_stato_finecorsa_min;
 
 extern SemaphoreHandle_t mutex_homing;
 
+extern SemaphoreHandle_t mutex_calibrazione_touch_finita;
+
+extern SemaphoreHandle_t mutex_password_rete_corretta;
+
+extern SemaphoreHandle_t mutex_nome_rete_corretta;
+
+extern SemaphoreHandle_t mutex_presenza_errore;
+
+extern SemaphoreHandle_t mutex_nome_errore;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

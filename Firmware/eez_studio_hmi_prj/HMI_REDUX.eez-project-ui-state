@@ -1,13 +1,13 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/1",
+    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/3",
     "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/0",
-    "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/22",
+    "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/43",
     "selectedStyleObject": "[HMI_REDUX.eez-project]:/lvglStyles/styles/5",
     "selectedThemeObject": "[HMI_REDUX.eez-project]:/themes/0",
     "selectedBitmapObject": "[HMI_REDUX.eez-project]:/bitmaps/1",
     "subnavigationSelectedItems": {
-      "variables-tab/sub-navigation/selected-item": "Global"
+      "variables-tab/sub-navigation/selected-item": "Widgets"
     }
   },
   "layoutModel": {
@@ -304,8 +304,7 @@
                   },
                   "icon": "svg:page"
                 }
-              ],
-              "active": true
+              ]
             },
             {
               "type": "row",
@@ -325,7 +324,8 @@
                       "enableClose": false,
                       "icon": "svg:properties"
                     }
-                  ]
+                  ],
+                  "active": true
                 },
                 {
                   "type": "tabset",
@@ -1223,10 +1223,10 @@
       },
       "transform": {
         "translate": {
-          "x": -728.7154281621454,
-          "y": -362.04260261719014
+          "x": -767.7154281621454,
+          "y": -232.04260261719014
         },
-        "scale": 1
+        "scale": 3
       },
       "timeline": {
         "isEditorActive": false,
@@ -1257,6 +1257,12 @@
           "2": {},
           "3": {
             "0": {}
+          },
+          "4": {
+            "0": {},
+            "1": {
+              "$selected": true
+            }
           }
         },
         "1": {},
@@ -1264,10 +1270,10 @@
       },
       "transform": {
         "translate": {
-          "x": -180.53191134934633,
-          "y": -388.6661241113873
+          "x": -736.4241480795299,
+          "y": -278.24309528783226
         },
-        "scale": 1
+        "scale": 3
       },
       "timeline": {
         "isEditorActive": false,
@@ -1280,20 +1286,20 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
-          "0": {},
-          "1": {
+          "0": {
             "$selected": true
           },
+          "1": {},
           "2": {},
           "3": {}
         }
       },
       "transform": {
         "translate": {
-          "x": -625.6023054312714,
-          "y": -175.19333392719636
+          "x": -655.6023054312714,
+          "y": -224.19333392719636
         },
-        "scale": 1
+        "scale": 3
       },
       "timeline": {
         "isEditorActive": false,
@@ -1311,19 +1317,19 @@
           "2": {},
           "3": {},
           "4": {},
-          "5": {}
+          "5": {
+            "$selected": true
+          }
         },
         "1": {},
-        "4": {
-          "$selected": true
-        }
+        "4": {}
       },
       "transform": {
         "translate": {
-          "x": -328.07306611782565,
-          "y": -206.27581911252236
+          "x": -310.154505511765,
+          "y": -196.79980901151248
         },
-        "scale": 1
+        "scale": 3
       },
       "timeline": {
         "isEditorActive": false,
@@ -1336,9 +1342,7 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
-          "1": {
-            "$selected": true
-          },
+          "1": {},
           "2": {
             "0": {
               "1": {},
@@ -1362,15 +1366,17 @@
             },
             "7": {}
           },
-          "4": {}
+          "4": {
+            "$selected": true
+          }
         }
       },
       "transform": {
         "translate": {
-          "x": -105.55659674345844,
-          "y": 42.844932122034905
+          "x": -507.2850316436088,
+          "y": -169.37240627602796
         },
-        "scale": 1
+        "scale": 3
       },
       "timeline": {
         "isEditorActive": false,
@@ -1383,20 +1389,16 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
-          "0": {
-            "$selected": true
-          }
+          "0": {}
         },
-        "1": {
-          "$selected": true
-        }
+        "1": {}
       },
       "transform": {
         "translate": {
           "x": -172.34523809523807,
           "y": -245.19727891156458
         },
-        "scale": 1
+        "scale": 3
       },
       "timeline": {
         "isEditorActive": false,
@@ -1423,7 +1425,7 @@
           "x": -559.7515809839686,
           "y": 102.90154279109538
         },
-        "scale": 1
+        "scale": 3
       },
       "timeline": {
         "isEditorActive": false,
@@ -1463,19 +1465,46 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
-          "0": {
-            "$selected": true
-          },
-          "5": {}
+          "0": {}
         },
-        "6": {}
+        "6": {},
+        "10": {
+          "$selected": true
+        }
       },
       "transform": {
         "translate": {
-          "x": -368.5455276039613,
-          "y": -190.67013120818612
+          "x": -1548.068291405942,
+          "y": -374.0051968122792
         },
-        "scale": 0.67
+        "scale": 1
+      },
+      "timeline": {
+        "isEditorActive": false,
+        "position": 0,
+        "secondToPx": 200,
+        "scrollLeft": 0
+      }
+    },
+    "[HMI_REDUX.eez-project]:/userPages/8[flow-state]": {
+      "selectionFront": {},
+      "selectionBack": {
+        "1": {
+          "$selected": true
+        },
+        "2": {
+          "$selected": true
+        },
+        "3": {
+          "$selected": true
+        }
+      },
+      "transform": {
+        "translate": {
+          "x": -57.700000000000045,
+          "y": -124
+        },
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1491,7 +1520,7 @@
   "searchMatchWholeWord": false,
   "replaceEnabled": false,
   "replaceText": "",
-  "pageRuntimeFrontFace": false,
+  "pageRuntimeFrontFace": true,
   "breakpoints": {},
   "watchExpressions": [],
   "showComponentDescriptions": true,
@@ -1502,12 +1531,11 @@
   "lvglExpandedPropertiesGroup": [
     "MISCELLANEOUS",
     "IMAGE",
-    "TEXT",
-    "BACKGROUND"
+    "TEXT"
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 1,
+  "flowZoom": 3,
   "implementationLanguage": "C++",
   "openDialogDefaultPath": "C:\\Users\\Tomma\\Downloads\\Image.png"
 }

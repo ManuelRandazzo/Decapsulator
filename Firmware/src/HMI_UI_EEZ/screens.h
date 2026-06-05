@@ -18,7 +18,9 @@ enum ScreensEnum {
     SCREEN_ID_SCHERMATA_JOGGER = 5,
     SCREEN_ID_SCHERMATA_EASTER_EGG = 6,
     SCREEN_ID_SCHERMATA_LOGGER = 7,
-    _SCREEN_ID_LAST = 7
+    SCREEN_ID_SCHERAMTA_CONFIG_WI_FI = 8,
+    SCREEN_ID_SCHERMATA_CALIBRAZIONE = 9,
+    _SCREEN_ID_LAST = 9
 };
 
 typedef struct _objects_t {
@@ -29,6 +31,8 @@ typedef struct _objects_t {
     lv_obj_t *schermata_jogger;
     lv_obj_t *schermata_easter_egg;
     lv_obj_t *schermata_logger;
+    lv_obj_t *scheramta_config_wi_fi;
+    lv_obj_t *schermata_calibrazione;
     lv_obj_t *stato_avvio;
     lv_obj_t *logo;
     lv_obj_t *conteggio_capsule;
@@ -41,17 +45,24 @@ typedef struct _objects_t {
     lv_obj_t *impostazioni;
     lv_obj_t *puls_start_stop;
     lv_obj_t *start_stop;
+    lv_obj_t *finestra_errore;
+    lv_obj_t *puls_ok;
+    lv_obj_t *ok;
+    lv_obj_t *titolo_errore;
     lv_obj_t *tastiera_pssw;
     lv_obj_t *password;
     lv_obj_t *annulla_pssw;
     lv_obj_t *annulla;
     lv_obj_t *messaggio_pssw;
-    lv_obj_t *puls_annulla_diagn;
+    lv_obj_t *annula_diagnostica;
     lv_obj_t *annulla_diag;
     lv_obj_t *logger;
     lv_obj_t *logger_titolo;
     lv_obj_t *contrmot;
     lv_obj_t *contrmot_titolo;
+    lv_obj_t *blocco_jogger;
+    lv_obj_t *obj0;
+    lv_obj_t *obj1;
     lv_obj_t *jog_motori;
     lv_obj_t *annulla_jogger;
     lv_obj_t *annulla_3;
@@ -95,11 +106,18 @@ typedef struct _objects_t {
     lv_obj_t *speed_motore_punz;
     lv_obj_t *speed_motore_ralla;
     lv_obj_t *inserimento_valori;
-    lv_obj_t *annulla_pssw_3;
+    lv_obj_t *annulla_easter_egg;
     lv_obj_t *annulla_diag_2;
     lv_obj_t *annulla_pssw_2;
     lv_obj_t *annulla_diag_1;
-    lv_obj_t *obj0;
+    lv_obj_t *obj2;
+    lv_obj_t *annulla_config_wifi;
+    lv_obj_t *annulla_config_wifi2;
+    lv_obj_t *password_rete_wifi;
+    lv_obj_t *nome_rete_wifi;
+    lv_obj_t *config_wifi;
+    lv_obj_t *tastiera_config_wi_fi;
+    lv_obj_t *messaggio_config_wi_fi;
 } objects_t;
 
 extern objects_t objects;
@@ -124,6 +142,12 @@ void tick_screen_schermata_easter_egg();
 
 void create_screen_schermata_logger();
 void tick_screen_schermata_logger();
+
+void create_screen_scheramta_config_wi_fi();
+void tick_screen_scheramta_config_wi_fi();
+
+void create_screen_schermata_calibrazione();
+void tick_screen_schermata_calibrazione();
 
 void tick_screen_by_id(enum ScreensEnum screenId);
 void tick_screen(int screen_index);

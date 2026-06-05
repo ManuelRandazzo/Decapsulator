@@ -1,4 +1,4 @@
-#include "HMI_UI_EEZ/ui_vars_mutexs.h"
+#include "ui_vars_mutexs.h"
 
 SemaphoreHandle_t mutex_contatore_caps_totali = NULL;
 
@@ -43,6 +43,16 @@ SemaphoreHandle_t mutex_stato_finecorsa_max = NULL;
 SemaphoreHandle_t mutex_stato_finecorsa_min = NULL;
 
 SemaphoreHandle_t mutex_homing = NULL;
+
+SemaphoreHandle_t mutex_calibrazione_touch_finita = NULL;
+
+SemaphoreHandle_t mutex_password_rete_corretta = NULL;
+
+SemaphoreHandle_t mutex_nome_rete_corretta = NULL;
+
+SemaphoreHandle_t mutex_presenza_errore = NULL;
+
+SemaphoreHandle_t mutex_nome_errore = NULL;
 
 bool ui_init_var_mutexs()
 {
@@ -153,6 +163,31 @@ bool ui_init_var_mutexs()
 
     mutex_homing = xSemaphoreCreateMutex();
     if(mutex_homing == NULL)
+        return false;
+
+
+    mutex_calibrazione_touch_finita = xSemaphoreCreateMutex();
+    if(mutex_calibrazione_touch_finita == NULL)
+        return false;
+
+        
+    mutex_password_rete_corretta = xSemaphoreCreateMutex();
+    if(mutex_password_rete_corretta == NULL)
+        return false;
+
+
+    mutex_nome_rete_corretta = xSemaphoreCreateMutex();
+    if(mutex_nome_rete_corretta == NULL)
+        return false;
+
+        
+    mutex_presenza_errore = xSemaphoreCreateMutex();
+    if(mutex_presenza_errore == NULL)
+        return false;
+
+
+    mutex_nome_errore = xSemaphoreCreateMutex();
+    if(mutex_nome_errore == NULL)
         return false;
 
         

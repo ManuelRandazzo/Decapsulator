@@ -14,6 +14,9 @@
  */
 
 #include "HMI.hpp"
+#include "HMI_UI_EEZ/ui.h"
+#include "HMI_UI_EEZ/vars.h"
+#include "SavingFilesSD.hpp"
 
 
 #ifndef LV_COLOR_DEPTH
@@ -24,8 +27,6 @@
 #error "This driver only supports LV_COLOR_DEPTH 16 (RGB565)"
 #endif
 
-TFT_eSPI tft = TFT_eSPI();
-
 static const uint16_t screenWidth = 480;
 static const uint16_t screenHeight = 320;
 
@@ -35,18 +36,7 @@ enum { SCREENBUFFER_SIZE_PIXELS = screenWidth * screenHeight / BoardConstants::L
 static uint16_t buf[SCREENBUFFER_SIZE_PIXELS] __attribute__((aligned(4)));
 
 /* -------------------------------------------------------------------------- */
-/*  LVGL logging (optional)                                                    */
-/* -------------------------------------------------------------------------- */
-
-#if LV_USE_LOG != 0
-    void my_print(const char *buf) {
-        Serial.printf(buf);
-        Serial.flush();
-}
-#endif
-
-/* -------------------------------------------------------------------------- */
-/*  Display flush callback                                                     */
+/*  Display flush callback                                                    */
 /* -------------------------------------------------------------------------- */
 
 void my_disp_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *pixelmap) {
@@ -62,27 +52,16 @@ void my_disp_flush(lv_display_t *disp, const lv_area_t *area, uint8_t *pixelmap)
 }
 
 /* -------------------------------------------------------------------------- */
-/*  Touchpad callback                                                          */
+/*  Touchpad callback                                                         */
 /* -------------------------------------------------------------------------- */
 
 void my_touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data) {
     uint16_t touchX = 0, touchY = 0;
-    
-    bool touched = tft.getTouch(&touchX, &touchY, 600);
 
-    static uint32_t tmr = 0;
-    if (!touched) {
+    if(!tft.getTouch(&touchX, &touchY, 5))
         data->state = LV_INDEV_STATE_REL;
-    } else {
-        const uint32_t MILLIS = millis();
-        static uint32_t tmr = 0;
-        if(MILLIS - tmr >= 10)
-        {
-            tmr = MILLIS;
-            LogDebug("TP", "X : %d\nY : %d", touchX, touchY);
-            lv_label_set_text_fmt(ui_Schermata_Principale_Cont_Caps_Ses, "X : %d", touchX);
-            lv_label_set_text_fmt(ui_Schermata_Principale_Cont_Caps_Tot, "Y : %d", touchY);
-        }
+    else
+    {
         data->state = LV_INDEV_STATE_PR;
         data->point.x = touchX;
         data->point.y = touchY;
@@ -90,7 +69,7 @@ void my_touchpad_read(lv_indev_t *indev_driver, lv_indev_data_t *data) {
 }
 
 /* -------------------------------------------------------------------------- */
-/*  LVGL tick callback                                                         */
+/*  LVGL tick callback                                                        */
 /* -------------------------------------------------------------------------- */
 
 static uint32_t my_tick_get_cb(void) { return millis(); }
@@ -98,18 +77,13 @@ static uint32_t my_tick_get_cb(void) { return millis(); }
 
 void prgHMITask(void* pvParameters)
 {
-    vTaskDelay(2000);
     LogDebug("HMI PRG", "Init TFT & LVGL");
+
     lv_init();
-
-    #if LV_USE_LOG != 0
-        lv_log_register_print_cb(my_print);
-    #endif
-
-    tft.begin();
-    tft.setRotation(3);  // Landscape orientation
-    tft.fillScreen(TFT_BLACK);
-
+    
+    /*Set a tick source so that LVGL will know how much time elapsed. */
+    lv_tick_set_cb(my_tick_get_cb);
+    
     static lv_display_t *disp;
     disp = lv_display_create(screenWidth, screenHeight);
     lv_display_set_color_format(disp, LV_COLOR_FORMAT_RGB565);
@@ -120,37 +94,46 @@ void prgHMITask(void* pvParameters)
     indev = lv_indev_create();
     lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(indev, my_touchpad_read);
+    
+        
+    LogDebug("CALIB TFT", "Calibrating");
 
-    lv_tick_set_cb(my_tick_get_cb);
+    uint16_t calib_data[5] = { 365, 3394, 265, 3073, 5 };
+    uint16_t old_data[5];
+    /// Ottiene i dati di calibrazione dalla SD
+    for(uint8_t i=0; i < 5; i++)
+        old_data[i] = SD_Card.getValueByKey<uint16_t>("/touch_calibration.txt", "data[" + String(i) + "]");
+    
+    /*tft.fillScreen(TFT_BLACK);
+    tft.calibrateTouch(calib_data, TFT_RED, TFT_BLACK, 40);*/
+    tft.setTouch(calib_data);
+    /*tft.fillScreen(TFT_RED);
+    vTaskDelay(2000);
+
+    /// Scrive i dati di calibrazione che sono cambiati rispetto a prima nella SD
+    for(uint8_t i=0; i < 5; i++)
+        if(calib_data[i] != old_data[i])
+            SD_Card.setValueByKey("/touch_calibration.txt", "data[" + String(i) + "]", calib_data[i]);*/
 
     ui_init();
 
-    uint16_t data; 
-    uint32_t color_fg = TFT_RED;
-    uint32_t color_bg = TFT_BLACK;
-    uint8_t size = 10;
-    LogDebug("CALIB TFT", "Calibrating");
-    tft.calibrateTouch(&data, color_fg, color_bg, size);
-    tft.setTouch(&data);
-    LogDebug("CALIB TFT", "Data : %d", data);
-
-    LogInfo("HMI Setup", "HMI Setup Done");
-    uint32_t tmr = millis();
-    uint32_t cntTot = 1;
-    uint32_t cntSes = 1;
-    vTaskDelay(2000);
-    lv_obj_send_event(ui_Scheramata_Avvio, LV_EVENT_READY, NULL);
+    LogInfo("HMI Setup", "HMI Setup Done");//\nDatas : %d, %d, %d, %d, %d", calib_data[0], calib_data[1], calib_data[2], calib_data[3], calib_data[4]);
+    
+    /// DEBUG : Bypass scena iniziale di avvio macchina
+    set_var_stato_avvio_macchina(true);
+    uint32_t tmrLog = 0;
     while(1)
     {
-        lv_timer_handler();  // LVGL task handler
-        delay(5);
+        /// Update EEZ-Studio UI
+        ui_tick(); 
 
-        /*const uint32_t MILLIS = millis();
-        if(MILLIS - tmr >= 2000)
-        {
-            tmr = MILLIS;
-            lv_label_set_text_fmt(ui_Schermata_Principale_Cont_Caps_Ses, "%d", cntSes++);
-            lv_label_set_text_fmt(ui_Schermata_Principale_Cont_Caps_Tot, "%d", cntTot*=2);
-        }*/
+        /// Reference https://lvgl.io/docs/open/integration/overview Sezione "Sleep Management"
+        uint32_t time_until_next = lv_timer_handler();
+        /// Se non c'è nulla da fare ora, controllerà ancora fra un po'.
+        if(time_until_next == LV_NO_TIMER_READY)
+            time_until_next = LV_DEF_REFR_PERIOD; //33 ms by default in lv_conf.h
+        
+        /// Sempre consigliato dalla reference sopracitata
+        vTaskDelay(pdMS_TO_TICKS(time_until_next)); //Sleep the thread
     }
 }
