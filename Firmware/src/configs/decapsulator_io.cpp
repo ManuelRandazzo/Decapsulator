@@ -9,6 +9,7 @@ FanCtrl Ventola;
 DebPinHandler autoKill;
 DebPinHandler cadutaCaps;
 DebPinHandler presenzaCaps;
+TFT_eSPI tft = TFT_eSPI();
 
 #pragma endregion (OGGETTI_IO)
 
@@ -17,8 +18,27 @@ DebPinHandler presenzaCaps;
  */
 BaseType_t decapsulator_io_begin(void)
 {
+    /// Disabilita gli altri pin del bus SPI per evitare conflitti
+    pinMode(TFT_CS, OUTPUT);       /// TFT screen chip select
+    pinMode(TOUCH_CS, OUTPUT);     /// Touch controller chip select (if used)
+    pinMode(SD_CS, OUTPUT);        /// SD card chips select, must use GPIO 5 (ESP32 SS)
+    digitalWrite( TFT_CS, HIGH);   /// TFT screen chip select
+    digitalWrite( TOUCH_CS, HIGH); /// Touch controller chip select (if used)
+    digitalWrite( SD_CS, HIGH);    /// SD card chips select, must use GPIO 5 (ESP32 SS)
+  
+
+
+    /// TFT Disaplay e Touch
+    tft.begin();
+    tft.setRotation(3);  // Landscape orientation
+    tft.fillScreen(TFT_BLACK);
+
+    Serial.printf("TFT SPI Bodmer = %p\n", &tft.getSPIinstance());
+    Serial.printf("Global SPI addr = %p\n", &SPI);
+
     /// SD Card - Configurazione dei pin SPI dedicati sull'ESP32-S3 (dichiarati nel platformio.ini)
-    SD_Card.Init(TFT_SCLK, TFT_MISO, TFT_MOSI, SD_CS);
+    while(!SD_Card.Init(tft.getSPIinstance(), TFT_SCLK, TFT_MISO, TFT_MOSI, SD_CS))
+        vTaskDelay(100);
        
 
 
@@ -86,7 +106,7 @@ BaseType_t decapsulator_io_begin(void)
     cadutaCaps.begin(INTR, PIECE_PASSED_PIN   , "Caduta Capsule Pin"    , 10/* ms */, FALLING , INPUT);
     presenzaCaps.begin(INTR, PIECE_PRESENCE_PIN , "Presenza Capsule Pin"  , 30/* ms */, FALLING, INPUT); 
 
-    if(cadutaCaps.event())
+    /*if(cadutaCaps.event())
     {
         /// ATTENZIONE: Loggare Qualcosa nel display
         #ifdef LOG_ACTIVE_MAIN_PRG
@@ -102,7 +122,7 @@ BaseType_t decapsulator_io_begin(void)
                 LogError("Main Prg", "Valore lettura = %s", rawRead ? "HIGH" : "LOW");
             #endif
         } while(rawRead == cadutaCaps.getLevelTrig());
-    }
+    }*/
 
     return pdTRUE;
 }

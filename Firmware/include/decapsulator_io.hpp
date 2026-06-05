@@ -14,6 +14,8 @@
 #include "FanCtrl.hpp"
 /// Include la libreria per la gestione della SD Card
 #include "SavingFilesSD.hpp"
+/// Invlude la libreria per il TFT LCD
+#include "TFT_eSPI.h"
 
 
 #pragma region (EXTERNS)
@@ -25,6 +27,7 @@ extern FanCtrl Ventola;
 extern DebPinHandler autoKill;
 extern DebPinHandler cadutaCaps;
 extern DebPinHandler presenzaCaps;
+extern TFT_eSPI tft;
 
 /**
  * @brief Inizializza Motori, sensori, input e output del Decapsulator
