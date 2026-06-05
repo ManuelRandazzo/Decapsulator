@@ -42,17 +42,16 @@
 
 
 #pragma region INIZIALIZZAZIONE
-bool SaveToFile::Init(uint8_t sck, uint8_t miso, uint8_t mosi, uint8_t cs)
+bool SaveToFile::Init(SPIClass &spi, uint8_t sck, uint8_t miso, uint8_t mosi, uint8_t cs)
 {
-	SPI.begin(sck, miso, mosi, cs);
-	if(!SD.begin(cs))
+	if(!SD.begin(cs, spi, 350000, "/sd_card", 15, false))
 	{
 		Serial.printf("\nSD Card Init\nCard Mount Failed, check connections :\
 								     \nSD Card Declared Pins:\
 								     \n   - Sck : %d,\
 								     \n   - Miso: %d,\
 								     \n   - Mosi: %d,\
-								     \n   - Cs  : %d,", 
+								     \n   - Cs  : %d\n\n", 
 								     sck, miso, mosi, cs);
 		return false;
 	}
@@ -69,7 +68,7 @@ bool SaveToFile::Init(uint8_t sck, uint8_t miso, uint8_t mosi, uint8_t cs)
 	}
 	
 	Serial.printf("\nSD Card Infos\nSD Card Type: %s\
-							  \nSD Card Size: %.6fMiB\n", CardType, cardSize);
+							  \nSD Card Size: %.6fMiB\n", CardType.c_str(), cardSize);
 
 	return true;
 }
@@ -85,7 +84,7 @@ bool SaveToFile::Init(uint8_t sck, uint8_t miso, uint8_t mosi, uint8_t cs)
 /// Lista i file in una certa directory
 void SaveToFile::ls(String dirname, uint8_t levels, buffSD& existingFiles)
 {
-	Serial.printf("\nSD Card List\nListing directory: %s\n", dirname);
+	Serial.printf("\nSD Card List\nListing directory: %s\n", dirname.c_str());
 
 	File root = fs.open(dirname);
 	if(!root)
@@ -127,27 +126,27 @@ void SaveToFile::ls(String dirname, uint8_t levels, buffSD& existingFiles)
 		PathInfo += "/";
 	}
 	
-	Serial.printf("\nSD Card List\n%s", PathInfo);
+	Serial.printf("\nSD Card List\n%s", PathInfo.c_str());
 }
 
 /// Crea una nuova directory
 void  SaveToFile::mkdir(const String FilePath)
 {
-	Serial.printf("\nSD Card Make Directory\nCreating Directory: %s ...\n", FilePath);
+	Serial.printf("\nSD Card Make Directory\nCreating Directory: %s ...\n", FilePath.c_str());
 	if(fs.mkdir(FilePath))
-		Serial.printf("\nSD Card Make Directory\nDirectory created successfully: %s", FilePath);
+		Serial.printf("\nSD Card Make Directory\nDirectory created successfully: %s", FilePath.c_str());
 	else
-		Serial.printf("\nSD Card Make Directory\nFailed to make the directory: %s", FilePath);
+		Serial.printf("\nSD Card Make Directory\nFailed to make the directory: %s", FilePath.c_str());
 }
 
 /// Rimuove una directory e tutte le sue sottodirectory
 void SaveToFile::rmdir(const String FilePath)
 {
-	Serial.printf("\nSD Card Remove Directory\nRemoving Dir: %s\n ...", FilePath);
+	Serial.printf("\nSD Card Remove Directory\nRemoving Dir: %s\n ...", FilePath.c_str());
 	if(fs.rmdir(FilePath))
-		Serial.printf("\nSD Card Remove Directory\nDirectory removed successfully: %s", FilePath);
+		Serial.printf("\nSD Card Remove Directory\nDirectory removed successfully: %s", FilePath.c_str());
 	else
-		Serial.printf("\nSD Card Remove Directory\nFailed to remove the directory: %s", FilePath);
+		Serial.printf("\nSD Card Remove Directory\nFailed to remove the directory: %s", FilePath.c_str());
 }
 
 #pragma endregion DIRECTORIES MANAGMENT
@@ -169,12 +168,12 @@ void SaveToFile::rmdir(const String FilePath)
 		{
 			if(fs.exists(FilePath))
 			{
-				Serial.printf("\nSD Card Read\nFailed to open file for reading : %s", FilePath);
+				Serial.printf("\nSD Card Read\nFailed to open file for reading : %s", FilePath.c_str());
 				return "";
 			}
 			else
 			{
-				Serial.printf("\nSD Card Read\nFile doesn't exist : %s", FilePath);
+				Serial.printf("\nSD Card Read\nFile doesn't exist : %s", FilePath.c_str());
 				return "";
 			}
 		}
@@ -188,7 +187,7 @@ void SaveToFile::rmdir(const String FilePath)
 
 		file.close();
 
-		Serial.printf("\nSD Card Read\nFile readed successfully : %s\n", FilePath);
+		Serial.printf("\nSD Card Read\nFile readed successfully : %s\n", FilePath.c_str());
 
 		return FileContent;      
 	}
@@ -230,65 +229,9 @@ void SaveToFile::rmdir(const String FilePath)
 				FileContent = FileContent.substring(0, i);
 		}      
 
-		Serial.printf("\nSD Card read row\nRow readed successfully : %s\nContent of row : %s\n", FilePath, FileContent);
+		Serial.printf("\nSD Card read row\nRow readed successfully : %s\nContent of row : %s\n", FilePath.c_str(), FileContent.c_str());
 
 		return FileContent;
-	}
-	
-	/// Ritorna il valore (del tipo specificato nel template) corrispondende ad una chiave (versione esplicita).
-	/// @warning Se il parametro non è stato settato da setValueByKey() il dato non verrà letto correttamente
-	template <typename valType>
-	valType SaveToFile::getValueByKey(const String FilePath, String key)
-	{
-		String FileContent = this->readFile(FilePath);
-
-		/// Aggiunge " : " alla stringa utente perchè dopo questo vi sarà il valore
-		key += " : ";
-
-		/// Indice in cui inizia la key e quindi inizia il valore
-		int startValueIndex = FileContent.indexOf(key);
-
-		/// La stringa non esiste
-		if(startValueIndex < 0)
-			return valType{}; // Restituisce il costruttore base del tipo di dato. @link https://en.cppreference.com/cpp/language/value_initialization
-
-		/// Indice in cui finisce il valore
-		int stopValueIndex = FileContent.indexOf(",\n\n", startValueIndex);
-
-		/// Si salva il valore in una stringa, poi verrà castato in base al tipo supportato
-		String ValueStrToCast = FileContent.substring(startValueIndex + key.length(), stopValueIndex);
-
-		/// Valore da ritornare del tipo specificato dall'utente
-		valType ValueToReturn;
-
-		if constexpr (std::is_integral_v<valType>)
-		{
-			ValueToReturn = static_cast<valType>(ValueStrToCast.toInt());
-			Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %d", FilePath, key, ValueToReturn);
-		}
-		else if constexpr (std::is_same_v<valType, float>)
-		{
-			ValueToReturn = ValueStrToCast.toFloat();
-			Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %.5f", FilePath, key, ValueToReturn);
-		}
-		else if constexpr (std::is_same_v<valType, double>)
-		{
-			ValueToReturn = ValueStrToCast.toDouble();
-			Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %.5f", FilePath, key, ValueToReturn);
-		}
-		else if constexpr (std::is_same_v<valType, char> || std::is_same_v<valType, unsigned char>)
-		{
-			ValueToReturn = static_cast<valType>(ValueStrToCast.charAt(0));
-			Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %c", FilePath, key, ValueToReturn);
-		}
-		else if constexpr (std::is_same_v<valType, String>)
-		{
-			ValueToReturn = ValueStrToCast;
-			Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %s", FilePath, key, ValueToReturn);
-		}
-
-		/// Ritorna il valore castato della stringa
-		return ValueToReturn;
 	}
 
   	#pragma endregion READ FROM FILE
@@ -332,52 +275,6 @@ void SaveToFile::rmdir(const String FilePath)
 		StrToSend += "╚" +        EdgeSupInf         + "╝\n";
 
 		this->appendFile(FilePath, StrToSend);
-	}
-	
-	/// Scrive su un file la chiave e il valore corrispondente (versione non esplicita)
-	String SaveToFile::setValueByKey(const String FilePath, const String key, auto ValueToSet, String comment)
-	{
-		String FileContent = this->readFile(FilePath);
-
-		/// Se esiste un commento lo crea
-		comment = comment != "" ? "///" + comment : "";
-
-		/// Compone la riga nel formato giusto per poter poi essere letta da getValueByKey()    Risultato:      /// comment
-		String NewStr = comment + "\n" + key + " : " + String(ValueToSet) + ",\n\n";//                          key : ValueToSet,\n\n
-
-		/// Stringa per indicare l'azione svolta (se append o sovrascrive)
-		String LogStr; 
-
-		/// Se la chiave esiste già (endComment != -1) allora la sovrascrive
-		int endComment = FileContent.indexOf("\n" + key);
-		if(endComment != -1)
-		{
-			/// Trova dove comincia il commento
-			int startComment = FileContent.lastIndexOf("/// ", endComment) - 3;
-
-			/// Copia il commento in base agli indici trovati
-			String OldComment = FileContent.substring(startComment, endComment);
-			
-			/// Copia il vecchio valore
-			String OldValue = this->getValueByKey<String>(FilePath, key);
-
-			/// Compone la stringa che deve essere sostituita
-			String OldStr = OldComment + key + " : " + OldValue + ",\n\n";
-
-			/// Rimpiazza la vecchia key con quella nuova
-			replaceInFile(FilePath, OldStr, NewStr);
-			LogStr = "Replacement of key + value";
-		}
-		else /// Aggiunge la "key : value," alla fine del file
-		{
-			this->appendFile(FilePath, NewStr.c_str());
-			LogStr = "Creation of new key + value";
-		}
-
-		Serial.printf("\nSD Card Set Value\n%s successfully written in file path %s :\n ", LogStr, FilePath, NewStr);
-
-		/// Ritorna la stringa scritta
-		return NewStr;
 	}
 
 	/// Rimuove una key da un file
@@ -425,7 +322,7 @@ void SaveToFile::rmdir(const String FilePath)
 
 		Logs += file.print(message) ? "File written succesfully" : "Write failed";
 		
-		Serial.printf("\nSD Card Write\n%s", Logs);
+		Serial.printf("\nSD Card Write\n%s", Logs.c_str());
 
 		file.close();
 	}
@@ -450,7 +347,7 @@ void SaveToFile::rmdir(const String FilePath)
 
 		Logs += file.print(message) ? "Message appended succesfully" : "Append failed";
 	
-		Serial.printf("\nSD Card Write\n%s", Logs);
+		Serial.printf("\nSD Card Write\n%s", Logs.c_str());
 	
 		file.close();
 	}
@@ -474,18 +371,18 @@ void SaveToFile::rmdir(const String FilePath)
 	void SaveToFile::renameFile(const String FilePath1, const String FilePath2)
 	{
 		if(fs.rename(FilePath1, FilePath2))
-			Serial.printf("\nSD Card Rename file\nRenaming file %s to %s.\nFile renamed successfully", FilePath1, FilePath2);
+			Serial.printf("\nSD Card Rename file\nRenaming file %s to %s.\nFile renamed successfully", FilePath1.c_str(), FilePath2.c_str());
 		else
-			Serial.printf("\nSD Card Rename file\nRenaming file %s to %s.\nRename failed", FilePath1, FilePath2);
+			Serial.printf("\nSD Card Rename file\nRenaming file %s to %s.\nRename failed", FilePath1.c_str(), FilePath2.c_str());
 	}
 
 	/// Rimuove un file
 	void SaveToFile::rmfile(const String FilePath)
 	{
 		if(fs.remove(FilePath))
-			Serial.printf("\nSD Card Remove file\nDeleting file: %s.\nFile deleted successfully.", FilePath);
+			Serial.printf("\nSD Card Remove file\nDeleting file: %s.\nFile deleted successfully.", FilePath.c_str());
 		else
-			Serial.printf("\nSD Card Remove file\nDeleting file: %s.\nDelete failed.", FilePath);
+			Serial.printf("\nSD Card Remove file\nDeleting file: %s.\nDelete failed.", FilePath.c_str());
 	}
 	#pragma endregion RENAME / REMOVE FILE
 #pragma endregion FILES MANAGMENT

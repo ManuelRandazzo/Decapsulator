@@ -83,7 +83,7 @@ class SaveToFile
         SaveToFile() {};
 
         /// Inizializza la SD Card con i pin assegnati e logga alcune informazioni circa l'SD montata
-        bool Init(uint8_t sck, uint8_t miso, uint8_t mosi, uint8_t cs);
+        bool Init(SPIClass &spi, uint8_t sck, uint8_t miso, uint8_t mosi, uint8_t cs);
 
         /// Lista i file in una certa directory
         void ls(String dirname, uint8_t levels, buffSD& existingFiles);
@@ -106,10 +106,104 @@ class SaveToFile
         /// Ritorna il valore (del tipo specificato nel template) corrispondende ad una chiave (versione esplicita).
         /// @warning Se il parametro non è stato settato da setValueByKey() il dato non verrà letto correttamente
         template <typename valType>
-        valType getValueByKey(const String FilePath, String key);
+        valType getValueByKey(const String FilePath, String key)
+        {
+            String FileContent = this->readFile(FilePath);
+
+            /// Aggiunge " : " alla stringa utente perchè dopo questo vi sarà il valore
+            key += " : ";
+
+            /// Indice in cui inizia la key e quindi inizia il valore
+            int startValueIndex = FileContent.indexOf(key);
+
+            /// La stringa non esiste
+            if(startValueIndex < 0)
+                return valType{}; // Restituisce il costruttore base del tipo di dato. @link https://en.cppreference.com/cpp/language/value_initialization
+
+            /// Indice in cui finisce il valore
+            int stopValueIndex = FileContent.indexOf(",\n\n", startValueIndex);
+
+            /// Si salva il valore in una stringa, poi verrà castato in base al tipo supportato
+            String ValueStrToCast = FileContent.substring(startValueIndex + key.length(), stopValueIndex);
+
+            /// Valore da ritornare del tipo specificato dall'utente
+            valType ValueToReturn;
+
+            if constexpr (std::is_integral_v<valType>)
+            {
+                ValueToReturn = static_cast<valType>(ValueStrToCast.toInt());
+                Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %d", FilePath.c_str(), key.c_str(), ValueToReturn);
+            }
+            else if constexpr (std::is_same_v<valType, float>)
+            {
+                ValueToReturn = ValueStrToCast.toFloat();
+                Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %.5f", FilePath.c_str(), key.c_str(), ValueToReturn);
+            }
+            else if constexpr (std::is_same_v<valType, double>)
+            {
+                ValueToReturn = ValueStrToCast.toDouble();
+                Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %.5f", FilePath.c_str(), key.c_str(), ValueToReturn);
+            }
+            else if constexpr (std::is_same_v<valType, char> || std::is_same_v<valType, unsigned char>)
+            {
+                ValueToReturn = static_cast<valType>(ValueStrToCast.charAt(0));
+                Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %c", FilePath.c_str(), key.c_str(), ValueToReturn);
+            }
+            else if constexpr (std::is_same_v<valType, String>)
+            {
+                ValueToReturn = ValueStrToCast;
+                Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %s", FilePath.c_str(), key.c_str(), ValueToReturn);
+            }
+
+            /// Ritorna il valore castato della stringa
+            return ValueToReturn;
+        }
 
         /// Scrive su un file la chiave e il valore corrispondende di qualsiasi tipo
-        String setValueByKey(const String FilePath, const String key, auto ValueToSet, String comment = "");
+        String setValueByKey(const String FilePath, const String key, auto ValueToSet, String comment = "")
+        {
+            String FileContent = this->readFile(FilePath);
+
+            /// Se esiste un commento lo crea
+            comment = comment != "" ? "///" + comment : "";
+
+            /// Compone la riga nel formato giusto per poter poi essere letta da getValueByKey()    Risultato:      /// comment
+            String NewStr = comment + "\n" + key + " : " + String(ValueToSet) + ",\n\n";//                          key : ValueToSet,\n\n
+
+            /// Stringa per indicare l'azione svolta (se append o sovrascrive)
+            String LogStr; 
+
+            /// Se la chiave esiste già (endComment != -1) allora la sovrascrive
+            int endComment = FileContent.indexOf("\n" + key);
+            if(endComment != -1)
+            {
+                /// Trova dove comincia il commento
+                int startComment = FileContent.lastIndexOf("/// ", endComment) - 3;
+
+                /// Copia il commento in base agli indici trovati
+                String OldComment = FileContent.substring(startComment, endComment);
+                
+                /// Copia il vecchio valore
+                String OldValue = this->getValueByKey<String>(FilePath, key);
+
+                /// Compone la stringa che deve essere sostituita
+                String OldStr = OldComment + key + " : " + OldValue + ",\n\n";
+
+                /// Rimpiazza la vecchia key con quella nuova
+                replaceInFile(FilePath, OldStr, NewStr);
+                LogStr = "Replacement of key + value";
+            }
+            else /// Aggiunge la "key : value," alla fine del file
+            {
+                this->appendFile(FilePath, NewStr.c_str());
+                LogStr = "Creation of new key + value";
+            }
+
+            Serial.printf("\n%s\nSD Card Set Value\n%s successfully written in file path %s :\n ", LogStr.c_str(), FilePath.c_str(), NewStr.c_str());
+
+            /// Ritorna la stringa scritta
+            return NewStr;
+        }
 
         /// Rimuove una key da un file
         void removeKey(const String FilePath, const String key);
