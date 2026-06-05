@@ -44,7 +44,7 @@
 #pragma region INIZIALIZZAZIONE
 bool SaveToFile::Init(SPIClass &spi, uint8_t sck, uint8_t miso, uint8_t mosi, uint8_t cs)
 {
-	if(!SD.begin(cs, spi, 350000, "/sd_card", 15, false))
+	if(!SD.begin(cs, spi, SPI_SD_FREQUENCY, "/sd_card", 15, false))
 	{
 		Serial.printf("\nSD Card Init\nCard Mount Failed, check connections :\
 								     \nSD Card Declared Pins:\
