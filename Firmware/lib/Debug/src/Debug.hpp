@@ -148,6 +148,8 @@ struct log_msg_t
         #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
             do\
             {\
+                if(LoggerQueueHandler == NULL)\
+                    break;\
                 log_msg_t msg;\
                 snprintf(msg.message.data(), LOGGER_MAX_MESSAGE_SIZE, _FORMAT_(logType, format, tag), ##__VA_ARGS__);\
                 _TOPIC_MQTT_(logType ## _LOG_TOPIC, tag);\
@@ -158,6 +160,8 @@ struct log_msg_t
         #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
             do\
             {\
+                if(LoggerQueueHandler == NULL)\
+                    break;\
                 log_msg_t msg;\
                 snprintf(msg.message.data(), LOGGER_MAX_MESSAGE_SIZE, _FORMAT_(logType, format, tag), ##__VA_ARGS__);\
                 xQueueSend(LoggerQueueHandler, &msg, 0);\
@@ -168,6 +172,8 @@ struct log_msg_t
     #define __ISR_DECAPSULATOR_LOG(logType, tag, format, ...)\
         do\
         {\
+            if(LoggerQueueHandler == NULL)\
+                break;\
             BaseType_t __LoggerQueueHigherPriorityTaskWoken__ = pdFALSE;\
             log_msg_t msg;\
             snprintf(msg.message.data(), LOGGER_MAX_MESSAGE_SIZE, _FORMAT_(logType, format, tag), ##__VA_ARGS__);\
