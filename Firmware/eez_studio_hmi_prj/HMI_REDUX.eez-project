@@ -333,14 +333,6 @@
         "native": true
       },
       {
-        "objID": "a23724fe-13f3-4767-f06b-71d0ae8d2023",
-        "name": "avvio_macchina",
-        "description": "uso interno eez flow",
-        "type": "boolean",
-        "defaultValue": "false",
-        "persistent": false
-      },
-      {
         "objID": "40eb0717-836a-4007-ad4a-0c54a127446d",
         "name": "Stato_Comando_Macchina",
         "description": "uso interno eez flow",
@@ -495,6 +487,14 @@
         "defaultValue": "\"\"",
         "persistent": false,
         "native": true
+      },
+      {
+        "objID": "38dd82f1-35e7-499d-a6b4-7ff3276814b4",
+        "name": "Connessione_Presente",
+        "type": "boolean",
+        "defaultValue": "false",
+        "persistent": false,
+        "native": true
       }
     ],
     "structures": [],
@@ -640,7 +640,7 @@
               "type": "LVGLLabelWidget",
               "left": 215,
               "top": 288,
-              "width": 0,
+              "width": 94,
               "height": 16,
               "customInputs": [],
               "customOutputs": [],
@@ -1732,17 +1732,17 @@
         {
           "objID": "b3f2f6c8-b623-46f1-f8b2-9a274166bdb8",
           "type": "SetVariableActionComponent",
-          "left": 358,
-          "top": 353,
-          "width": 245,
+          "left": 578,
+          "top": 335,
+          "width": 196,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
           "entries": [
             {
               "objID": "63e5738a-0b45-4666-f91d-1905756962bc",
-              "variable": "avvio_macchina",
-              "value": "!avvio_macchina"
+              "variable": "Comando_Macchina",
+              "value": "false"
             }
           ]
         },
@@ -1751,19 +1751,19 @@
           "type": "WatchVariableActionComponent",
           "left": -404,
           "top": 522,
-          "width": 160,
+          "width": 172,
           "height": 54,
           "customInputs": [],
           "customOutputs": [],
-          "variable": "avvio_macchina"
+          "variable": "Comando_Macchina"
         },
         {
           "objID": "7741c944-0208-4ade-baf6-f3de6f5162ff",
           "type": "SetVariableActionComponent",
-          "left": 325,
-          "top": 620,
+          "left": 339,
+          "top": 644,
           "width": 245,
-          "height": 57,
+          "height": 79,
           "customInputs": [],
           "customOutputs": [],
           "entries": [
@@ -1771,16 +1771,21 @@
               "objID": "3e37887a-0c29-410a-b4a7-f46f85955618",
               "variable": "Stato_Comando_Macchina",
               "value": "\"START\""
+            },
+            {
+              "objID": "03e9af07-5307-4141-e98b-f5d2e5200e4e",
+              "variable": "Comando_Macchina",
+              "value": "false"
             }
           ]
         },
         {
           "objID": "5f93b08b-6bd8-4618-ff3f-1450ee27637d",
           "type": "SetVariableActionComponent",
-          "left": 325,
-          "top": 525,
+          "left": 339,
+          "top": 500,
           "width": 239,
-          "height": 57,
+          "height": 79,
           "customInputs": [],
           "customOutputs": [],
           "entries": [
@@ -1788,14 +1793,19 @@
               "objID": "f2382be3-4ea5-43f0-b09c-4756aaf18b47",
               "variable": "Stato_Comando_Macchina",
               "value": "\"STOP\""
+            },
+            {
+              "objID": "62767b4e-6cd6-43dc-cf13-16f6fcb0a26c",
+              "variable": "Comando_Macchina",
+              "value": "true"
             }
           ]
         },
         {
           "objID": "beb4df1c-196d-486a-877c-f0f2dffc91d0",
           "type": "LVGLActionComponent",
-          "left": 50,
-          "top": 509,
+          "left": 38,
+          "top": 500,
           "width": 262,
           "height": 92,
           "customInputs": [],
@@ -1832,7 +1842,7 @@
           "objID": "5a59509f-b097-4d99-92ab-04809ffde17f",
           "type": "LVGLActionComponent",
           "left": 38,
-          "top": 631,
+          "top": 644,
           "width": 274,
           "height": 92,
           "customInputs": [],
@@ -1866,44 +1876,10 @@
           ]
         },
         {
-          "objID": "ad9a8bdc-3f5d-41d8-ace2-fc18f3dbc5ba",
-          "type": "SetVariableActionComponent",
-          "left": 629,
-          "top": 525,
-          "width": 189,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "78b4eeb8-26da-4c43-d67d-33adf2775b78",
-              "variable": "Comando_Macchina",
-              "value": "true"
-            }
-          ]
-        },
-        {
-          "objID": "a1befc97-88c3-4b37-f877-691161dede64",
-          "type": "SetVariableActionComponent",
-          "left": 629,
-          "top": 620,
-          "width": 196,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "aec40585-102a-4f8f-dd44-e99a2fd129a5",
-              "variable": "Comando_Macchina",
-              "value": "false"
-            }
-          ]
-        },
-        {
           "objID": "4c3c0e39-3763-4358-a554-a061d16b5302",
           "type": "LVGLActionComponent",
           "left": 166,
-          "top": -54,
+          "top": -121,
           "width": 385,
           "height": 54,
           "customInputs": [],
@@ -1930,11 +1906,11 @@
           "type": "CompareActionComponent",
           "left": -210,
           "top": 522,
-          "width": 186,
+          "width": 199,
           "height": 70,
           "customInputs": [],
           "customOutputs": [],
-          "A": "avvio_macchina",
+          "A": "Comando_Macchina",
           "B": "true",
           "operator": "="
         },
@@ -2031,8 +2007,8 @@
         {
           "objID": "da55010d-6c68-4f16-8416-bc4e3b6530a1",
           "type": "SetVariableActionComponent",
-          "left": 519,
-          "top": 160,
+          "left": 551,
+          "top": 84,
           "width": 189,
           "height": 57,
           "customInputs": [],
@@ -2044,16 +2020,39 @@
               "value": "false"
             }
           ]
+        },
+        {
+          "objID": "bef20122-b63d-4aa0-d86e-a3850fb00dbf",
+          "type": "CompareActionComponent",
+          "left": 339,
+          "top": 322,
+          "width": 199,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "A": "Comando_Macchina",
+          "B": "true",
+          "operator": "="
+        },
+        {
+          "objID": "f5749af8-293c-4d4b-efa7-f3271d0d58f0",
+          "type": "SetVariableActionComponent",
+          "left": 578,
+          "top": 392,
+          "width": 189,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "ef0d9677-4d2e-4f34-90b7-d150fa2c7f42",
+              "variable": "Comando_Macchina",
+              "value": "true"
+            }
+          ]
         }
       ],
       "connectionLines": [
-        {
-          "objID": "6a93ab42-6649-4f53-d378-ccfc2f8c3813",
-          "source": "8b46e9ff-8509-47c0-eaaa-969c57e99d46",
-          "output": "PRESSED",
-          "target": "b3f2f6c8-b623-46f1-f8b2-9a274166bdb8",
-          "input": "@seqin"
-        },
         {
           "objID": "2fe61665-469c-4029-dd10-3fd73b33e4a0",
           "source": "beb4df1c-196d-486a-877c-f0f2dffc91d0",
@@ -2066,20 +2065,6 @@
           "source": "5a59509f-b097-4d99-92ab-04809ffde17f",
           "output": "@seqout",
           "target": "7741c944-0208-4ade-baf6-f3de6f5162ff",
-          "input": "@seqin"
-        },
-        {
-          "objID": "a184320c-6fe4-4f2c-8a36-6939b8506825",
-          "source": "5f93b08b-6bd8-4618-ff3f-1450ee27637d",
-          "output": "@seqout",
-          "target": "ad9a8bdc-3f5d-41d8-ace2-fc18f3dbc5ba",
-          "input": "@seqin"
-        },
-        {
-          "objID": "59773301-b39f-4105-d7fc-007949648a0f",
-          "source": "7741c944-0208-4ade-baf6-f3de6f5162ff",
-          "output": "@seqout",
-          "target": "a1befc97-88c3-4b37-f877-691161dede64",
           "input": "@seqin"
         },
         {
@@ -2143,6 +2128,27 @@
           "source": "186042a2-7d89-4490-c98d-70e64817552a",
           "output": "PRESSED",
           "target": "da55010d-6c68-4f16-8416-bc4e3b6530a1",
+          "input": "@seqin"
+        },
+        {
+          "objID": "a70e7879-ddfd-4dc5-9b9c-1cebe07c200b",
+          "source": "8b46e9ff-8509-47c0-eaaa-969c57e99d46",
+          "output": "PRESSED",
+          "target": "bef20122-b63d-4aa0-d86e-a3850fb00dbf",
+          "input": "@seqin"
+        },
+        {
+          "objID": "57d05ecf-ece0-49cf-bf42-8f433363cee5",
+          "source": "bef20122-b63d-4aa0-d86e-a3850fb00dbf",
+          "output": "True",
+          "target": "b3f2f6c8-b623-46f1-f8b2-9a274166bdb8",
+          "input": "@seqin"
+        },
+        {
+          "objID": "6de0f11b-3402-4869-c9e6-75673d01d7c7",
+          "source": "bef20122-b63d-4aa0-d86e-a3850fb00dbf",
+          "output": "False",
+          "target": "f5749af8-293c-4d4b-efa7-f3271d0d58f0",
           "input": "@seqin"
         }
       ],
@@ -9294,15 +9300,7 @@
                 "childStyles": []
               },
               "timeline": [],
-              "eventHandlers": [
-                {
-                  "objID": "281cea95-0bfb-40ef-d8e9-304fc747e3dc",
-                  "eventName": "READY",
-                  "handlerType": "flow",
-                  "action": "Calibrazione_Touch",
-                  "userData": 0
-                }
-              ],
+              "eventHandlers": [],
               "identifier": "Tastiera Config WiFi",
               "leftUnit": "px",
               "topUnit": "px",
@@ -9498,8 +9496,8 @@
         {
           "objID": "502c4ecd-fe04-49e7-d942-e1ae9dce4192",
           "type": "CompareActionComponent",
-          "left": 945,
-          "top": 229,
+          "left": 901,
+          "top": 223,
           "width": 346,
           "height": 70,
           "customInputs": [],
@@ -9511,10 +9509,10 @@
         {
           "objID": "86fbf926-c243-4102-e154-87f2ecd706b3",
           "type": "SetVariableActionComponent",
-          "left": 325,
-          "top": 383,
+          "left": 901,
+          "top": 320,
           "width": 312,
-          "height": 57,
+          "height": 79,
           "customInputs": [],
           "customOutputs": [],
           "entries": [
@@ -9522,14 +9520,19 @@
               "objID": "b360c8a0-4513-4ffc-efe1-dfa6b31b2c04",
               "variable": "Messaggio_Config_WiFi",
               "value": "\"NOME RETE\\nERRATO\""
+            },
+            {
+              "objID": "37b756fe-1272-4949-f0b9-a7fb828e3e72",
+              "variable": "Nome_Rete_Inserito",
+              "value": "\"\""
             }
           ]
         },
         {
           "objID": "6181a971-98bf-4aac-9695-8596f93643c5",
           "type": "LVGLActionComponent",
-          "left": 894,
-          "top": 542,
+          "left": 1401,
+          "top": 544,
           "width": 403,
           "height": 111,
           "customInputs": [],
@@ -9578,10 +9581,10 @@
         {
           "objID": "b33403ff-9884-4cf1-a850-29aed22d2538",
           "type": "SetVariableActionComponent",
-          "left": 955,
-          "top": 392,
+          "left": 1347,
+          "top": 352,
           "width": 337,
-          "height": 57,
+          "height": 79,
           "customInputs": [],
           "customOutputs": [],
           "entries": [
@@ -9589,14 +9592,19 @@
               "objID": "ea324c74-1612-44cc-db55-02e574ddc1fc",
               "variable": "Messaggio_Config_WiFi",
               "value": "\"PASSWORD RETE\\nERRATA\""
+            },
+            {
+              "objID": "d2f93e4b-0a30-4670-e250-6b4db5adea4a",
+              "variable": "Password_Rete_Inserita",
+              "value": "\"\""
             }
           ]
         },
         {
           "objID": "934ae316-b81c-4cca-f609-e1287c85cfe3",
           "type": "LVGLActionComponent",
-          "left": 1401,
-          "top": 229,
+          "left": 1347,
+          "top": 223,
           "width": 403,
           "height": 111,
           "customInputs": [],
@@ -9645,10 +9653,10 @@
         {
           "objID": "80d4aab8-51d9-465a-9af0-93887bde4eec",
           "type": "SetVariableActionComponent",
-          "left": 1836,
-          "top": 229,
+          "left": 1797,
+          "top": 223,
           "width": 392,
-          "height": 57,
+          "height": 123,
           "customInputs": [],
           "customOutputs": [],
           "entries": [
@@ -9656,14 +9664,29 @@
               "objID": "25c3df3b-5cf6-46a1-f232-b1438f98cf97",
               "variable": "Messaggio_Config_WiFi",
               "value": "\"RETE CONFIGURATA\\nCON SUCCESSO\""
+            },
+            {
+              "objID": "bdd66487-d8cc-4049-d51d-bfcc6dcd4353",
+              "variable": "Connessione_Presente",
+              "value": "true"
+            },
+            {
+              "objID": "0f916bd6-0274-469b-b876-2d0012561c4c",
+              "variable": "Password_Rete_Inserita",
+              "value": "\"\""
+            },
+            {
+              "objID": "79d49ad1-7ea3-46b9-97ae-0bcf62f9d97f",
+              "variable": "Nome_Rete_Inserito",
+              "value": "\"\""
             }
           ]
         },
         {
           "objID": "3f5f869d-7cd6-4246-d3da-4c3b4934b14b",
           "type": "LVGLActionComponent",
-          "left": 2407,
-          "top": 188,
+          "left": 2375,
+          "top": 223,
           "width": 409,
           "height": 111,
           "customInputs": [],
@@ -9712,8 +9735,8 @@
         {
           "objID": "7f4a9909-37ff-42a1-f69d-b05dcca61c9b",
           "type": "DelayActionComponent",
-          "left": 2285,
-          "top": 221,
+          "left": 2242,
+          "top": 223,
           "width": 87,
           "height": 54,
           "customInputs": [],
@@ -9723,8 +9746,8 @@
         {
           "objID": "839368eb-2f02-4dff-bf4d-cc7ee4c528bd",
           "type": "DelayActionComponent",
-          "left": 1332,
-          "top": 542,
+          "left": 1839,
+          "top": 544,
           "width": 87,
           "height": 54,
           "customInputs": [],
@@ -9734,8 +9757,8 @@
         {
           "objID": "9254977a-1059-421c-d6e2-873b89d2b8ce",
           "type": "LVGLActionComponent",
-          "left": 1454,
-          "top": 550,
+          "left": 1961,
+          "top": 552,
           "width": 329,
           "height": 92,
           "customInputs": [],
@@ -9766,74 +9789,6 @@
               "disabledType": "literal"
             }
           ]
-        },
-        {
-          "objID": "bffc8fc7-4110-45cf-a23a-a5b9598b1005",
-          "type": "SetVariableActionComponent",
-          "left": 651,
-          "top": 383,
-          "width": 189,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "bfa12316-85a9-49d4-e177-66361b0b9b23",
-              "variable": "Nome_Rete_Inserito",
-              "value": "\"\""
-            }
-          ]
-        },
-        {
-          "objID": "8265461f-9ddf-4692-cc78-e92ad8643f59",
-          "type": "SetVariableActionComponent",
-          "left": 1305,
-          "top": 397,
-          "width": 214,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "e95261b1-e985-4dc8-d1f5-be1a12f9e01f",
-              "variable": "Password_Rete_Inserita",
-              "value": "\"\""
-            }
-          ]
-        },
-        {
-          "objID": "9e444002-0c72-4356-a3c8-6629e46a4baa",
-          "type": "SetVariableActionComponent",
-          "left": 1836,
-          "top": 299,
-          "width": 214,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "6d2e919b-2c87-48e7-a9f5-e729a959d1c4",
-              "variable": "Password_Rete_Inserita",
-              "value": "\"\""
-            }
-          ]
-        },
-        {
-          "objID": "99f59c89-f7d9-40a4-ffd2-3d90e5daf459",
-          "type": "SetVariableActionComponent",
-          "left": 2061,
-          "top": 299,
-          "width": 189,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "13a1e53e-7ad2-41eb-d190-bd645e70c2fb",
-              "variable": "Nome_Rete_Inserito",
-              "value": "\"\""
-            }
-          ]
         }
       ],
       "connectionLines": [
@@ -9856,13 +9811,6 @@
           "source": "d975a948-7437-4350-dbb6-ea34a160ef60",
           "output": "PRESSED",
           "target": "1e30a498-5765-4bd5-da25-35f3dfa8cc06",
-          "input": "@seqin"
-        },
-        {
-          "objID": "d5cd96c9-ab4b-4d71-bb95-556f03f66f08",
-          "source": "664fedc4-2516-4a7d-9f50-85cab12cca7f",
-          "output": "READY",
-          "target": "759d2308-2924-4283-db18-c7db95ed5274",
           "input": "@seqin"
         },
         {
@@ -9933,34 +9881,6 @@
           "source": "80d4aab8-51d9-465a-9af0-93887bde4eec",
           "output": "@seqout",
           "target": "7f4a9909-37ff-42a1-f69d-b05dcca61c9b",
-          "input": "@seqin"
-        },
-        {
-          "objID": "b085fd97-ea13-4f3b-f9f3-c2b8a66ec795",
-          "source": "86fbf926-c243-4102-e154-87f2ecd706b3",
-          "output": "@seqout",
-          "target": "bffc8fc7-4110-45cf-a23a-a5b9598b1005",
-          "input": "@seqin"
-        },
-        {
-          "objID": "80212f15-04db-4a3f-b83b-198aca9ab98d",
-          "source": "b33403ff-9884-4cf1-a850-29aed22d2538",
-          "output": "@seqout",
-          "target": "8265461f-9ddf-4692-cc78-e92ad8643f59",
-          "input": "@seqin"
-        },
-        {
-          "objID": "283adf3d-135b-4000-8735-769b7cf55ba0",
-          "source": "934ae316-b81c-4cca-f609-e1287c85cfe3",
-          "output": "@seqout",
-          "target": "9e444002-0c72-4356-a3c8-6629e46a4baa",
-          "input": "@seqin"
-        },
-        {
-          "objID": "18124dad-9f1c-42dd-e88e-7922e322308c",
-          "source": "9e444002-0c72-4356-a3c8-6629e46a4baa",
-          "output": "@seqout",
-          "target": "99f59c89-f7d9-40a4-ffd2-3d90e5daf459",
           "input": "@seqin"
         },
         {
