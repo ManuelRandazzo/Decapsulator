@@ -30,16 +30,16 @@ using namespace std;// Usato per le stringhe standard del c++
 
     
 /// Definisce la lunghezza della coda dei log
-#define LOGGER_QUEUE_LEN 20
+#define LOGGER_QUEUE_LEN 100
 #define LOGGER_MAX_MESSAGE_SIZE 512
 #define LOGGER_BEGIN_INIT_TIMEOUT_MS 5000
 
 /// @attention Viene perso anche l'OTA e l'MQTT commentando questa riga la quale disattiva l'inizializzazione del WiFi
-#define WiFi_ACTIVE
+//#define WiFi_ACTIVE
 /// @info: Commentando questa riga si disattivano i LOG senza il bisogno di cancellarli nel programma
 #define LOG_ACTIVE
 /// @info: Commentando questa riga si disattivano i LOG MQTT senza il bisogno di cancellarli nel programma
-#define LOG_ACTIVE_MQTT
+//#define LOG_ACTIVE_MQTT
 /// @info: Commentando questa riga si disattivano i log in SD
 //#define LOG_COPY_TO_SD
 /// @info: Commentando questa riga non vi saranno più log da parte del Programma Principale del decapsulator

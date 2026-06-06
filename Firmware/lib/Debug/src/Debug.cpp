@@ -280,12 +280,14 @@ void LoggerTask(void* pvParameters)
         /// Elimina questa task se non ci sono i log attivi
         vTaskDelete(NULL);
     #endif
+
+    LogBegin(LOGGER_BEGIN_INIT_TIMEOUT_MS);
     
     log_msg_t to_log;
 
     /// Delay tra la fine di un print e l'inizio di un altro
     uint32_t lastTime = 0;
-    constexpr uint32_t LOG_DELAY_MS = 5;
+    constexpr uint32_t LOG_DELAY_MS = 1000;
 
     /// Salvataggio in SD
     #ifdef LOG_COPY_TO_SD
@@ -298,8 +300,6 @@ void LoggerTask(void* pvParameters)
         SD_Card.rmfile(logPathSD); /// Ad ogni accensione viene rimosso il file di log dalla SD
     #endif
 
-    LogBegin(LOGGER_BEGIN_INIT_TIMEOUT_MS);
-
     while(1)
     {
         while(millis() - lastTime <  LOG_DELAY_MS);
@@ -307,7 +307,7 @@ void LoggerTask(void* pvParameters)
         /// Attende all'infinito che qualcuno invii un log
         xQueueReceive(LoggerQueueHandler, &to_log, portMAX_DELAY);
 
-        to_log.message.resize(strlen(to_log.message.c_str()));
+        //to_log.message.resize(strlen(to_log.message.c_str()));
 
         if(to_log.message != "")
         {
@@ -322,6 +322,7 @@ void LoggerTask(void* pvParameters)
 
             /// Copia il messaggio in SD
             #ifdef LOG_COPY_TO_SD
+                const uint32_t MILLIS = millis();
                 if(MILLIS - lastTimeWriteSD >= LOG_DELAY_SD_MS || buffIndexSD == SD_BUFFER_LEN)
                 {
                     /// Salva il nuovo tempo
