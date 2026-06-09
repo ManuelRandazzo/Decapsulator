@@ -33,9 +33,6 @@ BaseType_t decapsulator_io_begin(void)
     tft.setRotation(3);  // Landscape orientation
     tft.fillScreen(TFT_BLACK);
 
-    Serial.printf("TFT SPI Bodmer = %p\n", &tft.getSPIinstance());
-    Serial.printf("Global SPI addr = %p\n", &SPI);
-
     /// SD Card - Configurazione dei pin SPI dedicati sull'ESP32-S3 (dichiarati nel platformio.ini)
     while(!SD_Card.Init(tft.getSPIinstance(), TFT_SCLK, TFT_MISO, TFT_MOSI, SD_CS))
         vTaskDelay(100);
