@@ -89,6 +89,8 @@ extern const char *get_var_nome_errore();
 extern void set_var_nome_errore(const char *value);
 extern bool get_var_connessione_presente();
 extern void set_var_connessione_presente(bool value);
+extern bool get_var_pulsante_errore();
+extern void set_var_pulsante_errore(bool value);
 
 #ifdef __cplusplus
 }

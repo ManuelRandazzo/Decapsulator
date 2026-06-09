@@ -1,13 +1,13 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/3",
+    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/2",
     "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/0",
-    "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/43",
+    "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/30",
     "selectedStyleObject": "[HMI_REDUX.eez-project]:/lvglStyles/styles/5",
     "selectedThemeObject": "[HMI_REDUX.eez-project]:/themes/0",
     "selectedBitmapObject": "[HMI_REDUX.eez-project]:/bitmaps/1",
     "subnavigationSelectedItems": {
-      "variables-tab/sub-navigation/selected-item": "Widgets"
+      "variables-tab/sub-navigation/selected-item": "Global"
     }
   },
   "layoutModel": {
@@ -212,31 +212,31 @@
               "type": "tabset",
               "id": "EDITORS",
               "weight": 53.682227594236906,
-              "selected": 4,
+              "selected": 6,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
                 {
                   "type": "tab",
-                  "id": "#1da8cbec-09f8-40c5-914c-72a7556eb6e7",
+                  "id": "#6c77b72a-0a86-4978-9f45-9abf521f69fd",
                   "name": "Schermata Logger",
                   "component": "editor",
                   "config": {
                     "objectPath": "[HMI_REDUX.eez-project]:/userPages/6",
-                    "permanent": false
+                    "permanent": true
                   },
                   "icon": "svg:page"
                 },
                 {
                   "type": "tab",
-                  "id": "#e6f90bb5-c698-4a25-9fd3-493b49fd91b0",
-                  "name": "Calibrazione_Touch",
+                  "id": "#1da8cbec-09f8-40c5-914c-72a7556eb6e7",
+                  "name": "Scheramta Config WiFi",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[HMI_REDUX.eez-project]:/actions/0",
-                    "permanent": false
+                    "objectPath": "[HMI_REDUX.eez-project]:/userPages/7",
+                    "permanent": true
                   },
-                  "icon": "material:code"
+                  "icon": "svg:page"
                 },
                 {
                   "type": "tab",
@@ -304,7 +304,8 @@
                   },
                   "icon": "svg:page"
                 }
-              ]
+              ],
+              "active": true
             },
             {
               "type": "row",
@@ -324,8 +325,7 @@
                       "enableClose": false,
                       "icon": "svg:properties"
                     }
-                  ],
-                  "active": true
+                  ]
                 },
                 {
                   "type": "tabset",
@@ -1223,10 +1223,10 @@
       },
       "transform": {
         "translate": {
-          "x": -767.7154281621454,
-          "y": -232.04260261719014
+          "x": -712.8607070818488,
+          "y": -455.41151488872345
         },
-        "scale": 3
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1260,20 +1260,18 @@
           },
           "4": {
             "0": {},
-            "1": {
-              "$selected": true
-            }
+            "1": {}
           }
         },
         "1": {},
-        "8": {}
+        "5": {}
       },
       "transform": {
         "translate": {
-          "x": -736.4241480795299,
-          "y": -278.24309528783226
+          "x": -488.0157284381132,
+          "y": -157.14372258062025
         },
-        "scale": 3
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1296,10 +1294,10 @@
       },
       "transform": {
         "translate": {
-          "x": -655.6023054312714,
-          "y": -224.19333392719636
+          "x": -1658.9000273847023,
+          "y": -454.1296304544394
         },
-        "scale": 3
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1315,21 +1313,24 @@
           "0": {},
           "1": {},
           "2": {},
-          "3": {},
+          "3": {
+            "0": {
+              "$selected": true
+            }
+          },
           "4": {},
-          "5": {
-            "$selected": true
-          }
+          "5": {}
         },
         "1": {},
-        "4": {}
+        "4": {},
+        "6": {}
       },
       "transform": {
         "translate": {
-          "x": -310.154505511765,
-          "y": -196.79980901151248
+          "x": -628.154505511765,
+          "y": -272.7998090115125
         },
-        "scale": 3
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1376,7 +1377,7 @@
           "x": -507.2850316436088,
           "y": -169.37240627602796
         },
-        "scale": 3
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1398,7 +1399,7 @@
           "x": -172.34523809523807,
           "y": -245.19727891156458
         },
-        "scale": 3
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1423,9 +1424,9 @@
       "transform": {
         "translate": {
           "x": -559.7515809839686,
-          "y": 102.90154279109538
+          "y": 2.9015427910953804
         },
-        "scale": 3
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1466,18 +1467,14 @@
       "selectionBack": {
         "0": {
           "0": {}
-        },
-        "6": {},
-        "10": {
-          "$selected": true
         }
       },
       "transform": {
         "translate": {
-          "x": -1548.068291405942,
-          "y": -374.0051968122792
+          "x": -418.2543450146437,
+          "y": -46.29743968567635
         },
-        "scale": 1
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1504,7 +1501,7 @@
           "x": -57.700000000000045,
           "y": -124
         },
-        "scale": 1
+        "scale": 0.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1520,13 +1517,13 @@
   "searchMatchWholeWord": false,
   "replaceEnabled": false,
   "replaceText": "",
-  "pageRuntimeFrontFace": true,
+  "pageRuntimeFrontFace": false,
   "breakpoints": {},
   "watchExpressions": [],
   "showComponentDescriptions": true,
   "logsPanelFilter": "all",
   "selectedStylePropertyName": "",
-  "lvglPart": "ITEMS",
+  "lvglPart": "MAIN",
   "lvglState": "DEFAULT",
   "lvglExpandedPropertiesGroup": [
     "MISCELLANEOUS",
@@ -1535,7 +1532,7 @@
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 3,
+  "flowZoom": 1.1,
   "implementationLanguage": "C++",
   "openDialogDefaultPath": "C:\\Users\\Tomma\\Downloads\\Image.png"
 }
