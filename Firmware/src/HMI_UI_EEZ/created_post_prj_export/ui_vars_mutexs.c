@@ -54,7 +54,9 @@ SemaphoreHandle_t mutex_presenza_errore = NULL;
 
 SemaphoreHandle_t mutex_nome_errore = NULL;
 
-SemaphoreHandle_t mutex_connessione_presente;
+SemaphoreHandle_t mutex_connessione_presente = NULL;
+
+SemaphoreHandle_t mutex_pulsante_errore = NULL;
 
 bool ui_init_var_mutexs()
 {
@@ -197,6 +199,11 @@ bool ui_init_var_mutexs()
     if(mutex_connessione_presente == NULL)
         return false;
 
+
+    mutex_pulsante_errore = xSemaphoreCreateMutex();
+    if(mutex_pulsante_errore == NULL)
+        return false;
         
+
     return true;
 }

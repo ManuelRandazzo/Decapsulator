@@ -696,6 +696,10 @@ extern "C" const char *get_var_nome_errore()
 
 extern "C" void set_var_nome_errore(const char *value)
 {
+    /// Setta che è avvenuto un errore
+    if(value != "")
+        set_var_presenza_errore(true);
+
     if(xSemaphoreTake(mutex_nome_errore, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
         return;
     
@@ -728,4 +732,30 @@ extern "C" void set_var_connessione_presente(bool value)
     connessione_presente = value;
 
     xSemaphoreGive(mutex_connessione_presente);
+}
+
+
+
+
+bool pulsante_errore = false;
+extern "C" bool get_var_pulsante_errore()
+{
+    if(xSemaphoreTake(mutex_pulsante_errore, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+        return false;
+
+    bool get = pulsante_errore;
+
+    xSemaphoreGive(mutex_pulsante_errore);
+
+    return get;
+}
+
+extern "C" void set_var_pulsante_errore(bool value)
+{
+    if(xSemaphoreTake(mutex_pulsante_errore, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+        return;
+    
+    pulsante_errore = value;
+
+    xSemaphoreGive(mutex_pulsante_errore);
 }

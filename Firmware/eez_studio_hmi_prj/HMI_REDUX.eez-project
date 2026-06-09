@@ -495,6 +495,14 @@
         "defaultValue": "false",
         "persistent": false,
         "native": true
+      },
+      {
+        "objID": "b15f1d39-eabe-45d6-dd80-2708bd908b71",
+        "name": "Pulsante_Errore",
+        "type": "boolean",
+        "defaultValue": "false",
+        "persistent": false,
+        "native": true
       }
     ],
     "structures": [],
@@ -640,7 +648,7 @@
               "type": "LVGLLabelWidget",
               "left": 215,
               "top": 288,
-              "width": 94,
+              "width": 0,
               "height": 16,
               "customInputs": [],
               "customOutputs": [],
@@ -791,16 +799,6 @@
           "variable": "Stato_Avvio_Macchina"
         },
         {
-          "objID": "718ae37e-9aca-4f54-bc66-a534df8a9206",
-          "type": "StartActionComponent",
-          "left": 650,
-          "top": 283,
-          "width": 87,
-          "height": 24,
-          "customInputs": [],
-          "customOutputs": []
-        },
-        {
           "objID": "5f9f0e40-d4f3-4266-d732-f08a9ad5d008",
           "type": "CompareActionComponent",
           "left": 784,
@@ -850,13 +848,6 @@
           "objID": "f545382c-c19d-4468-b916-f17ca4015126",
           "source": "b99e2730-d49b-44f3-f01d-5c95af04609c",
           "output": "variable",
-          "target": "5f9f0e40-d4f3-4266-d732-f08a9ad5d008",
-          "input": "@seqin"
-        },
-        {
-          "objID": "cb5c16dc-46e9-49e9-dd2a-b7d0f64b16d3",
-          "source": "718ae37e-9aca-4f54-bc66-a534df8a9206",
-          "output": "@seqout",
           "target": "5f9f0e40-d4f3-4266-d732-f08a9ad5d008",
           "input": "@seqin"
         },
@@ -1915,20 +1906,10 @@
           "operator": "="
         },
         {
-          "objID": "13e422be-c07b-4b57-e688-93029a7d8437",
-          "type": "StartActionComponent",
-          "left": -350,
-          "top": 427,
-          "width": 87,
-          "height": 24,
-          "customInputs": [],
-          "customOutputs": []
-        },
-        {
           "objID": "8cc45fa4-4626-4f4a-bcf2-c58f29d67cd3",
           "type": "WatchVariableActionComponent",
-          "left": -136,
-          "top": -414,
+          "left": -346,
+          "top": -444,
           "width": 166,
           "height": 54,
           "customInputs": [],
@@ -1951,8 +1932,8 @@
         {
           "objID": "5d096f73-79c5-4e97-a5a7-b4e6ae42a5f1",
           "type": "LVGLActionComponent",
-          "left": 339,
-          "top": -361,
+          "left": 522,
+          "top": -359,
           "width": 286,
           "height": 73,
           "customInputs": [],
@@ -1979,8 +1960,8 @@
         {
           "objID": "712d1dea-46fb-475c-ccc4-852938cca1bd",
           "type": "LVGLActionComponent",
-          "left": 336,
-          "top": -288,
+          "left": 519,
+          "top": -286,
           "width": 293,
           "height": 73,
           "customInputs": [],
@@ -2007,8 +1988,8 @@
         {
           "objID": "da55010d-6c68-4f16-8416-bc4e3b6530a1",
           "type": "SetVariableActionComponent",
-          "left": 551,
-          "top": 84,
+          "left": 613,
+          "top": 0,
           "width": 189,
           "height": 57,
           "customInputs": [],
@@ -2016,7 +1997,7 @@
           "entries": [
             {
               "objID": "23b34079-eacf-45ae-8e1d-9e4a96ec093e",
-              "variable": "Presenza_Errore",
+              "variable": "Pulsante_Errore",
               "value": "false"
             }
           ]
@@ -2047,6 +2028,47 @@
             {
               "objID": "ef0d9677-4d2e-4f34-90b7-d150fa2c7f42",
               "variable": "Comando_Macchina",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "objID": "20f02536-b85a-4c41-f1d8-88600c6d0619",
+          "type": "WatchVariableActionComponent",
+          "left": -143,
+          "top": -359,
+          "width": 166,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "variable": "Pulsante_Errore"
+        },
+        {
+          "objID": "744b4ebc-1436-4eeb-a569-26491c75ff94",
+          "type": "CompareActionComponent",
+          "left": 287,
+          "top": -387,
+          "width": 193,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "A": "Pulsante_Errore",
+          "B": "true",
+          "operator": "="
+        },
+        {
+          "objID": "86082b21-af41-4707-d28c-d1bd81fe4696",
+          "type": "SetVariableActionComponent",
+          "left": -151,
+          "top": -434,
+          "width": 183,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "e416fb15-b563-47b7-9e04-823e60776e60",
+              "variable": "Pulsante_Errore",
               "value": "true"
             }
           ]
@@ -2096,34 +2118,6 @@
           "input": "@seqin"
         },
         {
-          "objID": "d3d5f14e-e7a5-4d74-e255-b7c96718cdaf",
-          "source": "13e422be-c07b-4b57-e688-93029a7d8437",
-          "output": "@seqout",
-          "target": "6968be6b-766d-419b-b2a4-1bb506d1c495",
-          "input": "@seqin"
-        },
-        {
-          "objID": "78248b03-1cd8-47e0-8e87-569913965b01",
-          "source": "8cc45fa4-4626-4f4a-bcf2-c58f29d67cd3",
-          "output": "variable",
-          "target": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
-          "input": "@seqin"
-        },
-        {
-          "objID": "9be4e42c-dce6-468a-fc13-adbe2bfa0de3",
-          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
-          "output": "True",
-          "target": "5d096f73-79c5-4e97-a5a7-b4e6ae42a5f1",
-          "input": "@seqin"
-        },
-        {
-          "objID": "ad864bc7-56a8-4596-f109-01d833bf33f2",
-          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
-          "output": "False",
-          "target": "712d1dea-46fb-475c-ccc4-852938cca1bd",
-          "input": "@seqin"
-        },
-        {
           "objID": "12621daa-453b-4cd6-fbd4-c993b2c4e955",
           "source": "186042a2-7d89-4490-c98d-70e64817552a",
           "output": "PRESSED",
@@ -2149,6 +2143,55 @@
           "source": "bef20122-b63d-4aa0-d86e-a3850fb00dbf",
           "output": "False",
           "target": "f5749af8-293c-4d4b-efa7-f3271d0d58f0",
+          "input": "@seqin"
+        },
+        {
+          "objID": "4257c186-1324-442e-d45a-faaa5b1362ab",
+          "source": "8cc45fa4-4626-4f4a-bcf2-c58f29d67cd3",
+          "output": "variable",
+          "target": "86082b21-af41-4707-d28c-d1bd81fe4696",
+          "input": "@seqin"
+        },
+        {
+          "objID": "71ea50a7-2df4-491a-feac-1518312afc35",
+          "source": "86082b21-af41-4707-d28c-d1bd81fe4696",
+          "output": "@seqout",
+          "target": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "input": "@seqin"
+        },
+        {
+          "objID": "0dec10c4-daf9-4233-d404-04253e5caeae",
+          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "output": "False",
+          "target": "712d1dea-46fb-475c-ccc4-852938cca1bd",
+          "input": "@seqin"
+        },
+        {
+          "objID": "b7b8dc11-da71-4bb6-ecf7-c255ac35940d",
+          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "output": "True",
+          "target": "744b4ebc-1436-4eeb-a569-26491c75ff94",
+          "input": "@seqin"
+        },
+        {
+          "objID": "34575c7b-58ec-4e7c-a190-51afc8564109",
+          "source": "744b4ebc-1436-4eeb-a569-26491c75ff94",
+          "output": "True",
+          "target": "5d096f73-79c5-4e97-a5a7-b4e6ae42a5f1",
+          "input": "@seqin"
+        },
+        {
+          "objID": "016d906f-cf9b-473e-9533-02d3ae89b13f",
+          "source": "744b4ebc-1436-4eeb-a569-26491c75ff94",
+          "output": "False",
+          "target": "712d1dea-46fb-475c-ccc4-852938cca1bd",
+          "input": "@seqin"
+        },
+        {
+          "objID": "018e528a-ec67-416a-9ff7-4696c6091f3b",
+          "source": "20f02536-b85a-4c41-f1d8-88600c6d0619",
+          "output": "variable",
+          "target": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
           "input": "@seqin"
         }
       ],
@@ -4062,7 +4105,7 @@
                           "type": "LVGLLabelWidget",
                           "left": 0,
                           "top": 0,
-                          "width": 176,
+                          "width": 0,
                           "height": 18,
                           "customInputs": [],
                           "customOutputs": [],
@@ -4599,7 +4642,7 @@
                           "type": "LVGLLabelWidget",
                           "left": 0,
                           "top": 0,
-                          "width": 209,
+                          "width": 0,
                           "height": 18,
                           "customInputs": [],
                           "customOutputs": [],
@@ -7778,50 +7821,10 @@
           ]
         },
         {
-          "objID": "86e6ed37-5bf9-4d3a-9c19-6483569ed0de",
-          "type": "StartActionComponent",
-          "left": -539,
-          "top": 335,
-          "width": 87,
-          "height": 24,
-          "customInputs": [],
-          "customOutputs": []
-        },
-        {
           "objID": "c8f75826-c59b-4f48-8d30-b534e3997f0e",
           "type": "StartActionComponent",
           "left": -819,
           "top": 797,
-          "width": 87,
-          "height": 24,
-          "customInputs": [],
-          "customOutputs": []
-        },
-        {
-          "objID": "20eab628-45f5-4d4c-82c2-1fefaa77f065",
-          "type": "StartActionComponent",
-          "left": 399,
-          "top": 648,
-          "width": 87,
-          "height": 24,
-          "customInputs": [],
-          "customOutputs": []
-        },
-        {
-          "objID": "7d2e0c1a-aadd-4619-c5e5-2e1890ce31f9",
-          "type": "StartActionComponent",
-          "left": 268,
-          "top": 1017,
-          "width": 87,
-          "height": 24,
-          "customInputs": [],
-          "customOutputs": []
-        },
-        {
-          "objID": "616d9821-1832-4e6b-bf3c-f425fd36b8f2",
-          "type": "StartActionComponent",
-          "left": 36,
-          "top": 1359,
           "width": 87,
           "height": 24,
           "customInputs": [],
@@ -8423,51 +8426,9 @@
           "input": "@seqin"
         },
         {
-          "objID": "14d39392-52ad-47c0-96cb-929e7de20999",
-          "source": "86e6ed37-5bf9-4d3a-9c19-6483569ed0de",
-          "output": "@seqout",
-          "target": "4e476616-89ff-41ec-cd5a-5caa84a8f07f",
-          "input": "@seqin"
-        },
-        {
-          "objID": "09fe9598-4f5e-4852-b747-0a7a9e1b09a3",
-          "source": "86e6ed37-5bf9-4d3a-9c19-6483569ed0de",
-          "output": "@seqout",
-          "target": "23473535-1310-425f-85da-0f5629192ebf",
-          "input": "@seqin"
-        },
-        {
-          "objID": "0e6d584f-10fe-49f1-99b6-eee74f236679",
-          "source": "616d9821-1832-4e6b-bf3c-f425fd36b8f2",
-          "output": "@seqout",
-          "target": "54f534e4-dc1f-421f-81eb-e718958bcbd8",
-          "input": "@seqin"
-        },
-        {
-          "objID": "411ffadb-656b-40b5-eca1-6de4d91efeb7",
-          "source": "616d9821-1832-4e6b-bf3c-f425fd36b8f2",
-          "output": "@seqout",
-          "target": "4d268b3f-3c8d-4756-ce30-fc54e3690db7",
-          "input": "@seqin"
-        },
-        {
-          "objID": "05f2626d-f999-4787-fa3a-d99ee9adef88",
-          "source": "616d9821-1832-4e6b-bf3c-f425fd36b8f2",
-          "output": "@seqout",
-          "target": "651ed30d-3506-4829-d989-a7acc4761944",
-          "input": "@seqin"
-        },
-        {
           "objID": "02e6536a-c126-4e20-f8ae-2b91ec254082",
           "source": "b1451263-9f6d-41fd-fbb8-17bb593e38b4",
           "output": "variable",
-          "target": "9edb089f-5244-4386-f82e-e9efcfea37fd",
-          "input": "@seqin"
-        },
-        {
-          "objID": "44fd6ca1-67e0-4f26-a5d0-99b56e10b3ac",
-          "source": "20eab628-45f5-4d4c-82c2-1fefaa77f065",
-          "output": "@seqout",
           "target": "9edb089f-5244-4386-f82e-e9efcfea37fd",
           "input": "@seqin"
         },
@@ -8503,13 +8464,6 @@
           "objID": "c2fe3293-0331-4456-f988-9a6980d1f2aa",
           "source": "fcfebdef-f6e0-413c-d1e1-e07b15905598",
           "output": "variable",
-          "target": "cc55ae96-ed7e-4372-e37e-9bc34cd5e56b",
-          "input": "@seqin"
-        },
-        {
-          "objID": "cdce49bd-2a5f-484b-9d89-07ad3eba616b",
-          "source": "7d2e0c1a-aadd-4619-c5e5-2e1890ce31f9",
-          "output": "@seqout",
           "target": "cc55ae96-ed7e-4372-e37e-9bc34cd5e56b",
           "input": "@seqin"
         }
@@ -9300,7 +9254,15 @@
                 "childStyles": []
               },
               "timeline": [],
-              "eventHandlers": [],
+              "eventHandlers": [
+                {
+                  "objID": "85fcc063-e33a-4032-c0db-876d84c2847a",
+                  "eventName": "PRESSED",
+                  "handlerType": "flow",
+                  "action": "Calibrazione_Touch",
+                  "userData": 0
+                }
+              ],
               "identifier": "Tastiera Config WiFi",
               "leftUnit": "px",
               "topUnit": "px",
@@ -9888,6 +9850,13 @@
           "source": "6181a971-98bf-4aac-9695-8596f93643c5",
           "output": "@seqout",
           "target": "839368eb-2f02-4dff-bf4d-cc7ee4c528bd",
+          "input": "@seqin"
+        },
+        {
+          "objID": "614ddd64-368e-437b-e315-00363d879aa5",
+          "source": "664fedc4-2516-4a7d-9f50-85cab12cca7f",
+          "output": "PRESSED",
+          "target": "759d2308-2924-4283-db18-c7db95ed5274",
           "input": "@seqin"
         }
       ],
