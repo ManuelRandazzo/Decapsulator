@@ -703,3 +703,29 @@ extern "C" void set_var_nome_errore(const char *value)
 
     xSemaphoreGive(mutex_nome_errore);
 }
+
+
+
+
+bool connessione_presente = false;
+extern "C" bool get_var_connessione_presente()
+{
+    if(xSemaphoreTake(mutex_connessione_presente, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+        return false;
+
+    bool get = connessione_presente;
+
+    xSemaphoreGive(mutex_connessione_presente);
+
+    return get;
+}
+
+extern "C" void set_var_connessione_presente(bool value)
+{
+    if(xSemaphoreTake(mutex_connessione_presente, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+        return;
+    
+    connessione_presente = value;
+
+    xSemaphoreGive(mutex_connessione_presente);
+}

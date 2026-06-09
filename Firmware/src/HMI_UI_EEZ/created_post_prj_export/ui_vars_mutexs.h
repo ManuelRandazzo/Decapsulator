@@ -62,6 +62,8 @@ extern SemaphoreHandle_t mutex_presenza_errore;
 
 extern SemaphoreHandle_t mutex_nome_errore;
 
+extern SemaphoreHandle_t mutex_connessione_presente;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

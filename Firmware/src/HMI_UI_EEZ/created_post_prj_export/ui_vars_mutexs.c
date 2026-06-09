@@ -54,6 +54,8 @@ SemaphoreHandle_t mutex_presenza_errore = NULL;
 
 SemaphoreHandle_t mutex_nome_errore = NULL;
 
+SemaphoreHandle_t mutex_connessione_presente;
+
 bool ui_init_var_mutexs()
 {
     mutex_contatore_caps_totali = xSemaphoreCreateMutex();
@@ -188,6 +190,11 @@ bool ui_init_var_mutexs()
 
     mutex_nome_errore = xSemaphoreCreateMutex();
     if(mutex_nome_errore == NULL)
+        return false;
+
+    
+    mutex_connessione_presente = xSemaphoreCreateMutex();
+    if(mutex_connessione_presente == NULL)
         return false;
 
         
