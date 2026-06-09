@@ -120,7 +120,7 @@ void prgHMITask(void* pvParameters)
     LogInfo("HMI Setup", "HMI Setup Done");//\nDatas : %d, %d, %d, %d, %d", calib_data[0], calib_data[1], calib_data[2], calib_data[3], calib_data[4]);
     
     /// DEBUG : Bypass scena iniziale di avvio macchina
-    set_var_stato_avvio_macchina(true);
+    //set_var_stato_avvio_macchina(true);
     uint32_t tmrLog = 0;
     while(1)
     {
