@@ -1,7 +1,8 @@
 #include "ESP32MQTTClient.h"   /// Comunicazione MQTT 
 #include "esp_idf_version.h"   /// Serve per il client MQTT per gli handle 
 #include "SavingFilesSD.hpp"   /// Include la libreria per la gestione della SD Card
-#include "WiFi_Config.hpp"     /// File contenente ssid e la password dell'Utente 
+#include "WiFi_Config.hpp"     /// File contenente ssid e la password dell'Utente
+#include "tasks_cfg.hpp"       /// File contenente i settaggi della task del logger
 #include "Debug.hpp"
 
 QueueHandle_t LoggerQueueHandler = nullptr;
@@ -167,7 +168,7 @@ const uint32_t LogBegin(uint32_t timeout_for_each_initialization_ms)
         const uint32_t timeOfSerialBegin = millis();
 
         LoggerQueueHandler = xQueueCreate(LOGGER_QUEUE_LEN, sizeof(log_msg_t));
-        if(LoggerQueueHandler == nullptr)
+        if(LoggerQueueHandler == NULL)
             restartESP32("Errore nella creazione della QUEUE del logger");
     
         #ifdef WiFi_ACTIVE
@@ -280,14 +281,15 @@ void LoggerTask(void* pvParameters)
         /// Elimina questa task se non ci sono i log attivi
         vTaskDelete(NULL);
     #endif
+    TickType_t getLastTick = xTaskGetTickCount();
 
-    LogBegin(LOGGER_BEGIN_INIT_TIMEOUT_MS);
+    const uint32_t timeOfSerialBegin = LogBegin(LOGGER_BEGIN_INIT_TIMEOUT_MS);
+    /// Attende un certo tempo
+    const int32_t delay_serial_init = 2500 - (millis() - timeOfSerialBegin);
+    if(delay_serial_init > 0)
+        vTaskDelay(delay_serial_init);
     
     log_msg_t to_log;
-
-    /// Delay tra la fine di un print e l'inizio di un altro
-    uint32_t lastTime = 0;
-    constexpr uint32_t LOG_DELAY_MS = 1000;
 
     /// Salvataggio in SD
     #ifdef LOG_COPY_TO_SD
@@ -302,8 +304,6 @@ void LoggerTask(void* pvParameters)
 
     while(1)
     {
-        while(millis() - lastTime <  LOG_DELAY_MS);
-
         /// Attende all'infinito che qualcuno invii un log
         xQueueReceive(LoggerQueueHandler, &to_log, portMAX_DELAY);
 
@@ -359,8 +359,8 @@ void LoggerTask(void* pvParameters)
             * 
             */
 
-            /// Acquisisce il nuovo tempo
-            lastTime = millis();
+            /// Attende un po' prima di iniziare una nuova trasmissione di log
+            xTaskDelayUntil(&getLastTick, pdMS_TO_TICKS(Logger_delay));
         }
     }
     vTaskDelete(NULL);
