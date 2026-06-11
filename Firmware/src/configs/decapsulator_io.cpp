@@ -31,7 +31,6 @@ BaseType_t decapsulator_io_begin(void)
     /// TFT Disaplay e Touch
     tft.begin();
     tft.setRotation(3);  // Landscape orientation
-    tft.fillScreen(TFT_BLACK);
 
     /// SD Card - Configurazione dei pin SPI dedicati sull'ESP32-S3 (dichiarati nel platformio.ini)
     while(!SD_Card.Init(tft.getSPIinstance(), TFT_SCLK, TFT_MISO, TFT_MOSI, SD_CS))
