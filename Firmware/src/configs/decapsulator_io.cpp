@@ -9,6 +9,8 @@ FanCtrl Ventola;
 DebPinHandler autoKill;
 DebPinHandler cadutaCaps;
 DebPinHandler presenzaCaps;
+DebPinHandler rallaFault;
+DebPinHandler punzoneFault;
 TFT_eSPI tft = TFT_eSPI();
 
 #pragma endregion (OGGETTI_IO)
@@ -71,6 +73,9 @@ BaseType_t decapsulator_io_begin(void)
         }
     }
 
+    /// Inizializza il pin FAULT del tamburo
+    rallaFault.begin(INTR, RALLA_FAULT_PIN, "RALLA FAULT", 30, FALLING, INPUT);
+
 
 
     /// Motore Punzone
@@ -88,6 +93,9 @@ BaseType_t decapsulator_io_begin(void)
             vTaskDelay(pdMS_TO_TICKS(1000));
         }
     }
+
+    /// Inizializza il pin FAULT del punzone
+    punzoneFault.begin(INTR, PUNZ_FAULT_PIN, "PUNZ FAULT", 30, FALLING, INPUT);
 
     MotPunzone.setHardLimits(PUNZ_MAX_POS_PIN, PUNZ_MIN_POS_PIN, PUNZ_HARD_LIM_INTR_OR_POLL, 30, PUNZ_INPUT_PULL, PUNZ_CAM_SIGNAL);
 

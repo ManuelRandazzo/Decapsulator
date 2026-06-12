@@ -27,6 +27,8 @@ extern FanCtrl Ventola;
 extern DebPinHandler autoKill;
 extern DebPinHandler cadutaCaps;
 extern DebPinHandler presenzaCaps;
+extern DebPinHandler rallaFault;
+extern DebPinHandler punzoneFault;
 extern TFT_eSPI tft;
 
 /**
