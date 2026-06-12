@@ -15,7 +15,7 @@
  */
 
 #include "DecapsulatorPRG.hpp"
-
+#include "HMI_UI_EEZ/vars.h"
 
 
 
@@ -24,10 +24,6 @@
 
 
 Sequence_t sequenza = MACHINE_STARTUP_STATE;  // Gestione della sequenza del movimento del Decapsulator
-
-/// Mutex e spinlock
-SemaphoreHandle_t _DecapsulatorMutex = nullptr;
-portMUX_TYPE _DecapsulatorSpinlock = portMUX_INITIALIZER_UNLOCKED;
 
 volatile QueueHandle_t ptrAutokillSharedVars;
 
@@ -58,17 +54,13 @@ void prgDecapsulatorTask(void *pvParameters)
      *    @setup:
      */
     TickType_t getLastTick = xTaskGetTickCount();
-
-    ///ATTENZIONE: Programma con variabili a caso ancora da definire
-    ///            e da rendere THREAD SAFE tramite notifiche e/o code
+    
     bool FORCE_THE_STARTUP = false;//true;
 
-    CommandQueueHMI_t FromHMI = defaultCommandQueueHMI;
-
-    EventQueueHMI_t ToHMI = defaultEventQueueHMI;
-    bool sendChangesToHMI = false;
-
-    uint8_t cntContainerFull = 0;
+    uint16_t local_caps_ses = 0;
+    uint16_t local_caps_tot = 0; // = getCapsTotFromSD; /// Prende il dato dalla SD
+    uint8_t cntContainerCapsuleFull = 0;
+    uint8_t cntContainerCoffeeFull = 0;
     int nCicliRimanenti = 0; // prende il numero dalla SD Card
 
     bool doAnotherCycle = false;    
@@ -79,6 +71,7 @@ void prgDecapsulatorTask(void *pvParameters)
     uint32_t tmoPunzHome = 0;
     uint32_t tmoRallaHome = 0;
     uint32_t tmoCaduta = 0;
+    uint32_t tmoVentolaTurnOff = 0; // Spegne la ventola dopo un certo tempo di inattività
 
     #ifdef LOG_ACTIVE_MAIN_PRG
         LogInfo("setup main prg", "creata la tasks - Free Stack Space: %d\nSwitch Initial : %s", uxTaskGetStackHighWaterMark(NULL), state_name_to_string(sequenza));
@@ -101,7 +94,6 @@ void prgDecapsulatorTask(void *pvParameters)
         const uint32_t MILLIS = millis();
 
         /// Update dei pin d'evento
-        autoKill.intrUpdate();
         cadutaCaps.intrUpdate();
         presenzaCaps.intrUpdate();
 
@@ -112,15 +104,24 @@ void prgDecapsulatorTask(void *pvParameters)
         if(presenzaCaps.event())
             doAnotherCycle = true;
 
-        checkUpdateHMI(&FromHMI);
+        /// Se viene premuto stop il macchinario si arresta
+        switch(sequenza)
+        {
+            case SERVO_LOADER_OPEN_STATE ... PUNCHER_UP_FAST_STATE :
+                if(get_var_comando_macchina() == false)
+                    sequenza = QUIETE_STATE;
+            break;
+        }
 
         LogDebug("MAIN PRG LOOP", "Sequenza : %s\npresenzaCaps.event() : %d\ncadutaCaps.event() : %d", state_name_to_string(sequenza), presenzaCaps.event(), cadutaCaps.event());
 
         switch(sequenza)
         {
             case EMERGENCY_STATE :
-            {        
+            {
                 /// @todo
+                set_var_comando_macchina(false);
+                set_var_nome_errore("EMERGENZA : Il macchinario necessità di restart, consultare manuale di uso e manutenzione prima di ogni azione");
                 MainPrgStopAllMotors();
                 Ventola.on();
                 LogError("EMERGENCY", "Si è entrati in uno stato di EMERGENZA");
@@ -131,8 +132,11 @@ void prgDecapsulatorTask(void *pvParameters)
             {
                 if(!cmd_exec)
                 {
-                    if(ToHMI.xErrorInitPunz || ToHMI.xErrorInitRalla)
-                        MainPrgStopAllMotors();
+                    /// Disattiva il pulsante start
+                    set_var_comando_macchina(false);
+
+                    /*if(ToHMI.xErrorInitPunz || ToHMI.xErrorInitRalla)*/
+                        MainPrgStopAllMotors();                    
 
                     Ventola.off();
 
@@ -144,12 +148,28 @@ void prgDecapsulatorTask(void *pvParameters)
 
             case CONTAINER_FULL :
             {
-                Ventola.off();
-                if(FromHMI.restartAfterContainerEmptied == true)
+                if(!cmd_exec)
+                {
+                    set_var_comando_macchina(false);
+                    if(cntContainerCapsuleFull >= 5)
+                        set_var_nome_errore("Contenitore Capsule pieno, svuotare e premere ok");
+                    else if(cntContainerCoffeeFull >= 10)
+                        set_var_nome_errore("Contenitore Caffè pieno, svuotare e premere okv");
+
+                    LogDebug("STOP macchina", "STOP avvenuto con successo");    
+                    Ventola.off();
+                }
+                /*else
+                {
+                    /// @todo ottenere l'ok dall'HMI
+                    if(get_var_ok_from_hmi() )
+                }*/
+
+                /*if(FromHMI.restartAfterContainerEmptied == true)
                 {
                     FromHMI.restartAfterContainerEmptied = false;
-                    cntContainerFull = 0;
-                }
+                    cntContainerCapsuleFull = 0;
+                }*/
             }
             break;
 
@@ -165,7 +185,11 @@ void prgDecapsulatorTask(void *pvParameters)
                 if(FORCE_THE_STARTUP == false)
                     sequenza = PUNZONE_STARTUP_STATE;
                 else
+                {
+                    /// Avvio macchina completato (HMI)
+                    set_var_stato_avvio_macchina(true);
                     sequenza = QUIETE_STATE;
+                }
             }
             break;
 
@@ -187,6 +211,7 @@ void prgDecapsulatorTask(void *pvParameters)
                         if(MotPunzone.isHomeDone() == true) // Aspetta la fine del comando
                         {
                             /// Deve assicurarsi di portare in posizione il punzone prima di poter muovere la ralla
+                            MotPunzone.detach(); // toglie la coppia al punzone
                             sequenza = TAMBURO_STARTUP_STATE;
                             cmd_exec = false;
                         }
@@ -220,8 +245,11 @@ void prgDecapsulatorTask(void *pvParameters)
                         {
                             /// Rimuove il sensore di calibrazione
                             MotRalla.removeHardLimits();
-                            Ventola.off(); // Si assicura che la ventola sia spenta
+                            MotRalla.detach(); // toglie la coppia al tamburo
+                            tmoVentolaTurnOff = MILLIS;
                             sequenza = QUIETE_STATE;
+                            /// Avvio macchina completato (HMI)
+                            set_var_stato_avvio_macchina(true);
                             cmd_exec = false;
                         }
                     }
@@ -236,15 +264,28 @@ void prgDecapsulatorTask(void *pvParameters)
 
             case QUIETE_STATE :
             {
-                /// Se sono presenti le capsule nello scivolo e c'è stato il segnale di start inizia il ciclo
-                if(FromHMI.StartMachine)
+                /// Passato un certo tempo di inattività spegne la ventola
+                if(Ventola.getDuty() != 0)
                 {
-                    FromHMI.StartMachine = false;
-                  
+                    if(MILLIS - tmoVentolaTurnOff >= 10000)
+                        Ventola.off();
+                }
+
+                /// Se sono presenti le capsule nello scivolo e c'è stato il segnale di start inizia il ciclo
+                if(get_var_comando_macchina())
+                {         
                     if(doAnotherCycle == true)
                     {
                         Ventola.on(); // Si assicura che la ventola sia accesa
+                        MotRalla.attach();   // mette in coppia il tamburo
+                        MotPunzone.attach(); // mette in coppia il punzone
                         sequenza = SERVO_LOADER_OPEN_STATE;
+                    }
+                    else
+                    {
+                        /// Disattiva il pulsante start
+                        set_var_comando_macchina(false);
+                        set_var_nome_errore("Nessuna capsula inserita");
                     }
                 }
             }
@@ -254,7 +295,8 @@ void prgDecapsulatorTask(void *pvParameters)
             {
                 if(doAnotherCycle == true)
                 {
-                    if(cntContainerFull <= MAX_CAPSULE_CONTAINER) // Impedisce che scendano le capsule quando il contatore segnala  
+                    /// Impedisce che scendano le capsule quando il contatore segnala che il serbatoio è pieno
+                    if(cntContainerCapsuleFull <= MAX_CAPSULE_CONTAINER)  
                     {
                         if(!cmd_exec) // Da il comando
                         {
@@ -269,7 +311,6 @@ void prgDecapsulatorTask(void *pvParameters)
                                 /// Cambio di stato dovuto dall'Interrupt della Fotocellula conferma capsula nel tamburo
                                 if(cadutaCaps.event() == true)
                                 {
-                                    //cntContainerFull++;
                                     doAnotherCycle = false;
                                     sequenza = SERVO_LOADER_CLOSE_STATE;
                                     cmd_exec = false;
@@ -277,7 +318,8 @@ void prgDecapsulatorTask(void *pvParameters)
                             }
                             else
                             {
-                                ToHMI.xErrorCapsIncastrata = true;
+                                set_var_nome_errore("Capsula incastrata nello scivolo, spegnere il macchinario e estrarla.Leggere manuale di istruzioni prima di ogni operazione");
+                                
                                 sequenza = TIMEOUT_STATE;
                                 cmd_exec = false;
                             }
@@ -285,12 +327,24 @@ void prgDecapsulatorTask(void *pvParameters)
                     }
                     else
                     {
+                        // set_var_container_full(true); // verrà poi resettata da HMI
                         cmd_exec = false;
                         sequenza = CONTAINER_FULL;
                     }
                 }
                 else
+                {
+                    /// Toglie la coppia ai motori così che non scaldino
+                    MotRalla.detach();
+                    MotPunzone.detach();
+                    /// Non spegne completamente la ventola ma rimane bassa per raffreddare i drivers
+                    Ventola.setDuty(30);
+                    tmoVentolaTurnOff = MILLIS;
+                    /// Riporta il pulsante in off
+                    set_var_comando_macchina(false);
+                    LogDebug("STOP macchina", "STOP avvenuto con successo");    
                     sequenza = QUIETE_STATE;
+                }
             }
             break;
 
@@ -362,15 +416,24 @@ void prgDecapsulatorTask(void *pvParameters)
                 }
                 else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
                 {
+                    cntContainerCapsuleFull++;
+                    cntContainerCoffeeFull++;
+
+                    /// Incrementa i contatori della UI
+                    local_caps_ses++;
+                    local_caps_tot++;
+                    set_var_contatore_caps_ses(local_caps_ses);
+                    set_var_contatore_caps_totali(local_caps_tot);
+
                     sequenza = SERVO_LOADER_OPEN_STATE; // Ricomincia il ciclo
                     cmd_exec = false;
-                }
+                } 
             }
             break;
         }
 
         /// Aggiorna in caso vengano richiesti dei cambiamenti da segnalare all'HMI
-        sendUpdateHMI(&ToHMI, &sendChangesToHMI);
+        //sendUpdateHMI(&ToHMI, &sendChangesToHMI);
 
         //LogDebug("debug", "TaskTime : %d\n", millis() - MILLIS);
 
@@ -413,4 +476,6 @@ const char* state_name_to_string(Sequence_t seq_switch)
             default                       : return "INVALID MAIN PRG SEQUENCE STATE";       
         }
     #endif
+
+    return "";
 }
