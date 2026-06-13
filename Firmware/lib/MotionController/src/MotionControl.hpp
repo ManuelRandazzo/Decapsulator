@@ -187,13 +187,15 @@ class MOTION
     /// @return la posizione assoluta in steps
     int64_t getPositionInSteps();
 
-  private : /// Dato che la libreria del driver fornisce come protected delle variabili la classe MOTION le eredita
-    DRV8825 Motion; /// Oggetto del driver usato per il motore
+    DebPinHandler* HardMax = nullptr; /*!< Puntatore all'oggetto del driver per rilevare il limite massimo */
     
-    DebPinHandler* HardMax = nullptr; /// Puntatore all'oggetto del driver per rilevare il limite massimo
-    DebPinHandler* HardMin = nullptr; /// Puntatore all'oggetto del driver per rilevare il limite minimo
-    DebPinHandler* HardMaxCpy = nullptr; /// Copia del puntatore all'oggetto del driver per rilevare il limite massimo
-    DebPinHandler* HardMinCpy = nullptr; /// Copia del puntatore all'oggetto del driver per rilevare il limite minimo
+    DebPinHandler* HardMin = nullptr; /*!< Puntatore all'oggetto del driver per rilevare il limite minimo */
+  
+  private : /// Dato che la libreria del driver fornisce come protected delle variabili la classe MOTION le eredita
+    DRV8825 Motion; /*!< Oggetto del driver usato per il motore */
+    
+    DebPinHandler* HardMaxCpy = nullptr; /*!< Copia del puntatore all'oggetto del driver per rilevare il limite massimo */
+    DebPinHandler* HardMinCpy = nullptr; /*!< Copia del puntatore all'oggetto del driver per rilevare il limite minimo */ 
 
     typedef enum : uint8_t { STAND_STILL, HOMING, MOVE_REL, MOVE_ABS, CONTINUOUS } SwitchMove_t;
     
