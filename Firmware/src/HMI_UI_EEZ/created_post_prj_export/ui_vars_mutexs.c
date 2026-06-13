@@ -16,9 +16,13 @@ SemaphoreHandle_t mutex_comando_motore_ralla = NULL;
 
 SemaphoreHandle_t mutex_comando_motore_punzone = NULL;
 
+QueueHandle_t queue_direzione_comando_punzone = NULL;
+
 SemaphoreHandle_t mutex_comando_avanti_motore_punzone = NULL;
 
 SemaphoreHandle_t mutex_comando_indietro_motore_punzone = NULL;
+
+QueueHandle_t queue_direzione_comando_ralla = NULL;
 
 SemaphoreHandle_t mutex_comando_avanti_motore_ralla = NULL;
 
@@ -100,6 +104,11 @@ bool ui_init_var_mutexs()
         return false;
 
 
+    queue_direzione_comando_punzone = xQueueCreate(HMI_JOG_DIRECTION_QUEUE_LEN, sizeof(int8_t));
+    if(queue_direzione_comando_punzone == NULL)
+        return false;
+
+
     mutex_comando_avanti_motore_punzone = xSemaphoreCreateMutex();
     if(mutex_comando_avanti_motore_punzone == NULL)
         return false;
@@ -107,6 +116,11 @@ bool ui_init_var_mutexs()
 
     mutex_comando_indietro_motore_punzone = xSemaphoreCreateMutex();
     if(mutex_comando_indietro_motore_punzone == NULL)
+        return false;
+
+    
+    queue_direzione_comando_ralla = xQueueCreate(HMI_JOG_DIRECTION_QUEUE_LEN, sizeof(int8_t));
+    if(queue_direzione_comando_ralla == NULL)
         return false;
 
 

@@ -235,6 +235,12 @@ extern "C" void set_var_comando_avanti_motore_punzone(bool value)
     comando_avanti_motore_punzone = value;
 
     xSemaphoreGive(mutex_comando_avanti_motore_punzone);
+
+    if(value == true)
+    {
+        int8_t dir = +1;
+        xQueueSend(queue_direzione_comando_punzone, &dir, MAX_MUTEX_BLOCK_TIME_TICKS);
+    }
 }
 
 
@@ -261,6 +267,12 @@ extern "C" void set_var_comando_indietro_motore_punzone(bool value)
     comando_indietro_motore_punzone = value;
 
     xSemaphoreGive(mutex_comando_indietro_motore_punzone);
+
+    if(value == true)
+    {
+        int8_t dir = -1;
+        xQueueSend(queue_direzione_comando_punzone, &dir, MAX_MUTEX_BLOCK_TIME_TICKS);
+    }
 }
 
 
@@ -287,6 +299,12 @@ extern "C" void set_var_comando_avanti_motore_ralla(bool value)
     comando_avanti_motore_ralla = value;
 
     xSemaphoreGive(mutex_comando_avanti_motore_ralla);
+
+    if(value == true)
+    {
+        int8_t dir = +1;
+        xQueueSend(queue_direzione_comando_ralla, &dir, MAX_MUTEX_BLOCK_TIME_TICKS);
+    }
 }
 
 
@@ -313,6 +331,12 @@ extern "C" void set_var_comando_indietro_motore_ralla(bool value)
     comando_indietro_motore_ralla = value;
 
     xSemaphoreGive(mutex_comando_indietro_motore_ralla);
+
+    if(value == true)
+    {
+        int8_t dir = -1;
+        xQueueSend(queue_direzione_comando_ralla, &dir, MAX_MUTEX_BLOCK_TIME_TICKS);
+    }
 }
 
 

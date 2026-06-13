@@ -7,6 +7,8 @@
 
 /// Tempo massimo in cui i mutex bloccano se non hanno risposta
 #define MAX_MUTEX_BLOCK_TIME_TICKS pdMS_TO_TICKS(100)
+#define HMI_JOG_DIRECTION_QUEUE_LEN 5
+
 
 extern SemaphoreHandle_t mutex_contatore_caps_totali;
 
@@ -24,9 +26,13 @@ extern SemaphoreHandle_t mutex_comando_motore_ralla;
 
 extern SemaphoreHandle_t mutex_comando_motore_punzone;
 
+extern QueueHandle_t queue_direzione_comando_punzone;
+
 extern SemaphoreHandle_t mutex_comando_avanti_motore_punzone;
 
 extern SemaphoreHandle_t mutex_comando_indietro_motore_punzone;
+
+extern QueueHandle_t queue_direzione_comando_ralla;
 
 extern SemaphoreHandle_t mutex_comando_avanti_motore_ralla;
 
