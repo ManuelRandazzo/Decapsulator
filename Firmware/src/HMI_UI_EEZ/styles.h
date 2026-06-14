@@ -41,11 +41,6 @@ lv_style_t *get_style_giallo_MAIN_CHECKED();
 void add_style_giallo(lv_obj_t *obj);
 void remove_style_giallo(lv_obj_t *obj);
 
-// Style: Arancione
-lv_style_t *get_style_arancione_MAIN_CHECKED();
-void add_style_arancione(lv_obj_t *obj);
-void remove_style_arancione(lv_obj_t *obj);
-
 #ifdef __cplusplus
 }
 #endif

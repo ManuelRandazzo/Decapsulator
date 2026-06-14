@@ -58,4 +58,22 @@ void action_calibrazione_touch(lv_event_t *e)
     /// Refresh forzato
     lv_obj_invalidate(lv_screen_active());
     lv_refr_now(lv_obj_get_display(lv_screen_active())); 
-}
+};
+
+void action_logger_page_init(lv_event_t * e){
+};
+
+void action_logger_page_deinit(lv_event_t * e){
+};
+
+void action_jogger_page_init(lv_event_t * e){
+};
+
+void action_jogger_page_deinit(lv_event_t * e){
+};
+
+void action_conf_wi_fi_page_init(lv_event_t * e){
+};
+
+void action_conf_wi_fi_page_deinit(lv_event_t * e){
+};

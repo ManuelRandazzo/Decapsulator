@@ -519,6 +519,66 @@
       "name": "Calibrazione_Touch",
       "description": "Funzione per la calibrazione del touch schermo",
       "implementationType": "native"
+    },
+    {
+      "objID": "161eb16c-bd68-47d0-96e6-db2709275298",
+      "components": [],
+      "connectionLines": [],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "Logger_Page_Init",
+      "implementationType": "native"
+    },
+    {
+      "objID": "6f80d216-a99b-4e56-fddd-cfc0e07716bb",
+      "components": [],
+      "connectionLines": [],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "Logger_Page_Deinit",
+      "implementationType": "native"
+    },
+    {
+      "objID": "e40812c1-23e8-459b-ee99-63ff3b2f9ebc",
+      "components": [],
+      "connectionLines": [],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "Jogger_Page_Init",
+      "implementationType": "native"
+    },
+    {
+      "objID": "8a7734c4-8609-4d63-ac6c-c57745bff646",
+      "components": [],
+      "connectionLines": [],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "Jogger_Page_Deinit",
+      "implementationType": "native"
+    },
+    {
+      "objID": "4e73112d-ac86-48c6-d762-d5ac975ef630",
+      "components": [],
+      "connectionLines": [],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "ConfWiFi_Page_Init",
+      "implementationType": "native"
+    },
+    {
+      "objID": "e33f5134-5772-4ce2-b6c7-c7b0b36a834f",
+      "components": [],
+      "connectionLines": [],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "ConfWiFi_Page_Deinit",
+      "implementationType": "native"
     }
   ],
   "userPages": [
@@ -648,7 +708,7 @@
               "type": "LVGLLabelWidget",
               "left": 215,
               "top": 288,
-              "width": 0,
+              "width": 94,
               "height": 16,
               "customInputs": [],
               "customOutputs": [],
@@ -3619,8 +3679,8 @@
         {
           "objID": "ee00b156-6884-4920-c62c-1da27db73997",
           "type": "LVGLActionComponent",
-          "left": -375,
-          "top": 74,
+          "left": -530,
+          "top": 59,
           "width": 360,
           "height": 54,
           "customInputs": [],
@@ -3671,8 +3731,8 @@
         {
           "objID": "9dec5e77-1bd5-4e29-b392-4aec80718086",
           "type": "CallActionActionComponent",
-          "left": 283,
-          "top": 350,
+          "left": 695,
+          "top": 374,
           "width": 145,
           "height": 24,
           "customInputs": [],
@@ -3734,6 +3794,51 @@
               "useStackType": "literal"
             }
           ]
+        },
+        {
+          "objID": "cf482cfb-5a12-446e-a5bc-e05cdaad21ac",
+          "type": "CallActionActionComponent",
+          "left": 943,
+          "top": 240,
+          "width": 109,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "ConfWiFi_Page_Init",
+          "userPropertyValues": {
+            "objID": "823e32a5-fee4-4fc8-eeab-ba04cec1e6c7",
+            "values": {}
+          }
+        },
+        {
+          "objID": "57856c4b-860c-4fd1-b597-dda1afeed755",
+          "type": "CallActionActionComponent",
+          "left": 897,
+          "top": 101,
+          "width": 93,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "Logger_Page_Init",
+          "userPropertyValues": {
+            "objID": "513fca12-7789-4401-feff-96e6353f2db7",
+            "values": {}
+          }
+        },
+        {
+          "objID": "e0eca1fb-4c96-4987-bf6e-cf75414ceea9",
+          "type": "CallActionActionComponent",
+          "left": -149,
+          "top": 59,
+          "width": 93,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "Logger_Page_Init",
+          "userPropertyValues": {
+            "objID": "402ae3ed-18ef-4631-b0b2-f2966dacb672",
+            "values": {}
+          }
         }
       ],
       "connectionLines": [
@@ -3759,13 +3864,6 @@
           "input": "@seqin"
         },
         {
-          "objID": "76e0c0fd-6532-44d2-96cc-607c949d2970",
-          "source": "e023d5c5-50b3-40bb-cf05-f50f8eac9e8b",
-          "output": "PRESSED",
-          "target": "9dec5e77-1bd5-4e29-b392-4aec80718086",
-          "input": "@seqin"
-        },
-        {
           "objID": "69dd1530-3769-43bf-8feb-bd5f96ebf345",
           "source": "49ca8a2c-5a80-4134-f7af-c964d098d1e4",
           "output": "PRESSED",
@@ -3777,6 +3875,34 @@
           "source": "e023d5c5-50b3-40bb-cf05-f50f8eac9e8b",
           "output": "PRESSED",
           "target": "b7a9eeaf-5b9d-4ad7-cea7-cb8b31740565",
+          "input": "@seqin"
+        },
+        {
+          "objID": "cb25ca05-b9c6-411d-ebb4-d9863e0f90c7",
+          "source": "e7e8f42d-970f-4f15-88e2-a92214b21f5d",
+          "output": "@seqout",
+          "target": "cf482cfb-5a12-446e-a5bc-e05cdaad21ac",
+          "input": "@seqin"
+        },
+        {
+          "objID": "3fa21d8b-de1a-4a79-a27c-2a01b16d673b",
+          "source": "20911e08-a733-4540-836f-b7f5ce95e482",
+          "output": "@seqout",
+          "target": "57856c4b-860c-4fd1-b597-dda1afeed755",
+          "input": "@seqin"
+        },
+        {
+          "objID": "03291162-0509-493d-f474-5168bec53fca",
+          "source": "ee00b156-6884-4920-c62c-1da27db73997",
+          "output": "@seqout",
+          "target": "e0eca1fb-4c96-4987-bf6e-cf75414ceea9",
+          "input": "@seqin"
+        },
+        {
+          "objID": "6d017b2c-8464-43b8-b2c0-84a8b219adf9",
+          "source": "b7a9eeaf-5b9d-4ad7-cea7-cb8b31740565",
+          "output": "@seqout",
+          "target": "9dec5e77-1bd5-4e29-b392-4aec80718086",
           "input": "@seqin"
         }
       ],
@@ -4105,7 +4231,7 @@
                           "type": "LVGLLabelWidget",
                           "left": 0,
                           "top": 0,
-                          "width": 0,
+                          "width": 176,
                           "height": 18,
                           "customInputs": [],
                           "customOutputs": [],
@@ -4642,7 +4768,7 @@
                           "type": "LVGLLabelWidget",
                           "left": 0,
                           "top": 0,
-                          "width": 0,
+                          "width": 209,
                           "height": 18,
                           "customInputs": [],
                           "customOutputs": [],
@@ -7967,6 +8093,21 @@
           "text": "<div><!--block-->RICORDARSI DI CASTARE CON String.ToDouble()</div>",
           "collapsed": false,
           "expandedWidth": 435
+        },
+        {
+          "objID": "77590896-8aa2-43ca-bae4-59e39453eb14",
+          "type": "CallActionActionComponent",
+          "left": 128,
+          "top": -196,
+          "width": 107,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "Jogger_Page_Deinit",
+          "userPropertyValues": {
+            "objID": "4f514cbb-406c-4965-d387-21f1c96f236e",
+            "values": {}
+          }
         }
       ],
       "connectionLines": [
@@ -8466,6 +8607,13 @@
           "output": "variable",
           "target": "cc55ae96-ed7e-4372-e37e-9bc34cd5e56b",
           "input": "@seqin"
+        },
+        {
+          "objID": "27a46003-a91b-4258-f371-1aacf8ef9d21",
+          "source": "3da3992b-3972-49b9-b365-635f520b765e",
+          "output": "@seqout",
+          "target": "77590896-8aa2-43ca-bae4-59e39453eb14",
+          "input": "@seqin"
         }
       ],
       "localVariables": [],
@@ -8908,6 +9056,21 @@
               "useStackType": "literal"
             }
           ]
+        },
+        {
+          "objID": "05ac79f6-db1e-4418-faf5-cfe8d39f3d2c",
+          "type": "CallActionActionComponent",
+          "left": 944,
+          "top": 24,
+          "width": 107,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "Logger_Page_Deinit",
+          "userPropertyValues": {
+            "objID": "8954f039-8ac1-481f-afb2-1918cc6299b1",
+            "values": {}
+          }
         }
       ],
       "connectionLines": [
@@ -8916,6 +9079,13 @@
           "source": "f4d0d562-45e6-401d-ce5c-814b451c4a8d",
           "output": "PRESSED",
           "target": "79786065-6a8f-4096-eec7-ac95ed63ec83",
+          "input": "@seqin"
+        },
+        {
+          "objID": "d24fac6a-529e-4f6e-eac5-23522cd8fdb2",
+          "source": "79786065-6a8f-4096-eec7-ac95ed63ec83",
+          "output": "@seqout",
+          "target": "05ac79f6-db1e-4418-faf5-cfe8d39f3d2c",
           "input": "@seqin"
         }
       ],
@@ -9269,7 +9439,7 @@
               "widthUnit": "px",
               "heightUnit": "px",
               "children": [],
-              "widgetFlags": "GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "widgetFlags": "",
               "hiddenFlagType": "literal",
               "clickableFlag": true,
               "clickableFlagType": "literal",
@@ -9278,6 +9448,7 @@
               "scrollSnapX": "",
               "scrollSnapY": "",
               "checkedStateType": "literal",
+              "disabledState": false,
               "disabledStateType": "literal",
               "states": "",
               "localStyles": {
@@ -9473,7 +9644,7 @@
           "type": "SetVariableActionComponent",
           "left": 901,
           "top": 320,
-          "width": 312,
+          "width": 306,
           "height": 79,
           "customInputs": [],
           "customOutputs": [],
@@ -9481,7 +9652,7 @@
             {
               "objID": "b360c8a0-4513-4ffc-efe1-dfa6b31b2c04",
               "variable": "Messaggio_Config_WiFi",
-              "value": "\"NOME RETE\\nERRATO\""
+              "value": "\"NOME RETE ERRATO\""
             },
             {
               "objID": "37b756fe-1272-4949-f0b9-a7fb828e3e72",
@@ -9545,7 +9716,7 @@
           "type": "SetVariableActionComponent",
           "left": 1347,
           "top": 352,
-          "width": 337,
+          "width": 331,
           "height": 79,
           "customInputs": [],
           "customOutputs": [],
@@ -9553,7 +9724,7 @@
             {
               "objID": "ea324c74-1612-44cc-db55-02e574ddc1fc",
               "variable": "Messaggio_Config_WiFi",
-              "value": "\"PASSWORD RETE\\nERRATA\""
+              "value": "\"PASSWORD RETE ERRATA\""
             },
             {
               "objID": "d2f93e4b-0a30-4670-e250-6b4db5adea4a",
@@ -9617,7 +9788,7 @@
           "type": "SetVariableActionComponent",
           "left": 1797,
           "top": 223,
-          "width": 392,
+          "width": 386,
           "height": 123,
           "customInputs": [],
           "customOutputs": [],
@@ -9625,7 +9796,7 @@
             {
               "objID": "25c3df3b-5cf6-46a1-f232-b1438f98cf97",
               "variable": "Messaggio_Config_WiFi",
-              "value": "\"RETE CONFIGURATA\\nCON SUCCESSO\""
+              "value": "\"RETE CONFIGURATA CON SUCCESSO\""
             },
             {
               "objID": "bdd66487-d8cc-4049-d51d-bfcc6dcd4353",
@@ -9751,6 +9922,21 @@
               "disabledType": "literal"
             }
           ]
+        },
+        {
+          "objID": "f26da62b-9d55-4e33-d4c0-75d2967e0d0b",
+          "type": "CallActionActionComponent",
+          "left": 296,
+          "top": -127,
+          "width": 123,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "ConfWiFi_Page_Deinit",
+          "userPropertyValues": {
+            "objID": "b5fe3729-1f8f-4c2e-8c88-2ef7cda7e542",
+            "values": {}
+          }
         }
       ],
       "connectionLines": [
@@ -9857,6 +10043,13 @@
           "source": "664fedc4-2516-4a7d-9f50-85cab12cca7f",
           "output": "PRESSED",
           "target": "759d2308-2924-4283-db18-c7db95ed5274",
+          "input": "@seqin"
+        },
+        {
+          "objID": "5bc99060-708e-434d-c2f0-9cefa9b32af4",
+          "source": "43ba2b35-4c22-42ed-c34f-8bf6309351cb",
+          "output": "@seqout",
+          "target": "f26da62b-9d55-4e33-d4c0-75d2967e0d0b",
           "input": "@seqin"
         }
       ],
@@ -10113,23 +10306,6 @@
             "MAIN": {
               "CHECKED": {
                 "bg_color": "#e7f321",
-                "text_color": "#000000"
-              }
-            }
-          }
-        }
-      },
-      {
-        "objID": "643b23f8-50fe-4dbc-aec4-b985d1aec75b",
-        "name": "Arancione",
-        "forWidgetType": "LVGLButtonWidget",
-        "childStyles": [],
-        "definition": {
-          "objID": "50c5483d-7820-4769-f4c3-c017f0b2428a",
-          "definition": {
-            "MAIN": {
-              "CHECKED": {
-                "bg_color": "#f39d21",
                 "text_color": "#000000"
               }
             }
