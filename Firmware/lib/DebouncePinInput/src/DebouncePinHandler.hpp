@@ -19,6 +19,8 @@
 #define INTR (bool)(true)
 #define POLL (bool)(false)
 
+#define TIME_BLOCKING_MUTEX_MS 100
+constexpr TickType_t MUTEX_TICKS = pdMS_TO_TICKS(TIME_BLOCKING_MUTEX_MS);
 
 
 class DebPinHandler
@@ -118,7 +120,7 @@ class DebPinHandler
         {
             String str = "";
 
-            if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+            if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
                 return "Errore xSemaphoreTake del pin \"%s\"\n";
 
             str += String("mutex : ") + String((uintptr_t)mutex, HEX) + "\n";
@@ -152,19 +154,19 @@ class DebPinHandler
             return str;
         }
 
-    private :
+    protected :
         SemaphoreHandle_t mutex = nullptr;
 
         /// Parametri da settare
         const char* name;           /*!< Optional: Nome amichevole del pin che serve per il debug */
         unsigned level : 1;         /*!< Stato reale del pin dopo il debounce */
-        uint8_t pin;          /*!< Pin in cui viene fatto il debounce */
+        uint8_t pin;                /*!< Pin in cui viene fatto il debounce */
         bool isInterrupt;           /*!< Flag che indica se è interrupt o polling */
         bool isAttached;            /*!< Flag che indica se il pin è attached o no */
-        uint32_t debounce_ms; /*!< Tempo di debounce in millisecondi (default = 30ms) */
+        uint32_t debounce_ms;       /*!< Tempo di debounce in millisecondi (default = 30ms) */
         uint8_t inputMode;          /*!< Modalità di ingresso del pin ex. INPUT, INPUT_PULLUP, INPUT_PULLDOWN */
         uint8_t levelTriggered;     /*!< Livello per il quale viene considerato triggerato il pin */
-        uint8_t TRIGGER;      /*!< Trigger su cui viene rilevato un fronte di RISING, FALLING, CHANGE */
+        uint8_t TRIGGER;            /*!< Trigger su cui viene rilevato un fronte di RISING, FALLING, CHANGE */
         bool changeOccurred;        /*!< Flag che segnala se è avvenuto l'evento */
 
         volatile unsigned flag : 1; /*!< Flag da usare nell'ISR con accesso atomico di natura */

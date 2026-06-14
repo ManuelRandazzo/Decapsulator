@@ -24,7 +24,7 @@ void DebPinHandler::begin(bool IntrOrPoll, uint8_t pinNumber, const char* pinNam
 {
     this->mutex = xSemaphoreCreateMutex();
 
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
     {
         Serial.printf("Errore xSemaphoreTake del pin \"%s\"\n", this->name);
         //LogError("initDebPin", "Errore xSemaphoreTake del pin \"%s\"", this->name);
@@ -54,9 +54,9 @@ void DebPinHandler::begin(bool IntrOrPoll, uint8_t pinNumber, const char* pinNam
     /// Legge se l'evento all'inizio del programma è attivo
     switch(this->TRIGGER)
     {
-        case RISING  : this->changeOccurred = this->level == HIGH; this->levelTriggered = HIGH; break;
-        case FALLING : this->changeOccurred = this->level == LOW;  this->levelTriggered = LOW;  break;
-        case CHANGE  : this->changeOccurred = true; this->levelTriggered = CHANGE; break;
+        case RISING  : this->levelTriggered = HIGH; break;
+        case FALLING : this->levelTriggered = LOW;  break;
+        case CHANGE  : this->levelTriggered = CHANGE; break;
     }
 
     if(this->isInterrupt == INTR)
@@ -82,7 +82,7 @@ DebPinHandler::~DebPinHandler()
  */
 void DebPinHandler::reattach()
 {
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return;
 
     if(this->isAttached)
@@ -104,7 +104,7 @@ void DebPinHandler::reattach()
  */
 void DebPinHandler::detach()
 {
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return;
 
     if(!this->isAttached)
@@ -129,7 +129,7 @@ bool DebPinHandler::event()
 {
     bool flagHasOccured;
     
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return false;
 
     if(this->isAttached)
@@ -149,7 +149,7 @@ bool DebPinHandler::event()
  */
 bool DebPinHandler::intrUpdate()
 {
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return false;
 
     this->changeOccurred = false;
@@ -221,7 +221,7 @@ bool DebPinHandler::intrUpdate()
  */
 bool DebPinHandler::pollUpdate(uint8_t trigger)
 {
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return false;
 
     this->changeOccurred = false;
@@ -314,7 +314,7 @@ bool DebPinHandler::pollUpdate(uint8_t trigger)
  */
 int8_t DebPinHandler::rawRead()
 {
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return -1;
 
     int8_t pinToRead = this->pin;
@@ -334,7 +334,7 @@ int8_t DebPinHandler::rawRead()
 bool DebPinHandler::IsInterrupt()
 {
     bool isIntr;
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
     {
         Serial.printf("Errore in IsInterrupt xSemaphoreTake del pin \"%s\"\n", this->name);
         //LogError("IsInterrupt", "Errore xSemaphoreTake del pin \"%s\"", this->name);
@@ -354,7 +354,7 @@ bool DebPinHandler::IsInterrupt()
 bool DebPinHandler::IsPolling()
 {
     bool isPoll;
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
     {
         Serial.printf("Errore in IsPolling xSemaphoreTake del pin \"%s\"\n", this->name);
         //LogError("IsPolling", "Errore xSemaphoreTake del pin \"%s\"", this->name);
@@ -377,7 +377,7 @@ int8_t DebPinHandler::getLevelTrig()
 {
     int8_t levelTrig;
 
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return -1;
     levelTrig = this->levelTriggered;
     xSemaphoreGive(this->mutex);
@@ -397,7 +397,7 @@ int8_t DebPinHandler::getTriggerMode()
 {
     int8_t triggerMode;
 
-    if(xSemaphoreTake(this->mutex, 0) == pdFAIL)
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return -1;
     triggerMode = this->TRIGGER;
     xSemaphoreGive(this->mutex);

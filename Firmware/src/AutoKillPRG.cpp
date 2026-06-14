@@ -7,6 +7,8 @@ QueueHandle_t autokillQueueHandler = nullptr;
 
 void AutoKillTask(void* pvParameters)
 {
+    TickType_t getLastTick = xTaskGetTickCount();
+    
     /// Crea la coda
     //autokillQueueHandler = xQueueCreate(1, )
     if(autokillQueueHandler == nullptr)
@@ -43,5 +45,11 @@ void AutoKillTask(void* pvParameters)
             /// Spegne il MOSFET della batteria
             digitalWriteFast(AUTOKILL_SHUTDOWN_PIN, LOW);
         }
+
+        
+        xTaskDelayUntil(&getLastTick, Autokill_delay);
     }
+
+    /// Elimina la task qualora uscisse dal while(1)
+    vTaskDelete(NULL);
 }

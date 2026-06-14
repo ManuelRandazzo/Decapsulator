@@ -9,6 +9,8 @@ FanCtrl Ventola;
 DebPinHandler autoKill;
 DebPinHandler cadutaCaps;
 DebPinHandler presenzaCaps;
+DebPinHandler rallaFault;
+DebPinHandler punzoneFault;
 TFT_eSPI tft = TFT_eSPI();
 
 #pragma endregion (OGGETTI_IO)
@@ -31,7 +33,6 @@ BaseType_t decapsulator_io_begin(void)
     /// TFT Disaplay e Touch
     tft.begin();
     tft.setRotation(3);  // Landscape orientation
-    tft.fillScreen(TFT_BLACK);
 
     /// SD Card - Configurazione dei pin SPI dedicati sull'ESP32-S3 (dichiarati nel platformio.ini)
     while(!SD_Card.Init(tft.getSPIinstance(), TFT_SCLK, TFT_MISO, TFT_MOSI, SD_CS))
@@ -72,6 +73,9 @@ BaseType_t decapsulator_io_begin(void)
         }
     }
 
+    /// Inizializza il pin FAULT del tamburo
+    rallaFault.begin(INTR, RALLA_FAULT_PIN, "RALLA FAULT", 30, FALLING, INPUT);
+
 
 
     /// Motore Punzone
@@ -89,6 +93,9 @@ BaseType_t decapsulator_io_begin(void)
             vTaskDelay(pdMS_TO_TICKS(1000));
         }
     }
+
+    /// Inizializza il pin FAULT del punzone
+    punzoneFault.begin(INTR, PUNZ_FAULT_PIN, "PUNZ FAULT", 30, FALLING, INPUT);
 
     MotPunzone.setHardLimits(PUNZ_MAX_POS_PIN, PUNZ_MIN_POS_PIN, PUNZ_HARD_LIM_INTR_OR_POLL, 30, PUNZ_INPUT_PULL, PUNZ_CAM_SIGNAL);
 

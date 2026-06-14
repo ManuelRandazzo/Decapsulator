@@ -27,6 +27,8 @@ extern FanCtrl Ventola;
 extern DebPinHandler autoKill;
 extern DebPinHandler cadutaCaps;
 extern DebPinHandler presenzaCaps;
+extern DebPinHandler rallaFault;
+extern DebPinHandler punzoneFault;
 extern TFT_eSPI tft;
 
 /**
@@ -57,10 +59,11 @@ extern void MainPrgStopAllMotors(double* ptrStepsLeftTamburo = nullptr, double* 
 
 #pragma region (CAPSULA PROPERTIES)
 
-#define MAX_CAPSULE_CONTAINER 5
+#define MAX_CAPSULE_CONTAINER 5    // Ogni X Capsule deve essere svuotato
+#define MAX_COFFEE_CONTAINER 15    // Ogni X Capsule deve essere svuotato
 #define MAX_STABLE_MOTOR_SPEED 900 // Gradi/secondo [°/s]
-#define DIAMETRO_CAPSULA_MM 54 //millimetri [mm]
-#define ALTEZZA_CAPSULA_MM  37 //millimetri [mm]
+#define DIAMETRO_CAPSULA_MM 54     //millimetri [mm]
+#define ALTEZZA_CAPSULA_MM  37     //millimetri [mm]
 #define TEMPO_CADUTA_CAPSULA_MS (float)(sqrt((float)DIAMETRO_CAPSULA_MM / (2 * 9.80665))) // t_caduta = sqrt( h / (2g) );
 
 #pragma region (CAPSULA PROPERTIES)
