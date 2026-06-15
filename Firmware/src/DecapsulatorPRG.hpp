@@ -22,8 +22,6 @@
 #include "tasks_cfg.hpp"
 /// Include il file che contiene gli oggetti degli IO del decapsulator
 #include "decapsulator_io.hpp"
-/// Include il file per gli handler delle tasks
-#include "ui_and_backend_cfg.hpp"
 /// Include una classe per rilevare i Rising Trigger
 #include "R_TRIG.hpp"
 /// Include una classe per rilevare i Falling Trigger

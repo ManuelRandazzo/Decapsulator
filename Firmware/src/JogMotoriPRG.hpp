@@ -22,8 +22,6 @@
 #include "tasks_cfg.hpp"
 /// Include il file che contiene gli oggetti degli IO del decapsulator
 #include "decapsulator_io.hpp"
-/// Include il file per gli handler delle tasks
-#include "ui_and_backend_cfg.hpp"
 /// Include la libreria custom del motion
 #include "MotionControl.hpp"
 /// Include la libreria per la gestione dei pin e del debounce
