@@ -13,7 +13,11 @@
 objects_t objects;
 
 static const char *screen_names[] = { "Schermata Avvio", "Schermata principale", "Schermata Password", "Schermata Diagnostica", "Schermata Jogger", "Schermata Easter Egg", "Schermata Logger", "Scheramta Config WiFi", "Schermata Calibrazione" };
+<<<<<<< HEAD
 static const char *object_names[] = { "schermata_avvio", "schermata_principale", "schermata_password", "schermata_diagnostica", "schermata_jogger", "schermata_easter_egg", "schermata_logger", "scheramta_config_wi_fi", "schermata_calibrazione", "stato_avvio", "logo", "conteggio_capsule", "capsule_sessione", "vis_cont_caps_ses", "cont_caps_ses", "cont_caps_tot", "vis_cont_caps_tot", "capsule_totali", "impostazioni", "puls_start_stop", "start_stop", "finestra_errore", "puls_ok", "ok", "titolo_errore", "obj0", "tastiera_pssw", "password", "annulla_pssw", "annulla", "messaggio_pssw", "annula_diagnostica", "annulla_diag", "logger", "logger_titolo", "contrmot", "contrmot_titolo", "blocco_jogger", "obj1", "obj2", "jog_motori", "annulla_jogger", "annulla_3", "controllo_m_otori", "contrl_mot_ralla", "contr_ralla", "puls_en_dis_ralla", "en_dis_ralla", "puls_jog_av_ralla", "av_ralla", "puls_jog_ind_ralla", "ind_ralla", "stato_movimento_ralla", "led_stato_movimento_ralla", "titolo_stato_ralla", "contrl_mot_pun", "contr_punz", "puls_en_dis_punz", "en_dis_punz", "puls_jog_av_punz", "av_punz", "puls_jog_ind_punz", "ind_punz", "stato_movimento_punz", "led_stato_movimento_punz", "titolo_stato_punz", "calibrazione", "sensore_di_calibrazione", "titolo_sensore_di_calibrazione", "stato_sensore_di_calibrazione", "gradi_per_click_ralla", "finecorsa_max", "titolo_finecorsa_max", "stato_finecorsa_max", "finecorsa_min", "titolo_finecorsa_min", "stato_finecorsa_min", "homing", "tit_homing", "gradi_per_click_punz", "speed_motore_punz", "speed_motore_ralla", "inserimento_valori", "annulla_easter_egg", "annulla_diag_2", "annulla_pssw_2", "annulla_diag_1", "obj3", "obj4", "annulla_config_wifi", "annulla_config_wifi2", "password_rete_wifi", "nome_rete_wifi", "config_wifi", "messaggio_config_wi_fi" };
+=======
+static const char *object_names[] = { "schermata_avvio", "schermata_principale", "schermata_password", "schermata_diagnostica", "schermata_jogger", "schermata_easter_egg", "schermata_logger", "scheramta_config_wi_fi", "schermata_calibrazione", "stato_avvio", "logo", "conteggio_capsule", "capsule_sessione", "vis_cont_caps_ses", "cont_caps_ses", "cont_caps_tot", "vis_cont_caps_tot", "capsule_totali", "impostazioni", "puls_start_stop", "start_stop", "finestra_errore", "puls_ok", "ok", "titolo_errore", "obj0", "tastiera_pssw", "password", "annulla_pssw", "annulla", "messaggio_pssw", "annula_diagnostica", "annulla_diag", "logger", "logger_titolo", "contrmot", "contrmot_titolo", "blocco_jogger", "obj1", "obj2", "jog_motori", "annulla_jogger", "annulla_3", "controllo_m_otori", "contrl_mot_ralla", "contr_ralla", "puls_en_dis_ralla", "en_dis_ralla", "puls_jog_av_ralla", "av_ralla", "puls_jog_ind_ralla", "ind_ralla", "stato_movimento_ralla", "led_stato_movimento_ralla", "titolo_stato_ralla", "contrl_mot_pun", "contr_punz", "puls_en_dis_punz", "en_dis_punz", "puls_jog_av_punz", "av_punz", "puls_jog_ind_punz", "ind_punz", "stato_movimento_punz", "led_stato_movimento_punz", "titolo_stato_punz", "calibrazione", "sensore_di_calibrazione", "titolo_sensore_di_calibrazione", "stato_sensore_di_calibrazione", "gradi_per_click_ralla", "finecorsa_max", "titolo_finecorsa_max", "stato_finecorsa_max", "finecorsa_min", "titolo_finecorsa_min", "stato_finecorsa_min", "homing", "tit_homing", "gradi_per_click_punz", "speed_motore_punz", "speed_motore_ralla", "inserimento_valori", "annulla_easter_egg", "annulla_diag_2", "annulla_pssw_2", "annulla_diag_1", "obj3", "obj4", "annulla_config_wifi", "annulla_config_wifi2", "config_wifi", "tastiera_config_wi_fi", "messaggio_config_wi_fi" };
+>>>>>>> 1d14641948de5f7c70a5191b56e4ffc9cf502a59
 
 //
 // Event handlers
@@ -468,11 +472,12 @@ static void event_handler_cb_scheramta_config_wi_fi_annulla_config_wifi(lv_event
     }
 }
 
-static void event_handler_cb_scheramta_config_wi_fi_password_rete_wifi(lv_event_t *e) {
+static void event_handler_cb_scheramta_config_wi_fi_tastiera_config_wi_fi(lv_event_t *e) {
     lv_event_code_t event = lv_event_get_code(e);
     void *flowState = lv_event_get_user_data(e);
     (void)flowState;
     
+<<<<<<< HEAD
     if (event == LV_EVENT_VALUE_CHANGED) {
         lv_obj_t *ta = lv_event_get_target_obj(e);
         if (tick_value_change_obj != ta) {
@@ -493,6 +498,11 @@ static void event_handler_cb_scheramta_config_wi_fi_nome_rete_wifi(lv_event_t *e
             const char *value = lv_textarea_get_text(ta);
             assignStringProperty(flowState, 4, 3, value, "Failed to assign Text in Textarea widget");
         }
+=======
+    if (event == LV_EVENT_READY) {
+        e->user_data = (void *)0;
+        flowPropagateValueLVGLEvent(flowState, 4, 0, e);
+>>>>>>> 1d14641948de5f7c70a5191b56e4ffc9cf502a59
     }
 }
 
@@ -505,7 +515,11 @@ static void event_handler_cb_scheramta_config_wi_fi_messaggio_config_wi_fi(lv_ev
         lv_obj_t *ta = lv_event_get_target_obj(e);
         if (tick_value_change_obj != ta) {
             const char *value = lv_textarea_get_text(ta);
+<<<<<<< HEAD
             assignStringProperty(flowState, 6, 3, value, "Failed to assign Text in Textarea widget");
+=======
+            assignStringProperty(flowState, 5, 3, value, "Failed to assign Text in Textarea widget");
+>>>>>>> 1d14641948de5f7c70a5191b56e4ffc9cf502a59
         }
     }
 }
@@ -1994,34 +2008,6 @@ void create_screen_scheramta_config_wi_fi() {
             }
         }
         {
-            // Password Rete Wifi
-            lv_obj_t *obj = lv_textarea_create(parent_obj);
-            objects.password_rete_wifi = obj;
-            lv_obj_set_pos(obj, 140, 109);
-            lv_obj_set_size(obj, 234, 40);
-            lv_textarea_set_max_length(obj, 128);
-            lv_textarea_set_placeholder_text(obj, "PASSWORD");
-            lv_textarea_set_one_line(obj, true);
-            lv_textarea_set_password_mode(obj, true);
-            lv_obj_add_event_cb(obj, event_handler_cb_scheramta_config_wi_fi_password_rete_wifi, LV_EVENT_ALL, flowState);
-            lv_obj_set_style_text_font(obj, &lv_font_montserrat_18, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-        {
-            // Nome Rete Wifi
-            lv_obj_t *obj = lv_textarea_create(parent_obj);
-            objects.nome_rete_wifi = obj;
-            lv_obj_set_pos(obj, 149, 57);
-            lv_obj_set_size(obj, 216, 40);
-            lv_textarea_set_max_length(obj, 128);
-            lv_textarea_set_placeholder_text(obj, "NOME RETE");
-            lv_textarea_set_one_line(obj, true);
-            lv_textarea_set_password_mode(obj, false);
-            lv_obj_add_event_cb(obj, event_handler_cb_scheramta_config_wi_fi_nome_rete_wifi, LV_EVENT_ALL, flowState);
-            lv_obj_set_style_text_font(obj, &lv_font_montserrat_18, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_align(obj, LV_TEXT_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
-        }
-        {
             // Config Wifi
             lv_obj_t *obj = lv_label_create(parent_obj);
             objects.config_wifi = obj;
@@ -2031,6 +2017,20 @@ void create_screen_scheramta_config_wi_fi() {
             lv_label_set_text_static(obj, "Configurazione WiFi");
         }
         {
+<<<<<<< HEAD
+=======
+            // Tastiera Config WiFi
+            lv_obj_t *obj = lv_keyboard_create(parent_obj);
+            objects.tastiera_config_wi_fi = obj;
+            lv_obj_set_pos(obj, 0, 160);
+            lv_obj_set_size(obj, 480, 160);
+            lv_obj_add_event_cb(obj, event_handler_cb_scheramta_config_wi_fi_tastiera_config_wi_fi, LV_EVENT_ALL, flowState);
+            lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
+            lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_font(obj, &lv_font_montserrat_26, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+        {
+>>>>>>> 1d14641948de5f7c70a5191b56e4ffc9cf502a59
             // Messaggio Config WiFi
             lv_obj_t *obj = lv_textarea_create(parent_obj);
             objects.messaggio_config_wi_fi = obj;
@@ -2055,6 +2055,7 @@ void tick_screen_scheramta_config_wi_fi() {
     void *flowState = getFlowState(0, 7);
     (void)flowState;
     {
+<<<<<<< HEAD
         const char *new_val = evalTextProperty(flowState, 3, 3, "Failed to evaluate Text in Textarea widget");
         const char *cur_val = lv_textarea_get_text(objects.password_rete_wifi);
         uint32_t max_length = lv_textarea_get_max_length(objects.password_rete_wifi);
@@ -2076,6 +2077,9 @@ void tick_screen_scheramta_config_wi_fi() {
     }
     {
         const char *new_val = evalTextProperty(flowState, 6, 3, "Failed to evaluate Text in Textarea widget");
+=======
+        const char *new_val = evalTextProperty(flowState, 5, 3, "Failed to evaluate Text in Textarea widget");
+>>>>>>> 1d14641948de5f7c70a5191b56e4ffc9cf502a59
         const char *cur_val = lv_textarea_get_text(objects.messaggio_config_wi_fi);
         uint32_t max_length = lv_textarea_get_max_length(objects.messaggio_config_wi_fi);
         if (strncmp(new_val, cur_val, max_length) != 0) {
