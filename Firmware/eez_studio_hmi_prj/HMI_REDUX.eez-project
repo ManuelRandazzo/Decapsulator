@@ -710,7 +710,7 @@
               "type": "LVGLLabelWidget",
               "left": 215,
               "top": 288,
-              "width": 94,
+              "width": 0,
               "height": 16,
               "customInputs": [],
               "customOutputs": [],
@@ -9708,15 +9708,7 @@
                 "childStyles": []
               },
               "timeline": [],
-              "eventHandlers": [
-                {
-                  "objID": "85fcc063-e33a-4032-c0db-876d84c2847a",
-                  "eventName": "PRESSED",
-                  "handlerType": "flow",
-                  "action": "Calibrazione_Touch",
-                  "userData": 0
-                }
-              ],
+              "eventHandlers": [],
               "identifier": "Tastiera Config WiFi",
               "leftUnit": "px",
               "topUnit": "px",
@@ -9740,12 +9732,8 @@
                 "definition": {
                   "MAIN": {
                     "DEFAULT": {
-                      "align": "DEFAULT"
-                    }
-                  },
-                  "ITEMS": {
-                    "DEFAULT": {
-                      "text_font": "MONTSERRAT_22"
+                      "align": "DEFAULT",
+                      "text_font": "MONTSERRAT_24"
                     }
                   }
                 }
@@ -9860,8 +9848,8 @@
         {
           "objID": "15f81653-23da-48ad-e2eb-66e190a3ecad",
           "type": "LVGLActionComponent",
-          "left": 529,
-          "top": 48,
+          "left": 543,
+          "top": 57,
           "width": 372,
           "height": 54,
           "customInputs": [],
@@ -9880,8 +9868,8 @@
         {
           "objID": "1e30a498-5765-4bd5-da25-35f3dfa8cc06",
           "type": "LVGLActionComponent",
-          "left": 529,
-          "top": 106,
+          "left": 543,
+          "top": 115,
           "width": 397,
           "height": 54,
           "customInputs": [],
@@ -9894,281 +9882,6 @@
               "objectType": "literal",
               "textarea": "password_rete_wifi",
               "textareaType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "502c4ecd-fe04-49e7-d942-e1ae9dce4192",
-          "type": "CompareActionComponent",
-          "left": 529,
-          "top": 223,
-          "width": 346,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Password_Rete_Inserita",
-          "B": "Password_Rete_Corretta",
-          "operator": "="
-        },
-        {
-          "objID": "6181a971-98bf-4aac-9695-8596f93643c5",
-          "type": "LVGLActionComponent",
-          "left": 926,
-          "top": 416,
-          "width": 403,
-          "height": 111,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "b6f97898-c45e-42c7-fa32-ec7bd2536d21",
-              "action": "objClearFlag",
-              "object": "messaggio_config_wi_fi",
-              "objectType": "literal",
-              "flag": "HIDDEN",
-              "flagType": "literal"
-            },
-            {
-              "objID": "c458a4c7-bccf-4d72-c703-b8a6563f37f3",
-              "action": "objStyleSetProperty",
-              "object": "messaggio_config_wi_fi",
-              "objectType": "literal",
-              "property": "bg_color",
-              "propertyType": "literal",
-              "value": "#B80000",
-              "valueType": "literal",
-              "part": "MAIN",
-              "partType": "literal",
-              "state": "DEFAULT",
-              "stateType": "literal"
-            },
-            {
-              "objID": "367f4f6d-395f-44f9-b462-d61a9f233eab",
-              "action": "objSetStateDisabled",
-              "object": "tastiera_config_wi_fi",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "c78044a9-46e4-4e42-d815-d00cec3c8db3",
-              "action": "objSetStateDisabled",
-              "object": "annulla_config_wifi",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "b33403ff-9884-4cf1-a850-29aed22d2538",
-          "type": "SetVariableActionComponent",
-          "left": 1383,
-          "top": 416,
-          "width": 331,
-          "height": 79,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "ea324c74-1612-44cc-db55-02e574ddc1fc",
-              "variable": "Messaggio_Config_WiFi",
-              "value": "\"PASSWORD RETE ERRATA\""
-            },
-            {
-              "objID": "d2f93e4b-0a30-4670-e250-6b4db5adea4a",
-              "variable": "Password_Rete_Inserita",
-              "value": "\"\""
-            }
-          ]
-        },
-        {
-          "objID": "934ae316-b81c-4cca-f609-e1287c85cfe3",
-          "type": "LVGLActionComponent",
-          "left": 926,
-          "top": 248,
-          "width": 403,
-          "height": 111,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "2d495fdf-dd14-4a95-df17-d554e05af759",
-              "action": "objClearFlag",
-              "object": "messaggio_config_wi_fi",
-              "objectType": "literal",
-              "flag": "HIDDEN",
-              "flagType": "literal"
-            },
-            {
-              "objID": "d6961f56-1f51-4c00-b6cd-674a1f37ee62",
-              "action": "objStyleSetProperty",
-              "object": "messaggio_config_wi_fi",
-              "objectType": "literal",
-              "property": "bg_color",
-              "propertyType": "literal",
-              "value": "#22B800",
-              "valueType": "literal",
-              "part": "MAIN",
-              "partType": "literal",
-              "state": "DEFAULT",
-              "stateType": "literal"
-            },
-            {
-              "objID": "d95c5d65-a0b7-4f79-e8e6-a7e2cf17be7e",
-              "action": "objSetStateDisabled",
-              "object": "tastiera_config_wi_fi",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "958ccd6f-53d5-48fa-cce6-708ec241be3a",
-              "action": "objSetStateDisabled",
-              "object": "annulla_config_wifi",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "80d4aab8-51d9-465a-9af0-93887bde4eec",
-          "type": "SetVariableActionComponent",
-          "left": 1376,
-          "top": 248,
-          "width": 386,
-          "height": 123,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "25c3df3b-5cf6-46a1-f232-b1438f98cf97",
-              "variable": "Messaggio_Config_WiFi",
-              "value": "\"RETE CONFIGURATA CON SUCCESSO\""
-            },
-            {
-              "objID": "bdd66487-d8cc-4049-d51d-bfcc6dcd4353",
-              "variable": "Connessione_Presente",
-              "value": "true"
-            },
-            {
-              "objID": "0f916bd6-0274-469b-b876-2d0012561c4c",
-              "variable": "Password_Rete_Inserita",
-              "value": "\"\""
-            },
-            {
-              "objID": "79d49ad1-7ea3-46b9-97ae-0bcf62f9d97f",
-              "variable": "Nome_Rete_Corretta",
-              "value": "\"\""
-            }
-          ]
-        },
-        {
-          "objID": "3f5f869d-7cd6-4246-d3da-4c3b4934b14b",
-          "type": "LVGLActionComponent",
-          "left": 1954,
-          "top": 248,
-          "width": 409,
-          "height": 111,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "7b31894e-f541-49fc-b9d7-aa70a9d3849a",
-              "action": "changeScreen",
-              "screen": "Schermata Diagnostica",
-              "screenType": "literal",
-              "fadeMode": "FADE_IN",
-              "fadeModeType": "literal",
-              "speed": 200,
-              "speedType": "literal",
-              "delay": 0,
-              "delayType": "literal",
-              "useStack": true,
-              "useStackType": "literal"
-            },
-            {
-              "objID": "d1afa6ae-303f-43fa-b366-687c08059c0b",
-              "action": "objSetFlagHidden",
-              "object": "messaggio_config_wi_fi",
-              "objectType": "literal",
-              "hidden": true,
-              "hiddenType": "literal"
-            },
-            {
-              "objID": "34e7b6f4-096b-46ea-ef4d-a4874d097e85",
-              "action": "objSetStateDisabled",
-              "object": "tastiera_config_wi_fi",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "e5320750-6a32-46fe-e88d-5ad81d816d3a",
-              "action": "objSetStateDisabled",
-              "object": "annulla_config_wifi",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "7f4a9909-37ff-42a1-f69d-b05dcca61c9b",
-          "type": "DelayActionComponent",
-          "left": 1821,
-          "top": 248,
-          "width": 87,
-          "height": 54,
-          "customInputs": [],
-          "customOutputs": [],
-          "milliseconds": "1500"
-        },
-        {
-          "objID": "839368eb-2f02-4dff-bf4d-cc7ee4c528bd",
-          "type": "DelayActionComponent",
-          "left": 1821,
-          "top": 416,
-          "width": 87,
-          "height": 54,
-          "customInputs": [],
-          "customOutputs": [],
-          "milliseconds": "1500"
-        },
-        {
-          "objID": "9254977a-1059-421c-d6e2-873b89d2b8ce",
-          "type": "LVGLActionComponent",
-          "left": 1964,
-          "top": 416,
-          "width": 329,
-          "height": 92,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "aab69621-925e-469e-ee5b-180ecaea52fe",
-              "action": "objSetFlagHidden",
-              "object": "messaggio_config_wi_fi",
-              "objectType": "literal",
-              "hidden": true,
-              "hiddenType": "literal"
-            },
-            {
-              "objID": "cd173364-9e5e-4d14-dac2-253b6a0d25d1",
-              "action": "objSetStateDisabled",
-              "object": "tastiera_config_wi_fi",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "e15b3e0c-44a4-4d78-9dd9-3f4e87d27528",
-              "action": "objSetStateDisabled",
-              "object": "annulla_config_wifi",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
             }
           ]
         },
@@ -10211,73 +9924,10 @@
           "input": "@seqin"
         },
         {
-          "objID": "df1d332d-2f4c-44fe-a0ff-87f16c6d5488",
-          "source": "502c4ecd-fe04-49e7-d942-e1ae9dce4192",
-          "output": "True",
-          "target": "934ae316-b81c-4cca-f609-e1287c85cfe3",
-          "input": "@seqin"
-        },
-        {
-          "objID": "907e7a3a-6176-48f9-975a-c7d506a31bef",
-          "source": "934ae316-b81c-4cca-f609-e1287c85cfe3",
-          "output": "@seqout",
-          "target": "80d4aab8-51d9-465a-9af0-93887bde4eec",
-          "input": "@seqin"
-        },
-        {
-          "objID": "14cd15a2-304b-43d2-c52a-6dce974518db",
-          "source": "7f4a9909-37ff-42a1-f69d-b05dcca61c9b",
-          "output": "@seqout",
-          "target": "3f5f869d-7cd6-4246-d3da-4c3b4934b14b",
-          "input": "@seqin"
-        },
-        {
-          "objID": "3dfd1f95-7f0b-4f37-e583-61fa92739035",
-          "source": "839368eb-2f02-4dff-bf4d-cc7ee4c528bd",
-          "output": "@seqout",
-          "target": "9254977a-1059-421c-d6e2-873b89d2b8ce",
-          "input": "@seqin"
-        },
-        {
-          "objID": "3bc5dbc7-88e3-4a51-a9a1-6972f06d1b2a",
-          "source": "80d4aab8-51d9-465a-9af0-93887bde4eec",
-          "output": "@seqout",
-          "target": "7f4a9909-37ff-42a1-f69d-b05dcca61c9b",
-          "input": "@seqin"
-        },
-        {
           "objID": "5bc99060-708e-434d-c2f0-9cefa9b32af4",
           "source": "43ba2b35-4c22-42ed-c34f-8bf6309351cb",
           "output": "@seqout",
           "target": "f26da62b-9d55-4e33-d4c0-75d2967e0d0b",
-          "input": "@seqin"
-        },
-        {
-          "objID": "c1eda426-64d0-43ca-9f58-5c61c6873b07",
-          "source": "664fedc4-2516-4a7d-9f50-85cab12cca7f",
-          "output": "PRESSED",
-          "target": "502c4ecd-fe04-49e7-d942-e1ae9dce4192",
-          "input": "@seqin"
-        },
-        {
-          "objID": "f4ae3f77-ca12-427b-c011-baf3c6bd42d2",
-          "source": "6181a971-98bf-4aac-9695-8596f93643c5",
-          "output": "@seqout",
-          "target": "b33403ff-9884-4cf1-a850-29aed22d2538",
-          "input": "@seqin"
-        },
-        {
-          "objID": "f4f07744-5971-47f1-a2af-cedc4cebf749",
-          "source": "b33403ff-9884-4cf1-a850-29aed22d2538",
-          "output": "@seqout",
-          "target": "839368eb-2f02-4dff-bf4d-cc7ee4c528bd",
-          "input": "@seqin"
-        },
-        {
-          "objID": "7d62ae19-757c-4ecb-fa03-addb2552735f",
-          "source": "502c4ecd-fe04-49e7-d942-e1ae9dce4192",
-          "output": "False",
-          "target": "6181a971-98bf-4aac-9695-8596f93643c5",
           "input": "@seqin"
         }
       ],

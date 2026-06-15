@@ -504,17 +504,6 @@ static void event_handler_cb_scheramta_config_wi_fi_nome_rete_wifi(lv_event_t *e
     }
 }
 
-static void event_handler_cb_scheramta_config_wi_fi_tastiera_config_wi_fi(lv_event_t *e) {
-    lv_event_code_t event = lv_event_get_code(e);
-    void *flowState = lv_event_get_user_data(e);
-    (void)flowState;
-    
-    if (event == LV_EVENT_PRESSED) {
-        e->user_data = (void *)0;
-        flowPropagateValueLVGLEvent(flowState, 6, 0, e);
-    }
-}
-
 static void event_handler_cb_scheramta_config_wi_fi_messaggio_config_wi_fi(lv_event_t *e) {
     lv_event_code_t event = lv_event_get_code(e);
     void *flowState = lv_event_get_user_data(e);
@@ -2055,10 +2044,9 @@ void create_screen_scheramta_config_wi_fi() {
             objects.tastiera_config_wi_fi = obj;
             lv_obj_set_pos(obj, 0, 160);
             lv_obj_set_size(obj, 480, 160);
-            lv_obj_add_event_cb(obj, event_handler_cb_scheramta_config_wi_fi_tastiera_config_wi_fi, LV_EVENT_ALL, flowState);
             lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLLABLE|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_WITH_ARROW|LV_OBJ_FLAG_SNAPPABLE);
             lv_obj_set_style_align(obj, LV_ALIGN_DEFAULT, LV_PART_MAIN | LV_STATE_DEFAULT);
-            lv_obj_set_style_text_font(obj, &lv_font_montserrat_22, LV_PART_ITEMS | LV_STATE_DEFAULT);
+            lv_obj_set_style_text_font(obj, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
         }
         {
             // Messaggio Config WiFi
