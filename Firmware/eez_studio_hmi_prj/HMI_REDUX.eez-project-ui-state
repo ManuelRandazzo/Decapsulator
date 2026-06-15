@@ -1,6 +1,6 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/4",
+    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/1",
     "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/2",
     "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/23",
     "selectedStyleObject": "[HMI_REDUX.eez-project]:/lvglStyles/styles/5",
@@ -214,7 +214,7 @@
               "type": "tabset",
               "id": "EDITORS",
               "weight": 62.70412003290298,
-              "selected": 5,
+              "selected": 7,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
@@ -1282,10 +1282,10 @@
       },
       "transform": {
         "translate": {
-          "x": -351.8607070818488,
+          "x": 48.13929291815123,
           "y": -157.41151488872345
         },
-        "scale": 0.33
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1327,17 +1327,15 @@
         "1": {},
         "5": {},
         "14": {},
-        "19": {
-          "$selected": true
-        },
+        "19": {},
         "20": {}
       },
       "transform": {
         "translate": {
-          "x": 88.52907101133619,
-          "y": -139.2850903037986
+          "x": -182.553351143934,
+          "y": -371.72516238279536
         },
-        "scale": 0.33
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1364,7 +1362,7 @@
           "x": -428.20820106959644,
           "y": -49.27163537771807
         },
-        "scale": 0.33
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1395,7 +1393,7 @@
           "x": -273.5321144470738,
           "y": -131.17957376493212
         },
-        "scale": 0.33
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1442,7 +1440,7 @@
           "x": -301.6757386523631,
           "y": -75.50899709575174
         },
-        "scale": 0.33
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1464,7 +1462,7 @@
           "x": -172.34523809523807,
           "y": -245.19727891156458
         },
-        "scale": 0.33
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1489,7 +1487,7 @@
           "x": -342.0081373705041,
           "y": -137.59840650642644
         },
-        "scale": 0.33
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1547,7 +1545,7 @@
           "x": -270.131638721977,
           "y": 97.75583984837726
         },
-        "scale": 0.33
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1684,7 +1682,7 @@
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 0.33,
+  "flowZoom": 0.8,
   "implementationLanguage": "C++",
   "openDialogDefaultPath": "C:\\Users\\Tomma\\Downloads\\Image.png"
 }
