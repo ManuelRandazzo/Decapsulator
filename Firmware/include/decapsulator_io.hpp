@@ -138,7 +138,7 @@ extern void MainPrgStopAllMotors(double* ptrStepsLeftTamburo = nullptr, double* 
  */
 #define RALLA_MOTOR_STEPS     200
 #define RALLA_TASK_PRIORITY     2           /** @attention: è importante che sia <= della priorità della task */
-#define RALLA_MICROSTEP       FULL_STEP //STEP_1_TO_16
+#define RALLA_MICROSTEP       STEP_1_TO_32//FULL_STEP //STEP_1_TO_16
 #define RALLA_SPEED           MAX_STABLE_MOTOR_SPEED / (double)(RALLA_MICROSTEP)  // Velocità di esecuzione relativo al tamburo in gradi al secondo [°/s]
 #define RALLA_ACC            2000.0   /* Gradi al secondo quadrato */
 #define RALLA_DEC            2000.0   /* Gradi al secondo quadrato */
@@ -157,12 +157,12 @@ extern void MainPrgStopAllMotors(double* ptrStepsLeftTamburo = nullptr, double* 
 #define RALLA_CALIB_INTR_OR_POLL INTR
 #define RALLA_CALIB_PIN         9
 #define RALLA_INPUT_PULL      INPUT_PULLUP /// Input pullup desidera che l'uscita del sensore sia dritta per funzionare in falling
-#define RALLA_HOME_SPEED      240.0   /* Gradi al secondo */
+#define RALLA_HOME_SPEED      720.0   /* Gradi al secondo */
 #define RALLA_HOME_ACC        500.0   /* Gradi al secondo quadrato */
 #define RALLA_HOME_DEC        500.0   /* Gradi al secondo quadrato */
 #define RALLA_CAM_SIGNAL      ACTIVE_LOW
 #define RALLA_HOME_DIR        DIR_NEGATIVE
-#define RALLA_POST_HOME_POS   (-120.0) /*Gradi*//** @attention  Ancora da definire*/
+#define RALLA_POST_HOME_POS   (-39.6) /*Gradi*//** @attention  Ancora da definire*/
 
 #pragma endregion (TAMBURO_SETTINGS)
 
@@ -201,7 +201,7 @@ extern void MainPrgStopAllMotors(double* ptrStepsLeftTamburo = nullptr, double* 
 #define PUNZ_MAX_POS_PIN       18
 #define PUNZ_MIN_POS_PIN        8
 #define PUNZ_INPUT_PULL       INPUT_PULLUP /// Input pullup desidera che l'uscita del sensore sia dritta per funzionare in falling
-#define PUNZ_HOME_SPEED       240.0   /* Gradi al secondo */  /** @attention  Ancora da definire*/
+#define PUNZ_HOME_SPEED       360.0   /* Gradi al secondo */  /** @attention  Ancora da definire*/
 #define PUNZ_HOME_ACC         500.0   /* Gradi al secondo quadrato */
 #define PUNZ_HOME_DEC         500.0   /* Gradi al secondo quadrato */
 #define PUNZ_CAM_SIGNAL       ACTIVE_LOW
