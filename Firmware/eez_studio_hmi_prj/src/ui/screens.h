@@ -49,7 +49,6 @@ typedef struct _objects_t {
     lv_obj_t *puls_ok;
     lv_obj_t *ok;
     lv_obj_t *titolo_errore;
-    lv_obj_t *obj0;
     lv_obj_t *tastiera_pssw;
     lv_obj_t *password;
     lv_obj_t *annulla_pssw;
@@ -62,8 +61,8 @@ typedef struct _objects_t {
     lv_obj_t *contrmot;
     lv_obj_t *contrmot_titolo;
     lv_obj_t *blocco_jogger;
+    lv_obj_t *obj0;
     lv_obj_t *obj1;
-    lv_obj_t *obj2;
     lv_obj_t *jog_motori;
     lv_obj_t *annulla_jogger;
     lv_obj_t *annulla_3;
@@ -111,8 +110,8 @@ typedef struct _objects_t {
     lv_obj_t *annulla_diag_2;
     lv_obj_t *annulla_pssw_2;
     lv_obj_t *annulla_diag_1;
+    lv_obj_t *obj2;
     lv_obj_t *obj3;
-    lv_obj_t *obj4;
     lv_obj_t *annulla_config_wifi;
     lv_obj_t *annulla_config_wifi2;
     lv_obj_t *config_wifi;
