@@ -13,7 +13,7 @@
 objects_t objects;
 
 static const char *screen_names[] = { "Schermata Avvio", "Schermata principale", "Schermata Password", "Schermata Diagnostica", "Schermata Jogger", "Schermata Easter Egg", "Schermata Logger", "Scheramta Config WiFi", "Schermata Calibrazione" };
-static const char *object_names[] = { "schermata_avvio", "schermata_principale", "schermata_password", "schermata_diagnostica", "schermata_jogger", "schermata_easter_egg", "schermata_logger", "scheramta_config_wi_fi", "schermata_calibrazione", "stato_avvio", "logo", "conteggio_capsule", "capsule_sessione", "vis_cont_caps_ses", "cont_caps_ses", "cont_caps_tot", "vis_cont_caps_tot", "capsule_totali", "impostazioni", "puls_start_stop", "start_stop", "finestra_errore", "puls_ok", "ok", "titolo_errore", "tastiera_pssw", "password", "annulla_pssw", "annulla", "messaggio_pssw", "annula_diagnostica", "annulla_diag", "logger", "logger_titolo", "contrmot", "contrmot_titolo", "blocco_jogger", "obj0", "obj1", "jog_motori", "annulla_jogger", "annulla_3", "controllo_m_otori", "contrl_mot_ralla", "contr_ralla", "puls_en_dis_ralla", "en_dis_ralla", "puls_jog_av_ralla", "av_ralla", "puls_jog_ind_ralla", "ind_ralla", "stato_movimento_ralla", "led_stato_movimento_ralla", "titolo_stato_ralla", "contrl_mot_pun", "contr_punz", "puls_en_dis_punz", "en_dis_punz", "puls_jog_av_punz", "av_punz", "puls_jog_ind_punz", "ind_punz", "stato_movimento_punz", "led_stato_movimento_punz", "titolo_stato_punz", "calibrazione", "sensore_di_calibrazione", "titolo_sensore_di_calibrazione", "stato_sensore_di_calibrazione", "gradi_per_click_ralla", "finecorsa_max", "titolo_finecorsa_max", "stato_finecorsa_max", "finecorsa_min", "titolo_finecorsa_min", "stato_finecorsa_min", "homing", "tit_homing", "gradi_per_click_punz", "speed_motore_punz", "speed_motore_ralla", "inserimento_valori", "annulla_easter_egg", "annulla_diag_2", "annulla_pssw_2", "annulla_diag_1", "obj2", "annulla_config_wifi", "annulla_config_wifi2", "password_rete_wifi", "nome_rete_wifi", "config_wifi", "tastiera_config_wi_fi", "messaggio_config_wi_fi" };
+static const char *object_names[] = { "schermata_avvio", "schermata_principale", "schermata_password", "schermata_diagnostica", "schermata_jogger", "schermata_easter_egg", "schermata_logger", "scheramta_config_wi_fi", "schermata_calibrazione", "stato_avvio", "logo", "conteggio_capsule", "capsule_sessione", "vis_cont_caps_ses", "cont_caps_ses", "cont_caps_tot", "vis_cont_caps_tot", "capsule_totali", "impostazioni", "puls_start_stop", "start_stop", "finestra_errore", "puls_ok", "ok", "titolo_errore", "obj0", "tastiera_pssw", "password", "annulla_pssw", "annulla", "messaggio_pssw", "annula_diagnostica", "annulla_diag", "logger", "logger_titolo", "contrmot", "contrmot_titolo", "blocco_jogger", "obj1", "obj2", "jog_motori", "annulla_jogger", "annulla_3", "controllo_m_otori", "contrl_mot_ralla", "contr_ralla", "puls_en_dis_ralla", "en_dis_ralla", "puls_jog_av_ralla", "av_ralla", "puls_jog_ind_ralla", "ind_ralla", "stato_movimento_ralla", "led_stato_movimento_ralla", "titolo_stato_ralla", "contrl_mot_pun", "contr_punz", "puls_en_dis_punz", "en_dis_punz", "puls_jog_av_punz", "av_punz", "puls_jog_ind_punz", "ind_punz", "stato_movimento_punz", "led_stato_movimento_punz", "titolo_stato_punz", "calibrazione", "sensore_di_calibrazione", "titolo_sensore_di_calibrazione", "stato_sensore_di_calibrazione", "gradi_per_click_ralla", "finecorsa_max", "titolo_finecorsa_max", "stato_finecorsa_max", "finecorsa_min", "titolo_finecorsa_min", "stato_finecorsa_min", "homing", "tit_homing", "gradi_per_click_punz", "speed_motore_punz", "speed_motore_ralla", "inserimento_valori", "annulla_easter_egg", "annulla_diag_2", "annulla_pssw_2", "annulla_diag_1", "obj3", "obj4", "annulla_config_wifi", "annulla_config_wifi2", "password_rete_wifi", "nome_rete_wifi", "config_wifi", "tastiera_config_wi_fi", "messaggio_config_wi_fi" };
 
 //
 // Event handlers
@@ -62,6 +62,17 @@ static void event_handler_cb_schermata_principale_puls_ok(lv_event_t *e) {
     if (event == LV_EVENT_PRESSED) {
         e->user_data = (void *)0;
         flowPropagateValueLVGLEvent(flowState, 13, 0, e);
+    }
+}
+
+static void event_handler_cb_schermata_principale_obj0(lv_event_t *e) {
+    lv_event_code_t event = lv_event_get_code(e);
+    void *flowState = lv_event_get_user_data(e);
+    (void)flowState;
+    
+    if (event == LV_EVENT_PRESSED) {
+        e->user_data = (void *)0;
+        flowPropagateValueLVGLEvent(flowState, 16, 0, e);
     }
 }
 
@@ -148,7 +159,7 @@ static void event_handler_cb_schermata_diagnostica_contrmot(lv_event_t *e) {
     }
 }
 
-static void event_handler_cb_schermata_diagnostica_obj0(lv_event_t *e) {
+static void event_handler_cb_schermata_diagnostica_obj1(lv_event_t *e) {
     lv_event_code_t event = lv_event_get_code(e);
     void *flowState = lv_event_get_user_data(e);
     (void)flowState;
@@ -159,7 +170,7 @@ static void event_handler_cb_schermata_diagnostica_obj0(lv_event_t *e) {
     }
 }
 
-static void event_handler_cb_schermata_diagnostica_obj1(lv_event_t *e) {
+static void event_handler_cb_schermata_diagnostica_obj2(lv_event_t *e) {
     lv_event_code_t event = lv_event_get_code(e);
     void *flowState = lv_event_get_user_data(e);
     (void)flowState;
@@ -421,7 +432,7 @@ static void event_handler_cb_schermata_logger_annulla_pssw_2(lv_event_t *e) {
     }
 }
 
-static void event_handler_cb_schermata_logger_obj2(lv_event_t *e) {
+static void event_handler_cb_schermata_logger_obj3(lv_event_t *e) {
     lv_event_code_t event = lv_event_get_code(e);
     void *flowState = lv_event_get_user_data(e);
     (void)flowState;
@@ -432,6 +443,17 @@ static void event_handler_cb_schermata_logger_obj2(lv_event_t *e) {
             const char *value = lv_textarea_get_text(ta);
             assignStringProperty(flowState, 3, 3, value, "Failed to assign Text in Textarea widget");
         }
+    }
+}
+
+static void event_handler_cb_schermata_logger_obj4(lv_event_t *e) {
+    lv_event_code_t event = lv_event_get_code(e);
+    void *flowState = lv_event_get_user_data(e);
+    (void)flowState;
+    
+    if (event == LV_EVENT_PRESSED) {
+        e->user_data = (void *)0;
+        flowPropagateValueLVGLEvent(flowState, 4, 0, e);
     }
 }
 
@@ -741,6 +763,23 @@ void create_screen_schermata_principale() {
                 }
             }
         }
+        {
+            lv_obj_t *obj = lv_button_create(parent_obj);
+            objects.obj0 = obj;
+            lv_obj_set_pos(obj, 0, 0);
+            lv_obj_set_size(obj, 61, 50);
+            lv_obj_add_event_cb(obj, event_handler_cb_schermata_principale_obj0, LV_EVENT_ALL, flowState);
+            {
+                lv_obj_t *parent_obj = obj;
+                {
+                    lv_obj_t *obj = lv_label_create(parent_obj);
+                    lv_obj_set_pos(obj, 0, 0);
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_label_set_text_static(obj, "Button");
+                }
+            }
+        }
     }
     
     tick_screen_schermata_principale();
@@ -1027,10 +1066,10 @@ void create_screen_schermata_diagnostica() {
         }
         {
             lv_obj_t *obj = lv_button_create(parent_obj);
-            objects.obj0 = obj;
+            objects.obj1 = obj;
             lv_obj_set_pos(obj, 20, 194);
             lv_obj_set_size(obj, 200, 100);
-            lv_obj_add_event_cb(obj, event_handler_cb_schermata_diagnostica_obj0, LV_EVENT_ALL, flowState);
+            lv_obj_add_event_cb(obj, event_handler_cb_schermata_diagnostica_obj1, LV_EVENT_ALL, flowState);
             lv_obj_set_style_text_font(obj, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = obj;
@@ -1046,10 +1085,10 @@ void create_screen_schermata_diagnostica() {
         }
         {
             lv_obj_t *obj = lv_button_create(parent_obj);
-            objects.obj1 = obj;
+            objects.obj2 = obj;
             lv_obj_set_pos(obj, 260, 194);
             lv_obj_set_size(obj, 200, 100);
-            lv_obj_add_event_cb(obj, event_handler_cb_schermata_diagnostica_obj1, LV_EVENT_ALL, flowState);
+            lv_obj_add_event_cb(obj, event_handler_cb_schermata_diagnostica_obj2, LV_EVENT_ALL, flowState);
             lv_obj_set_style_text_font(obj, &lv_font_montserrat_24, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
                 lv_obj_t *parent_obj = obj;
@@ -1890,16 +1929,35 @@ void create_screen_schermata_logger() {
         }
         {
             lv_obj_t *obj = lv_textarea_create(parent_obj);
-            objects.obj2 = obj;
+            objects.obj3 = obj;
             lv_obj_set_pos(obj, 15, 15);
             lv_obj_set_size(obj, 326, 292);
             lv_textarea_set_max_length(obj, 1e+160);
             lv_textarea_set_placeholder_text(obj, "LOGGER");
             lv_textarea_set_one_line(obj, false);
             lv_textarea_set_password_mode(obj, false);
-            lv_obj_add_event_cb(obj, event_handler_cb_schermata_logger_obj2, LV_EVENT_ALL, flowState);
-            lv_obj_remove_flag(obj, LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_ON_FOCUS|LV_OBJ_FLAG_SNAPPABLE);
+            lv_obj_add_event_cb(obj, event_handler_cb_schermata_logger_obj3, LV_EVENT_ALL, flowState);
+            lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICK_FOCUSABLE|LV_OBJ_FLAG_GESTURE_BUBBLE|LV_OBJ_FLAG_PRESS_LOCK|LV_OBJ_FLAG_SCROLL_CHAIN_HOR|LV_OBJ_FLAG_SCROLL_CHAIN_VER|LV_OBJ_FLAG_SCROLL_ELASTIC|LV_OBJ_FLAG_SCROLL_MOMENTUM|LV_OBJ_FLAG_SCROLL_ON_FOCUS|LV_OBJ_FLAG_SNAPPABLE);
+            lv_obj_set_scrollbar_mode(obj, LV_SCROLLBAR_MODE_AUTO);
             lv_obj_set_style_text_font(obj, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+        }
+        {
+            lv_obj_t *obj = lv_button_create(parent_obj);
+            objects.obj4 = obj;
+            lv_obj_set_pos(obj, 360, 257);
+            lv_obj_set_size(obj, 100, 50);
+            lv_obj_add_event_cb(obj, event_handler_cb_schermata_logger_obj4, LV_EVENT_ALL, flowState);
+            lv_obj_set_style_text_font(obj, &lv_font_montserrat_20, LV_PART_MAIN | LV_STATE_DEFAULT);
+            {
+                lv_obj_t *parent_obj = obj;
+                {
+                    lv_obj_t *obj = lv_label_create(parent_obj);
+                    lv_obj_set_pos(obj, 0, 0);
+                    lv_obj_set_size(obj, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
+                    lv_obj_set_style_align(obj, LV_ALIGN_CENTER, LV_PART_MAIN | LV_STATE_DEFAULT);
+                    lv_label_set_text_static(obj, "Refresh");
+                }
+            }
         }
     }
     
@@ -1911,11 +1969,11 @@ void tick_screen_schermata_logger() {
     (void)flowState;
     {
         const char *new_val = evalTextProperty(flowState, 3, 3, "Failed to evaluate Text in Textarea widget");
-        const char *cur_val = lv_textarea_get_text(objects.obj2);
-        uint32_t max_length = lv_textarea_get_max_length(objects.obj2);
+        const char *cur_val = lv_textarea_get_text(objects.obj3);
+        uint32_t max_length = lv_textarea_get_max_length(objects.obj3);
         if (strncmp(new_val, cur_val, max_length) != 0) {
-            tick_value_change_obj = objects.obj2;
-            lv_textarea_set_text(objects.obj2, new_val);
+            tick_value_change_obj = objects.obj3;
+            lv_textarea_set_text(objects.obj3, new_val);
             tick_value_change_obj = NULL;
         }
     }

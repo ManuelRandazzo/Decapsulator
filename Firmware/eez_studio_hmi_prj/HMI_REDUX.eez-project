@@ -448,14 +448,6 @@
         "persistent": false
       },
       {
-        "objID": "f0925170-5c2d-4e52-8406-dddc160383af",
-        "name": "Nome_Rete_Inserito",
-        "type": "string",
-        "size": null,
-        "defaultValue": "\"\"",
-        "persistent": false
-      },
-      {
         "objID": "e215c452-cc4f-4646-adea-aed5fae5ca40",
         "name": "Password_Rete_Inserita",
         "type": "string",
@@ -578,6 +570,16 @@
       "componentGroups": [],
       "userProperties": [],
       "name": "ConfWiFi_Page_Deinit",
+      "implementationType": "native"
+    },
+    {
+      "objID": "fc7659f7-5f90-4600-a2b4-9e1e2b8a3d5f",
+      "components": [],
+      "connectionLines": [],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "refresh_logs",
       "implementationType": "native"
     }
   ],
@@ -1759,6 +1761,103 @@
               },
               "group": "",
               "groupIndex": 0
+            },
+            {
+              "objID": "db9c4397-b386-4277-a060-582915b94ed8",
+              "type": "LVGLButtonWidget",
+              "left": 0,
+              "top": 0,
+              "width": 61,
+              "height": 50,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "101c6501-ecdc-4d31-cf11-4aab0fb1f402",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [
+                {
+                  "objID": "48519b69-fc4f-4524-8798-7f75d3866583",
+                  "eventName": "PRESSED",
+                  "handlerType": "flow",
+                  "action": "Calibrazione_Touch",
+                  "userData": 0
+                }
+              ],
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [
+                {
+                  "objID": "23f4fd1b-4d18-4c8c-bb88-8b2a75724c84",
+                  "type": "LVGLLabelWidget",
+                  "left": 0,
+                  "top": 0,
+                  "width": 52,
+                  "height": 16,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "69da2cc5-23fe-4f9e-cee6-b537ed5f3a6a",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "content",
+                  "heightUnit": "content",
+                  "children": [],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlagType": "literal",
+                  "clickableFlagType": "literal",
+                  "flagScrollbarMode": "",
+                  "flagScrollDirection": "",
+                  "scrollSnapX": "",
+                  "scrollSnapY": "",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "dd33508c-9120-482c-ae50-6eaf3d54d913",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "align": "CENTER"
+                        }
+                      }
+                    }
+                  },
+                  "group": "",
+                  "groupIndex": 0,
+                  "text": "Button",
+                  "textType": "literal",
+                  "longMode": "WRAP",
+                  "recolor": false
+                }
+              ],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlag": true,
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "13215c92-10c7-4301-a517-bd4957b78293"
+              },
+              "group": "",
+              "groupIndex": 0
             }
           ],
           "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
@@ -2132,6 +2231,23 @@
               "value": "true"
             }
           ]
+        },
+        {
+          "objID": "05c582bb-6635-4c58-95be-ca635435d62f",
+          "type": "SetVariableActionComponent",
+          "left": -55,
+          "top": -204,
+          "width": 257,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "e14be572-99db-4db1-f939-23798c0678e3",
+              "variable": "Presenza_Errore",
+              "value": "!Presenza_Errore"
+            }
+          ]
         }
       ],
       "connectionLines": [
@@ -2252,6 +2368,13 @@
           "source": "20f02536-b85a-4c41-f1d8-88600c6d0619",
           "output": "variable",
           "target": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "input": "@seqin"
+        },
+        {
+          "objID": "07b0193d-d807-4e45-d2ba-d89464dab635",
+          "source": "db9c4397-b386-4277-a060-582915b94ed8",
+          "output": "PRESSED",
+          "target": "05c582bb-6635-4c58-95be-ca635435d62f",
           "input": "@seqin"
         }
       ],
@@ -3800,7 +3923,7 @@
           "type": "CallActionActionComponent",
           "left": 943,
           "top": 240,
-          "width": 109,
+          "width": 144,
           "height": 24,
           "customInputs": [],
           "customOutputs": [],
@@ -3811,32 +3934,32 @@
           }
         },
         {
-          "objID": "57856c4b-860c-4fd1-b597-dda1afeed755",
-          "type": "CallActionActionComponent",
-          "left": 897,
-          "top": 101,
-          "width": 93,
-          "height": 24,
-          "customInputs": [],
-          "customOutputs": [],
-          "action": "Logger_Page_Init",
-          "userPropertyValues": {
-            "objID": "513fca12-7789-4401-feff-96e6353f2db7",
-            "values": {}
-          }
-        },
-        {
           "objID": "e0eca1fb-4c96-4987-bf6e-cf75414ceea9",
           "type": "CallActionActionComponent",
           "left": -149,
           "top": 59,
-          "width": 93,
+          "width": 132,
           "height": 24,
           "customInputs": [],
           "customOutputs": [],
           "action": "Logger_Page_Init",
           "userPropertyValues": {
             "objID": "402ae3ed-18ef-4631-b0b2-f2966dacb672",
+            "values": {}
+          }
+        },
+        {
+          "objID": "1ef834bf-2f13-423c-bbdb-86fef47c966d",
+          "type": "CallActionActionComponent",
+          "left": 915,
+          "top": 101,
+          "width": 132,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "Jogger_Page_Init",
+          "userPropertyValues": {
+            "objID": "f39c15b6-0c2e-4f59-821f-fc548f1c4799",
             "values": {}
           }
         }
@@ -3885,13 +4008,6 @@
           "input": "@seqin"
         },
         {
-          "objID": "3fa21d8b-de1a-4a79-a27c-2a01b16d673b",
-          "source": "20911e08-a733-4540-836f-b7f5ce95e482",
-          "output": "@seqout",
-          "target": "57856c4b-860c-4fd1-b597-dda1afeed755",
-          "input": "@seqin"
-        },
-        {
           "objID": "03291162-0509-493d-f474-5168bec53fca",
           "source": "ee00b156-6884-4920-c62c-1da27db73997",
           "output": "@seqout",
@@ -3903,6 +4019,13 @@
           "source": "b7a9eeaf-5b9d-4ad7-cea7-cb8b31740565",
           "output": "@seqout",
           "target": "9dec5e77-1bd5-4e29-b392-4aec80718086",
+          "input": "@seqin"
+        },
+        {
+          "objID": "826687d3-a5cf-4eae-8591-21b2b001d740",
+          "source": "20911e08-a733-4540-836f-b7f5ce95e482",
+          "output": "@seqout",
+          "target": "1ef834bf-2f13-423c-bbdb-86fef47c966d",
           "input": "@seqin"
         }
       ],
@@ -6435,6 +6558,7 @@
                 "conditionalStyles": [],
                 "childStyles": []
               },
+              "hiddenInEditor": true,
               "timeline": [],
               "eventHandlers": [
                 {
@@ -8099,7 +8223,7 @@
           "type": "CallActionActionComponent",
           "left": 128,
           "top": -196,
-          "width": 107,
+          "width": 147,
           "height": 24,
           "customInputs": [],
           "customOutputs": [],
@@ -8108,6 +8232,26 @@
             "objID": "4f514cbb-406c-4965-d387-21f1c96f236e",
             "values": {}
           }
+        },
+        {
+          "objID": "1e46de67-8a6c-4415-d20f-f949d889f34c",
+          "type": "StartActionComponent",
+          "left": 231,
+          "top": 1216,
+          "width": 87,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": []
+        },
+        {
+          "objID": "a45c6921-f45f-4181-cce5-d23a316b52d7",
+          "type": "StartActionComponent",
+          "left": 281,
+          "top": 828,
+          "width": 87,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": []
         }
       ],
       "connectionLines": [
@@ -8614,6 +8758,20 @@
           "output": "@seqout",
           "target": "77590896-8aa2-43ca-bae4-59e39453eb14",
           "input": "@seqin"
+        },
+        {
+          "objID": "065ff940-10e4-4a6b-f6b9-d7328495b847",
+          "source": "1e46de67-8a6c-4415-d20f-f949d889f34c",
+          "output": "@seqout",
+          "target": "cc55ae96-ed7e-4372-e37e-9bc34cd5e56b",
+          "input": "@seqin"
+        },
+        {
+          "objID": "8a1ce5a6-55c9-4e3e-b0ab-8a7b322e5d13",
+          "source": "a45c6921-f45f-4181-cce5-d23a316b52d7",
+          "output": "@seqout",
+          "target": "9edb089f-5244-4386-f82e-e9efcfea37fd",
+          "input": "@seqin"
         }
       ],
       "localVariables": [],
@@ -8980,11 +9138,11 @@
               "widthUnit": "px",
               "heightUnit": "px",
               "children": [],
-              "widgetFlags": "CLICK_FOCUSABLE|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM",
+              "widgetFlags": "SCROLLABLE",
               "hiddenFlagType": "literal",
               "clickableFlag": true,
               "clickableFlagType": "literal",
-              "flagScrollbarMode": "",
+              "flagScrollbarMode": "auto",
               "flagScrollDirection": "",
               "scrollSnapX": "",
               "scrollSnapY": "",
@@ -9010,6 +9168,110 @@
               "passwordMode": false,
               "acceptedCharacters": "",
               "maxTextLength": 1e+160
+            },
+            {
+              "objID": "c99c8524-5eb9-4bb2-ad3e-cd43faa85f11",
+              "type": "LVGLButtonWidget",
+              "left": 360,
+              "top": 257,
+              "width": 100,
+              "height": 50,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "f95f13bd-b059-41b1-cc62-50cafee0052d",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [
+                {
+                  "objID": "234c068a-24c1-4346-c3e3-33c1907500a2",
+                  "eventName": "PRESSED",
+                  "handlerType": "flow",
+                  "action": "Calibrazione_Touch",
+                  "userData": 0
+                }
+              ],
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [
+                {
+                  "objID": "84ff87c4-6cf9-41f5-ba6e-5e99bf74ed17",
+                  "type": "LVGLLabelWidget",
+                  "left": 0,
+                  "top": 0,
+                  "width": 80,
+                  "height": 22,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "aada7ff0-9de5-42d0-d65a-c5f931d664ab",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "content",
+                  "heightUnit": "content",
+                  "children": [],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlagType": "literal",
+                  "clickableFlagType": "literal",
+                  "flagScrollbarMode": "",
+                  "flagScrollDirection": "",
+                  "scrollSnapX": "",
+                  "scrollSnapY": "",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "a1996407-64ee-4f67-fda3-9a97cff9a711",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "align": "CENTER"
+                        }
+                      }
+                    }
+                  },
+                  "group": "",
+                  "groupIndex": 0,
+                  "text": "Refresh",
+                  "textType": "literal",
+                  "longMode": "WRAP",
+                  "recolor": false
+                }
+              ],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlag": true,
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "37b124a0-475e-4933-d80d-9d9429df1a40",
+                "definition": {
+                  "MAIN": {
+                    "DEFAULT": {
+                      "text_font": "MONTSERRAT_20"
+                    }
+                  }
+                }
+              },
+              "group": "",
+              "groupIndex": 0
             }
           ],
           "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
@@ -9062,13 +9324,28 @@
           "type": "CallActionActionComponent",
           "left": 944,
           "top": 24,
-          "width": 107,
+          "width": 147,
           "height": 24,
           "customInputs": [],
           "customOutputs": [],
           "action": "Logger_Page_Deinit",
           "userPropertyValues": {
             "objID": "8954f039-8ac1-481f-afb2-1918cc6299b1",
+            "values": {}
+          }
+        },
+        {
+          "objID": "2e237587-62f0-480a-9db8-906851165d44",
+          "type": "CallActionActionComponent",
+          "left": 513,
+          "top": 270,
+          "width": 104,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "refresh_logs",
+          "userPropertyValues": {
+            "objID": "5b060398-cc36-42aa-b9bd-cda7d22f999e",
             "values": {}
           }
         }
@@ -9086,6 +9363,13 @@
           "source": "79786065-6a8f-4096-eec7-ac95ed63ec83",
           "output": "@seqout",
           "target": "05ac79f6-db1e-4418-faf5-cfe8d39f3d2c",
+          "input": "@seqin"
+        },
+        {
+          "objID": "5cd65122-8486-4507-af19-83403c2b1e3a",
+          "source": "c99c8524-5eb9-4bb2-ad3e-cd43faa85f11",
+          "output": "PRESSED",
+          "target": "2e237587-62f0-480a-9db8-906851165d44",
           "input": "@seqin"
         }
       ],
@@ -9350,7 +9634,7 @@
               },
               "group": "",
               "groupIndex": 0,
-              "text": "Nome_Rete_Inserito",
+              "text": "Nome_Rete_Corretta",
               "textType": "expression",
               "placeholder": "NOME RETE",
               "oneLineMode": true,
@@ -9614,22 +9898,9 @@
           ]
         },
         {
-          "objID": "759d2308-2924-4283-db18-c7db95ed5274",
-          "type": "CompareActionComponent",
-          "left": 551,
-          "top": 223,
-          "width": 297,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Nome_Rete_Inserito",
-          "B": "Nome_Rete_Corretta",
-          "operator": "="
-        },
-        {
           "objID": "502c4ecd-fe04-49e7-d942-e1ae9dce4192",
           "type": "CompareActionComponent",
-          "left": 901,
+          "left": 529,
           "top": 223,
           "width": 346,
           "height": 70,
@@ -9640,32 +9911,10 @@
           "operator": "="
         },
         {
-          "objID": "86fbf926-c243-4102-e154-87f2ecd706b3",
-          "type": "SetVariableActionComponent",
-          "left": 901,
-          "top": 320,
-          "width": 306,
-          "height": 79,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "b360c8a0-4513-4ffc-efe1-dfa6b31b2c04",
-              "variable": "Messaggio_Config_WiFi",
-              "value": "\"NOME RETE ERRATO\""
-            },
-            {
-              "objID": "37b756fe-1272-4949-f0b9-a7fb828e3e72",
-              "variable": "Nome_Rete_Inserito",
-              "value": "\"\""
-            }
-          ]
-        },
-        {
           "objID": "6181a971-98bf-4aac-9695-8596f93643c5",
           "type": "LVGLActionComponent",
-          "left": 1401,
-          "top": 544,
+          "left": 926,
+          "top": 416,
           "width": 403,
           "height": 111,
           "customInputs": [],
@@ -9714,8 +9963,8 @@
         {
           "objID": "b33403ff-9884-4cf1-a850-29aed22d2538",
           "type": "SetVariableActionComponent",
-          "left": 1347,
-          "top": 352,
+          "left": 1383,
+          "top": 416,
           "width": 331,
           "height": 79,
           "customInputs": [],
@@ -9736,8 +9985,8 @@
         {
           "objID": "934ae316-b81c-4cca-f609-e1287c85cfe3",
           "type": "LVGLActionComponent",
-          "left": 1347,
-          "top": 223,
+          "left": 926,
+          "top": 248,
           "width": 403,
           "height": 111,
           "customInputs": [],
@@ -9786,8 +10035,8 @@
         {
           "objID": "80d4aab8-51d9-465a-9af0-93887bde4eec",
           "type": "SetVariableActionComponent",
-          "left": 1797,
-          "top": 223,
+          "left": 1376,
+          "top": 248,
           "width": 386,
           "height": 123,
           "customInputs": [],
@@ -9810,7 +10059,7 @@
             },
             {
               "objID": "79d49ad1-7ea3-46b9-97ae-0bcf62f9d97f",
-              "variable": "Nome_Rete_Inserito",
+              "variable": "Nome_Rete_Corretta",
               "value": "\"\""
             }
           ]
@@ -9818,8 +10067,8 @@
         {
           "objID": "3f5f869d-7cd6-4246-d3da-4c3b4934b14b",
           "type": "LVGLActionComponent",
-          "left": 2375,
-          "top": 223,
+          "left": 1954,
+          "top": 248,
           "width": 409,
           "height": 111,
           "customInputs": [],
@@ -9868,8 +10117,8 @@
         {
           "objID": "7f4a9909-37ff-42a1-f69d-b05dcca61c9b",
           "type": "DelayActionComponent",
-          "left": 2242,
-          "top": 223,
+          "left": 1821,
+          "top": 248,
           "width": 87,
           "height": 54,
           "customInputs": [],
@@ -9879,8 +10128,8 @@
         {
           "objID": "839368eb-2f02-4dff-bf4d-cc7ee4c528bd",
           "type": "DelayActionComponent",
-          "left": 1839,
-          "top": 544,
+          "left": 1821,
+          "top": 416,
           "width": 87,
           "height": 54,
           "customInputs": [],
@@ -9890,8 +10139,8 @@
         {
           "objID": "9254977a-1059-421c-d6e2-873b89d2b8ce",
           "type": "LVGLActionComponent",
-          "left": 1961,
-          "top": 552,
+          "left": 1964,
+          "top": 416,
           "width": 329,
           "height": 92,
           "customInputs": [],
@@ -9928,7 +10177,7 @@
           "type": "CallActionActionComponent",
           "left": 296,
           "top": -127,
-          "width": 123,
+          "width": 159,
           "height": 24,
           "customInputs": [],
           "customOutputs": [],
@@ -9959,41 +10208,6 @@
           "source": "d975a948-7437-4350-dbb6-ea34a160ef60",
           "output": "PRESSED",
           "target": "1e30a498-5765-4bd5-da25-35f3dfa8cc06",
-          "input": "@seqin"
-        },
-        {
-          "objID": "e991e6c2-c88d-402e-ad63-e197dbe38485",
-          "source": "759d2308-2924-4283-db18-c7db95ed5274",
-          "output": "True",
-          "target": "502c4ecd-fe04-49e7-d942-e1ae9dce4192",
-          "input": "@seqin"
-        },
-        {
-          "objID": "d6ada526-8c1f-4f05-f126-5df231db0bba",
-          "source": "759d2308-2924-4283-db18-c7db95ed5274",
-          "output": "False",
-          "target": "6181a971-98bf-4aac-9695-8596f93643c5",
-          "input": "@seqin"
-        },
-        {
-          "objID": "b647b28f-6925-419d-a1f0-c5d3450d5245",
-          "source": "759d2308-2924-4283-db18-c7db95ed5274",
-          "output": "False",
-          "target": "86fbf926-c243-4102-e154-87f2ecd706b3",
-          "input": "@seqin"
-        },
-        {
-          "objID": "f6b03747-c0e4-4540-ef0c-75540668a968",
-          "source": "502c4ecd-fe04-49e7-d942-e1ae9dce4192",
-          "output": "False",
-          "target": "6181a971-98bf-4aac-9695-8596f93643c5",
-          "input": "@seqin"
-        },
-        {
-          "objID": "d1cf988e-c129-4389-91ee-4694e25166b7",
-          "source": "502c4ecd-fe04-49e7-d942-e1ae9dce4192",
-          "output": "False",
-          "target": "b33403ff-9884-4cf1-a850-29aed22d2538",
           "input": "@seqin"
         },
         {
@@ -10032,24 +10246,38 @@
           "input": "@seqin"
         },
         {
-          "objID": "07bfd942-267e-4e46-aa74-6c57261c7e92",
+          "objID": "5bc99060-708e-434d-c2f0-9cefa9b32af4",
+          "source": "43ba2b35-4c22-42ed-c34f-8bf6309351cb",
+          "output": "@seqout",
+          "target": "f26da62b-9d55-4e33-d4c0-75d2967e0d0b",
+          "input": "@seqin"
+        },
+        {
+          "objID": "c1eda426-64d0-43ca-9f58-5c61c6873b07",
+          "source": "664fedc4-2516-4a7d-9f50-85cab12cca7f",
+          "output": "PRESSED",
+          "target": "502c4ecd-fe04-49e7-d942-e1ae9dce4192",
+          "input": "@seqin"
+        },
+        {
+          "objID": "f4ae3f77-ca12-427b-c011-baf3c6bd42d2",
           "source": "6181a971-98bf-4aac-9695-8596f93643c5",
+          "output": "@seqout",
+          "target": "b33403ff-9884-4cf1-a850-29aed22d2538",
+          "input": "@seqin"
+        },
+        {
+          "objID": "f4f07744-5971-47f1-a2af-cedc4cebf749",
+          "source": "b33403ff-9884-4cf1-a850-29aed22d2538",
           "output": "@seqout",
           "target": "839368eb-2f02-4dff-bf4d-cc7ee4c528bd",
           "input": "@seqin"
         },
         {
-          "objID": "614ddd64-368e-437b-e315-00363d879aa5",
-          "source": "664fedc4-2516-4a7d-9f50-85cab12cca7f",
-          "output": "PRESSED",
-          "target": "759d2308-2924-4283-db18-c7db95ed5274",
-          "input": "@seqin"
-        },
-        {
-          "objID": "5bc99060-708e-434d-c2f0-9cefa9b32af4",
-          "source": "43ba2b35-4c22-42ed-c34f-8bf6309351cb",
-          "output": "@seqout",
-          "target": "f26da62b-9d55-4e33-d4c0-75d2967e0d0b",
+          "objID": "7d62ae19-757c-4ecb-fa03-addb2552735f",
+          "source": "502c4ecd-fe04-49e7-d942-e1ae9dce4192",
+          "output": "False",
+          "target": "6181a971-98bf-4aac-9695-8596f93643c5",
           "input": "@seqin"
         }
       ],

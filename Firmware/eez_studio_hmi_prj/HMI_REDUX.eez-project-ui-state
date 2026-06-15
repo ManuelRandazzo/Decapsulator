@@ -1,7 +1,7 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/6",
-    "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/5",
+    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/1",
+    "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/1",
     "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/19",
     "selectedStyleObject": "[HMI_REDUX.eez-project]:/lvglStyles/styles/5",
     "selectedThemeObject": "[HMI_REDUX.eez-project]:/themes/0",
@@ -147,7 +147,6 @@
                   "type": "tabset",
                   "id": "#8df4d6da-916c-4f74-874e-86f5c2f5f622",
                   "weight": 1,
-                  "selected": 2,
                   "enableClose": false,
                   "children": [
                     {
@@ -214,16 +213,17 @@
               "type": "tabset",
               "id": "EDITORS",
               "weight": 53.682227594236906,
+              "selected": 7,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
                 {
                   "type": "tab",
                   "id": "#dd646ad5-f2e5-4e30-b5f2-271b46364b63",
-                  "name": "ConfWiFi_Page_Init",
+                  "name": "Logger_Page_Init",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[HMI_REDUX.eez-project]:/actions/5",
+                    "objectPath": "[HMI_REDUX.eez-project]:/actions/1",
                     "permanent": false
                   },
                   "icon": "material:code"
@@ -1281,7 +1281,7 @@
           "x": -258.8607070818488,
           "y": -265.41151488872345
         },
-        "scale": 1.1
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1322,14 +1322,17 @@
         },
         "1": {},
         "5": {},
-        "14": {}
+        "14": {},
+        "19": {
+          "$selected": true
+        }
       },
       "transform": {
         "translate": {
-          "x": -590.1393210952831,
-          "y": -381.77180645155056
+          "x": -68.02317734312984,
+          "y": 154.21310990092962
         },
-        "scale": 1.1
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1355,7 +1358,7 @@
           "x": -984.1457672014649,
           "y": -342.01081768885905
         },
-        "scale": 1.1
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1386,7 +1389,7 @@
           "x": -527.3212759732437,
           "y": -205.42331269159945
         },
-        "scale": 1.1
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1434,7 +1437,7 @@
           "x": -396.29256498686266,
           "y": -215.73553673274307
         },
-        "scale": 1.1
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1456,7 +1459,7 @@
           "x": -172.34523809523807,
           "y": -245.19727891156458
         },
-        "scale": 1.1
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1482,7 +1485,7 @@
           "x": -312.75158098396855,
           "y": -98.09845720890462
         },
-        "scale": 1.1
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1533,7 +1536,7 @@
           "x": -222.32201751565867,
           "y": -142.4591469585438
         },
-        "scale": 1.1
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1560,7 +1563,7 @@
           "x": -57.700000000000045,
           "y": -124
         },
-        "scale": 1.1
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1652,7 +1655,7 @@
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 1.1,
+  "flowZoom": 1,
   "implementationLanguage": "C++",
   "openDialogDefaultPath": "C:\\Users\\Tomma\\Downloads\\Image.png"
 }
