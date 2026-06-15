@@ -68,9 +68,13 @@ extern SemaphoreHandle_t mutex_presenza_errore;
 
 extern SemaphoreHandle_t mutex_nome_errore;
 
-extern SemaphoreHandle_t mutex_connessione_presente;
-
 extern SemaphoreHandle_t mutex_pulsante_errore;
+
+extern SemaphoreHandle_t mutex_nome_rete_inserita;
+
+extern SemaphoreHandle_t mutex_password_rete_inserita;
+
+extern SemaphoreHandle_t mutex_wi_fi_success;
 
 #ifdef __cplusplus
 extern "C" {

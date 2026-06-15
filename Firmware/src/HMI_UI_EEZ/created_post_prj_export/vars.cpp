@@ -628,52 +628,53 @@ extern "C" void set_var_calibrazione_touch_finita(bool value)
 
 
 
-String password_rete_corretta = "";
-extern "C" const char *get_var_password_rete_corretta()
+String nome_rete_inserita = "";
+extern "C" const char *get_var_nome_rete_inserita()
 {
-    if(xSemaphoreTake(mutex_password_rete_corretta, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+    if(xSemaphoreTake(mutex_nome_rete_inserita, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
         return "";
     
-    const char *get = password_rete_corretta.c_str();
+    const char *get = nome_rete_inserita.c_str();
 
-    xSemaphoreGive(mutex_password_rete_corretta);
+    xSemaphoreGive(mutex_nome_rete_inserita);
 
     return get;
 }
 
-extern "C" void set_var_password_rete_corretta(const char *value)
+extern "C" void set_var_nome_rete_inserita(const char *value)
 {
-    if(xSemaphoreTake(mutex_password_rete_corretta, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+    if(xSemaphoreTake(mutex_nome_rete_inserita, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
         return;
     
-    password_rete_corretta = value;
+    nome_rete_inserita = value;
 
-    xSemaphoreGive(mutex_password_rete_corretta);
+    xSemaphoreGive(mutex_nome_rete_inserita);
 }
 
 
 
-String nome_rete_corretta = "";
-extern "C" const char *get_var_nome_rete_corretta()
+
+String password_rete_inserita = "";
+extern  "C" const char *get_var_password_rete_inserita()
 {
-    if(xSemaphoreTake(mutex_nome_rete_corretta, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+    if(xSemaphoreTake(mutex_password_rete_inserita, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
         return "";
     
-    const char *get = nome_rete_corretta.c_str();
+    const char *get = password_rete_inserita.c_str();
 
-    xSemaphoreGive(mutex_nome_rete_corretta);
+    xSemaphoreGive(mutex_password_rete_inserita);
 
     return get;
 }
 
-extern "C" void set_var_nome_rete_corretta(const char *value)
+extern  "C" void set_var_password_rete_inserita(const char *value)
 {
-    if(xSemaphoreTake(mutex_nome_rete_corretta, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+    if(xSemaphoreTake(mutex_password_rete_inserita, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
         return;
     
-    nome_rete_corretta = value;
+    password_rete_inserita = value;
 
-    xSemaphoreGive(mutex_nome_rete_corretta);
+    xSemaphoreGive(mutex_password_rete_inserita);
 }
 
 
@@ -735,32 +736,6 @@ extern "C" void set_var_nome_errore(const char *value)
 
 
 
-bool connessione_presente = false;
-extern "C" bool get_var_connessione_presente()
-{
-    if(xSemaphoreTake(mutex_connessione_presente, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
-        return false;
-
-    bool get = connessione_presente;
-
-    xSemaphoreGive(mutex_connessione_presente);
-
-    return get;
-}
-
-extern "C" void set_var_connessione_presente(bool value)
-{
-    if(xSemaphoreTake(mutex_connessione_presente, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
-        return;
-    
-    connessione_presente = value;
-
-    xSemaphoreGive(mutex_connessione_presente);
-}
-
-
-
-
 bool pulsante_errore = false;
 extern "C" bool get_var_pulsante_errore()
 {
@@ -782,4 +757,30 @@ extern "C" void set_var_pulsante_errore(bool value)
     pulsante_errore = value;
 
     xSemaphoreGive(mutex_pulsante_errore);
+}
+
+
+
+
+bool wi_fi_success = false;
+extern "C" bool get_var_wi_fi_success()
+{
+    if(xSemaphoreTake(mutex_wi_fi_success, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+        return false;
+
+    bool get = wi_fi_success;
+
+    xSemaphoreGive(mutex_wi_fi_success);
+
+    return get;
+}
+
+extern "C" void set_var_wi_fi_success(bool value)
+{
+    if(xSemaphoreTake(mutex_wi_fi_success, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+        return;
+    
+    wi_fi_success = value;
+
+    xSemaphoreGive(mutex_wi_fi_success);
 }
