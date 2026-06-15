@@ -115,8 +115,6 @@ typedef struct _objects_t {
     lv_obj_t *obj4;
     lv_obj_t *annulla_config_wifi;
     lv_obj_t *annulla_config_wifi2;
-    lv_obj_t *password_rete_wifi;
-    lv_obj_t *nome_rete_wifi;
     lv_obj_t *config_wifi;
     lv_obj_t *tastiera_config_wi_fi;
     lv_obj_t *messaggio_config_wi_fi;
