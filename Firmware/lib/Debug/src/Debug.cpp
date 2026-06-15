@@ -1,8 +1,9 @@
-#include "ESP32MQTTClient.h"   /// Comunicazione MQTT 
-#include "esp_idf_version.h"   /// Serve per il client MQTT per gli handle 
-#include "SavingFilesSD.hpp"   /// Include la libreria per la gestione della SD Card
-#include "WiFi_Config.hpp"     /// File contenente ssid e la password dell'Utente
-#include "tasks_cfg.hpp"       /// File contenente i settaggi della task del logger
+#include "ESP32MQTTClient.h"       /// Comunicazione MQTT 
+#include "esp_idf_version.h"       /// Serve per il client MQTT per gli handle 
+#include "SavingFilesSD.hpp"       /// Include la libreria per la gestione della SD Card
+#include "WiFi_Config.hpp"         /// File contenente ssid e la password dell'Utente
+#include "tasks_cfg.hpp"           /// File contenente i settaggi della task del logger
+#include "filePathsSD.hpp" /// Include il file che contiene i percorsi delle directori (paths) della SD
 #include "Debug.hpp"
 
 MessageBufferHandle_t LoggerMessageHandler = nullptr;
@@ -292,13 +293,12 @@ void LoggerTask(void* pvParameters)
 
         /// Salvataggio in SD
         #ifdef LOG_COPY_TO_SD
-            const String logPathSD = "/log.txt";
             constexpr uint8_t SD_BUFFER_LEN = 25;
             String bufferToSD[SD_BUFFER_LEN];
             uint8_t buffIndexSD = 0;
             uint32_t lastTimeWriteSD = 0;
             constexpr uint32_t LOG_DELAY_SD_MS = 10000;
-            SD_Card.rmfile(logPathSD); /// Ad ogni accensione viene rimosso il file di log dalla SD
+            SD_Card.rmfile(LOG_PATH_SD); /// Ad ogni accensione viene rimosso il file di log dalla SD
         #endif
 
         while(1)
@@ -339,7 +339,7 @@ void LoggerTask(void* pvParameters)
                         /// Salva tutti i log nel buffer alla fine del file di log e pulisce il buffer man mano
                         for(uint8_t i = 0; i < buffIndexSD; i++)
                         {
-                            SD_Card.appendFile(logPathSD, bufferToSD[i]);
+                            SD_Card.appendFile(LOG_PATH_SD, bufferToSD[i]);
                             bufferToSD[i] = ""; /// Pulisce il buffer di stringhe
                         }
 

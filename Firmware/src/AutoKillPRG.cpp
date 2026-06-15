@@ -30,8 +30,8 @@ void AutoKillTask(void* pvParameters)
             digitalWriteFast(AUTOKILL_SHUTDOWN_PIN, HIGH);
 
             /// Credenziali WiFi utente
-            SD_Card.setValueByKey(pathWiFi, "SSID", WIFI_SSID, "Nome della rete dell'utente");
-            SD_Card.setValueByKey(pathWiFi, "WIFI_PASSWORD", WIFI_PASSWORD, "Password della rete dell'utente");
+            //SD_Card.setValueByKey(pathWiFi, "SSID", WIFI_SSID, "Nome della rete dell'utente");
+            //SD_Card.setValueByKey(pathWiFi, "WIFI_PASSWORD", WIFI_PASSWORD, "Password della rete dell'utente");
             
             /*
             /// Chiede i dati al Programma principale e aspetta che questo li mandi

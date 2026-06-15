@@ -8,14 +8,8 @@
 #include "decapsulator_io.hpp"
 /// Include il file contenente SSID e la PASSWORD dell'Utente 
 #include "WiFi_Config.hpp"
-
-
-/*╔════════════════════════════════════════════════════╗*/
-/*║        PATHS DI SALVATAGGIO DEI FILE UTENTE        ║*/
-/*╚════════════════════════════════════════════════════╝*/
-const String pathWiFi = "/user_credentials.txt";
-const String pathDecapsulatorStatus = "/decapsulator_status.txt";
-//const String path = "";
+/// Include il file che contiene i percorsi delle directori (paths) della SD
+#include "filePathsSD.hpp"
 
 
 
