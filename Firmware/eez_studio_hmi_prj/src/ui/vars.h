@@ -77,8 +77,6 @@ extern bool get_var_homing();
 extern void set_var_homing(bool value);
 extern bool get_var_calibrazione_touch_finita();
 extern void set_var_calibrazione_touch_finita(bool value);
-extern const char *get_var_password_rete_corretta();
-extern void set_var_password_rete_corretta(const char *value);
 extern const char *get_var_nome_rete_inserita();
 extern void set_var_nome_rete_inserita(const char *value);
 extern const char *get_var_password_rete_inserita();
