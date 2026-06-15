@@ -15,6 +15,7 @@ extern void action_jogger_page_deinit(lv_event_t * e);
 extern void action_conf_wi_fi_page_init(lv_event_t * e);
 extern void action_conf_wi_fi_page_deinit(lv_event_t * e);
 extern void action_refresh_logs(lv_event_t * e);
+extern void action_verify_wi_fi(lv_event_t * e);
 
 #ifdef __cplusplus
 }
