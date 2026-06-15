@@ -712,7 +712,7 @@
               "type": "LVGLLabelWidget",
               "left": 215,
               "top": 288,
-              "width": 94,
+              "width": 129,
               "height": 16,
               "customInputs": [],
               "customOutputs": [],
@@ -1996,8 +1996,8 @@
         {
           "objID": "5d096f73-79c5-4e97-a5a7-b4e6ae42a5f1",
           "type": "LVGLActionComponent",
-          "left": 589,
-          "top": -200,
+          "left": 626,
+          "top": -208,
           "width": 286,
           "height": 73,
           "customInputs": [],
@@ -2024,8 +2024,8 @@
         {
           "objID": "712d1dea-46fb-475c-ccc4-852938cca1bd",
           "type": "LVGLActionComponent",
-          "left": 586,
-          "top": -127,
+          "left": 626,
+          "top": -129,
           "width": 293,
           "height": 73,
           "customInputs": [],
@@ -2110,8 +2110,8 @@
         {
           "objID": "744b4ebc-1436-4eeb-a569-26491c75ff94",
           "type": "CompareActionComponent",
-          "left": 354,
-          "top": -228,
+          "left": 391,
+          "top": -236,
           "width": 193,
           "height": 70,
           "customInputs": [],
@@ -2149,6 +2149,62 @@
           "A": "Presenza_Errore",
           "B": "true",
           "operator": "="
+        },
+        {
+          "objID": "f79efe23-6a28-4ea7-81e9-e2e2ae4bf6ee",
+          "type": "LVGLActionComponent",
+          "left": 391,
+          "top": -331,
+          "width": 262,
+          "height": 73,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "2d267752-6256-4624-d481-d40bb0834052",
+              "action": "objSetStateDisabled",
+              "object": "contrmot",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "f9f371c1-00f5-4c28-e357-dc333fff3fd0",
+              "action": "objSetFlagHidden",
+              "object": "blocco_jogger",
+              "objectType": "literal",
+              "hidden": false,
+              "hiddenType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "3ca1df21-ade1-468d-a926-11c44bb21671",
+          "type": "LVGLActionComponent",
+          "left": 391,
+          "top": -404,
+          "width": 256,
+          "height": 73,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "d5640eb4-431b-4517-d111-bea3ba67e1b4",
+              "action": "objSetStateDisabled",
+              "object": "contrmot",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "e8e97626-73dd-4073-97dd-17d7f44679a2",
+              "action": "objSetFlagHidden",
+              "object": "blocco_jogger",
+              "objectType": "literal",
+              "hidden": true,
+              "hiddenType": "literal"
+            }
+          ]
         }
       ],
       "connectionLines": [
@@ -2283,6 +2339,20 @@
           "source": "cb15f696-0d95-4d6c-b138-fc2bd6bd2b51",
           "output": "True",
           "target": "86082b21-af41-4707-d28c-d1bd81fe4696",
+          "input": "@seqin"
+        },
+        {
+          "objID": "933aa4b9-c064-43bb-927b-ddbf9b8a7da6",
+          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "output": "True",
+          "target": "f79efe23-6a28-4ea7-81e9-e2e2ae4bf6ee",
+          "input": "@seqin"
+        },
+        {
+          "objID": "af5baeaf-d64c-4258-b701-db8c45cffbb8",
+          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "output": "False",
+          "target": "3ca1df21-ade1-468d-a926-11c44bb21671",
           "input": "@seqin"
         }
       ],
@@ -4386,7 +4456,7 @@
                           "type": "LVGLLabelWidget",
                           "left": 0,
                           "top": 0,
-                          "width": 176,
+                          "width": 0,
                           "height": 18,
                           "customInputs": [],
                           "customOutputs": [],
@@ -4923,7 +4993,7 @@
                           "type": "LVGLLabelWidget",
                           "left": 0,
                           "top": 0,
-                          "width": 209,
+                          "width": 0,
                           "height": 18,
                           "customInputs": [],
                           "customOutputs": [],

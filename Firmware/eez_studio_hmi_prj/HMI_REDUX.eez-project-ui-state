@@ -1,6 +1,6 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/1",
+    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/3",
     "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/2",
     "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/23",
     "selectedStyleObject": "[HMI_REDUX.eez-project]:/lvglStyles/styles/5",
@@ -610,17 +610,16 @@
               "type": "tabset",
               "id": "RUNTIME-EDITORS",
               "weight": 0.4205698098395876,
-              "selected": 2,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
                 {
                   "type": "tab",
                   "id": "#5cf0f9c9-0ab5-4b96-82b7-527468472a47",
-                  "name": "Scheramta Config WiFi",
+                  "name": "Schermata Diagnostica",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[HMI_REDUX.eez-project]:/userPages/7",
+                    "objectPath": "[HMI_REDUX.eez-project]:/userPages/3",
                     "permanent": false
                   },
                   "icon": "svg:page"
@@ -1285,7 +1284,7 @@
           "x": 48.13929291815123,
           "y": -157.41151488872345
         },
-        "scale": 0.8
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1328,14 +1327,20 @@
         "5": {},
         "14": {},
         "19": {},
-        "20": {}
+        "20": {
+          "$selected": true
+        },
+        "21": {
+          "$selected": true
+        },
+        "22": {}
       },
       "transform": {
         "translate": {
-          "x": -182.553351143934,
-          "y": -371.72516238279536
+          "x": -616.9483578229092,
+          "y": 133.53415172365646
         },
-        "scale": 0.8
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1362,7 +1367,7 @@
           "x": -428.20820106959644,
           "y": -49.27163537771807
         },
-        "scale": 0.8
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1393,7 +1398,7 @@
           "x": -273.5321144470738,
           "y": -131.17957376493212
         },
-        "scale": 0.8
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1440,7 +1445,7 @@
           "x": -301.6757386523631,
           "y": -75.50899709575174
         },
-        "scale": 0.8
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1462,7 +1467,7 @@
           "x": -172.34523809523807,
           "y": -245.19727891156458
         },
-        "scale": 0.8
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1487,7 +1492,7 @@
           "x": -342.0081373705041,
           "y": -137.59840650642644
         },
-        "scale": 0.8
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1545,7 +1550,7 @@
           "x": -270.131638721977,
           "y": 97.75583984837726
         },
-        "scale": 0.8
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1682,7 +1687,7 @@
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 0.8,
+  "flowZoom": 1.1,
   "implementationLanguage": "C++",
   "openDialogDefaultPath": "C:\\Users\\Tomma\\Downloads\\Image.png"
 }
