@@ -1,108 +1,166 @@
 #include "JogMotoriPRG.hpp"
+#include "HMI_UI_EEZ/created_post_prj_export/ui_vars_mutexs.h"
+#include "HMI_UI_EEZ/vars.h"
 
 
 void prgJogMotoriTask(void *pvParameters)
 {
     TickType_t getLastTick = xTaskGetTickCount();
-    CommandQueueHMI_t FromHMI = defaultCommandQueueHMI;
-    EventQueueHMI_t ToHMI = defaultEventQueueHMI;
-    bool sendChangesToHMI = false;
 
     /// NON SERVONO PIU' SE SI USANO GLI STATI
     bool lastRallaEnable = false;
     bool lastPunzoneEnable = false;
 
-    /// Per sapere quando sta facendo la sequenza di homing
-    bool nowHoming = false;
+    /// Sequenza Homing
     uint8_t StateHoming = 0;
 
+
+    double gradi_per_click_ralla = 0.0;
+    double speed_motore_ralla    = 0.0;
+    double gradi_per_click_punz  = 0.0;
+    double speed_motore_punz     = 0.0;
+
     /// Si assicura di Auto-sospendersi per evitare problemi con le risorse condivise (motori)
-    /// Sarà la task dell'HMI che deciderà Se sospendere o attivare le task del programma main e di jog
+    /// Sarà la task dell'HMI che deciderà se sospendere o attivare le task del programma main e di jog
     vTaskSuspend(NULL);
 
     while(1)
     {
-        switch(FromHMI.jogStateCMD)
+        #pragma region (PUNZONE)
+
+        if(MotPunzone.HardMax != nullptr)
+            set_var_stato_finecorsa_max(MotPunzone.HardMax->rawRead() == MotPunzone.HardMax->getLevelTrig());
+        
+        if(MotPunzone.HardMin != nullptr)
+            set_var_stato_finecorsa_min(MotPunzone.HardMin->rawRead() == MotPunzone.HardMin->getLevelTrig());
+
+        /// Converte le stringhe in numeri double positivi
+        gradi_per_click_punz = abs(String(get_var_gradi_per_click_punz()).toDouble());
+        speed_motore_punz    = abs(String(get_var_speed_motore_punz()).toDouble());
+
+        /// Enable/Disable Motore Punzone
+        if(get_var_comando_motore_punzone() == true)
         {
-            case NO_CMD :
-                if(MotRalla.isStepDone() && MotPunzone.isStepDone() && !nowHoming)
-                    checkUpdateHMI(&FromHMI);
-            break;
-
-            case TAMBURO_ENABLE :
-                MotRalla.attach();
-                MotRalla.Start();
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
-
-            case TAMBURO_DISABLE :
-                MotRalla.Stop(RELEASE);
-                MotRalla.detach();
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
-
-            case TAMBURO_JOG_POSITIVE :
-                MotRalla.moveRel(FromHMI.jogRallaGradiPerClick, FromHMI.jogRallaSpeed);
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
-
-            case TAMBURO_JOG_NEGATIVE :
-                MotRalla.moveRel(-1 * FromHMI.jogRallaGradiPerClick, FromHMI.jogRallaSpeed);
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
-                
-            case PUNZONE_ENABLE :
+            if(MotPunzone.isDetached())
+            {
+                LogDebug("punzone", "Attach");
                 MotPunzone.attach();
                 MotPunzone.Start();
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
-
-            case PUNZONE_DISABLE :
+            }
+        }
+        else
+        {
+            if(MotPunzone.isAttached())
+            {
+                LogDebug("punzone", "Detach");
+                MotPunzone.abortCurrentCommand();
                 MotPunzone.Stop(RELEASE);
                 MotPunzone.detach();
-                FromHMI.jogStateCMD = NO_CMD;
+            }
+        }
+
+        if(MotPunzone.isStepDone())
+        {
+            int8_t punz_jog_dir = 0;
+            if(xQueueReceive(queue_direzione_comando_punzone, &punz_jog_dir, 0) == pdTRUE)
+            {
+                LogDebug("JogPunzCmd", "Comando Ralla Ricevuto Del Jog : %s (%d)\nGradi_per_click : %.2f\nSpeed : %.2f", punz_jog_dir == 1 ? "Jog+" : punz_jog_dir == -1 ? "Jog-" : "ERRORE", punz_jog_dir, gradi_per_click_punz, speed_motore_punz);
+                MotPunzone.moveRel(punz_jog_dir * gradi_per_click_punz, speed_motore_punz);
+            }
+        }
+
+        #pragma endregion (PUNZONE)
+        
+
+
+
+
+        
+        
+        #pragma region (RALLA)
+        
+        /// Converte le stringhe in numeri double positivi
+        gradi_per_click_ralla = abs(String(get_var_gradi_per_click_ralla()).toDouble());
+        speed_motore_ralla    = abs(String(get_var_speed_motore_ralla()).toDouble());
+
+        if(MotRalla.HardMax != nullptr)
+            set_var_stato_sensore_di_calibrazione(MotRalla.HardMax->rawRead() == MotRalla.HardMax->getLevelTrig());
+        
+        if(MotRalla.HardMin != nullptr)
+            set_var_stato_sensore_di_calibrazione(MotRalla.HardMin->rawRead() == MotRalla.HardMin->getLevelTrig());
+
+        /// Enable/Disable Motore Tamburo
+        if(get_var_comando_motore_ralla() == true)
+        {
+            if(MotRalla.isDetached())
+            {
+                LogDebug("ralla", "Attach");
+                MotRalla.attach();
+                MotRalla.Start();
+            }
+        }
+        else
+        {
+            if(MotRalla.isAttached())
+            {
+                LogDebug("ralla", "Detach");
+                MotRalla.abortCurrentCommand();
+                MotRalla.Stop(RELEASE);
+                MotRalla.detach();
+            }
+        }
+
+        if(MotRalla.isStepDone())
+        {
+            int8_t ralla_jog_dir = 0;
+            if(xQueueReceive(queue_direzione_comando_ralla, &ralla_jog_dir, 0) == pdTRUE)
+            {
+                LogDebug("JogRallaCmd", "Comando Ralla Ricevuto Del Jog : %s (%d)\nGradi_per_click : %.2f\nSpeed : %.2f", ralla_jog_dir == 1 ? "Jog+" : ralla_jog_dir == -1 ? "Jog-" : "ERRORE", ralla_jog_dir, gradi_per_click_ralla, speed_motore_ralla);
+                MotRalla.moveRel(ralla_jog_dir * gradi_per_click_ralla, speed_motore_ralla);
+            }
+        }
+            
+        #pragma endregion (RALLA)
+        
+        
+
+        #pragma region (HOMING)
+
+        
+        switch(StateHoming)
+        {
+            case 0 : /// NO HOMING IN CORSO
+                if(get_var_homing() == true)
+                    StateHoming++;
             break;
 
-            case PUNZONE_JOG_POSITIVE :
-                MotPunzone.moveRel(FromHMI.jogPunzoneGradiPerClick, FromHMI.jogPunzoneSpeed, PUNZ_ACC, PUNZ_DEC);
-                FromHMI.jogStateCMD = NO_CMD;
+            case 1 : /// HOMING CMD PUNZONE
+                MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_ACC, PUNZ_HOME_DEC, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
+                StateHoming++;
             break;
 
-            case PUNZONE_JOG_NEGATIVE :
-                MotPunzone.moveRel(-1 * FromHMI.jogPunzoneGradiPerClick, FromHMI.jogPunzoneSpeed, PUNZ_ACC, PUNZ_DEC);
-                FromHMI.jogStateCMD = NO_CMD;
+            case 2 : /// HOMING WAIT DONE PUNZONE
+                if(MotPunzone.isHomeDone())
+                    StateHoming++;
             break;
 
-            case HOMING :
-                switch(StateHoming)
+            case 3 : /// HOMING CMD RALLA
+                MotRalla.reattachHardLimits();
+                MotRalla.home(RALLA_HOME_SPEED, RALLA_HOME_ACC, RALLA_HOME_DEC, RALLA_HOME_DIR, RALLA_POST_HOME_POS);
+                StateHoming++;
+            break;
+
+            case 4 : /// HOMING WAIT DONE RALLA
+                if(MotRalla.isHomeDone())
                 {
-                    case 0 : /// HOMING CMD PUNZONE
-                        MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_ACC, PUNZ_HOME_DEC, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
-                        nowHoming = true;
-                        StateHoming++;
-                    break;
-
-                    case 1 : /// HOMING WAIT DONE PUNZONE
-                        if(MotPunzone.isHomeDone())
-                            StateHoming++;
-                    break;
-
-                    case 2 : /// HOMING CMD RALLA
-                        MotRalla.home(RALLA_HOME_SPEED, RALLA_HOME_ACC, RALLA_HOME_DEC, RALLA_HOME_DIR, RALLA_POST_HOME_POS);
-                        StateHoming++;
-                    break;
-
-                    case 3 : /// HOMING WAIT DONE RALLA
-                        if(MotRalla.isHomeDone())
-                        {
-                            StateHoming = 0;
-                            nowHoming = false;
-                            FromHMI.jogStateCMD = NO_CMD;
-                        }
-                    break;
+                    MotRalla.removeHardLimits();
+                    StateHoming = 0;
+                    set_var_homing(false);
                 }
             break;
         }
+
+        #pragma endregion (HOMING)
 
         
         /*/// PUNZONE
@@ -193,9 +251,6 @@ void prgJogMotoriTask(void *pvParameters)
             ToHMI.jogPunzoneIsMoving = !MotPunzone.isStepDone();
             sendChangesToHMI = true;
         }*/
-
-        /// Aggiorna in caso vengano richiesti dei cambiamenti da segnalare all'HMI
-        sendUpdateHMI(&ToHMI, &sendChangesToHMI);
 
         xTaskDelayUntil(&getLastTick, JogMotori_delay);
     }
