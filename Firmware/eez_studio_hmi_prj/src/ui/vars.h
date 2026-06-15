@@ -26,8 +26,7 @@ enum FlowGlobalVariables {
     FLOW_GLOBAL_VARIABLE_TITOLO_STATO_SENSORE_CALIBRAZIONE = 10,
     FLOW_GLOBAL_VARIABLE_TITOLO_STATO_FINECORSA_MIN = 11,
     FLOW_GLOBAL_VARIABLE_TITOLO_STATO_FINECORSA_MAX = 12,
-    FLOW_GLOBAL_VARIABLE_PASSWORD_RETE_INSERITA = 13,
-    FLOW_GLOBAL_VARIABLE_MESSAGGIO_CONFIG_WI_FI = 14
+    FLOW_GLOBAL_VARIABLE_MESSAGGIO_CONFIG_WI_FI = 13
 };
 
 // Native global variables
@@ -80,16 +79,18 @@ extern bool get_var_calibrazione_touch_finita();
 extern void set_var_calibrazione_touch_finita(bool value);
 extern const char *get_var_password_rete_corretta();
 extern void set_var_password_rete_corretta(const char *value);
-extern const char *get_var_nome_rete_corretta();
-extern void set_var_nome_rete_corretta(const char *value);
+extern const char *get_var_nome_rete_inserita();
+extern void set_var_nome_rete_inserita(const char *value);
+extern const char *get_var_password_rete_inserita();
+extern void set_var_password_rete_inserita(const char *value);
 extern bool get_var_presenza_errore();
 extern void set_var_presenza_errore(bool value);
 extern const char *get_var_nome_errore();
 extern void set_var_nome_errore(const char *value);
-extern bool get_var_connessione_presente();
-extern void set_var_connessione_presente(bool value);
 extern bool get_var_pulsante_errore();
 extern void set_var_pulsante_errore(bool value);
+extern bool get_var_wi_fi_success();
+extern void set_var_wi_fi_success(bool value);
 
 #ifdef __cplusplus
 }
