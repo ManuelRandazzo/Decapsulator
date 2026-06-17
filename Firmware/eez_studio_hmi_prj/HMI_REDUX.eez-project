@@ -487,6 +487,29 @@
         "defaultValue": "false",
         "persistent": false,
         "native": true
+      },
+      {
+        "objID": "c5bbd7a3-e188-4a68-a78b-99f172a50c4c",
+        "name": "Presenza_WiFi",
+        "type": "boolean",
+        "defaultValue": "false",
+        "persistent": false,
+        "native": true
+      },
+      {
+        "objID": "d9adf0bd-77b2-4ce3-f1e1-7d0d9c8e08bd",
+        "name": "qr_visible",
+        "type": "boolean",
+        "defaultValue": "false",
+        "persistent": false
+      },
+      {
+        "objID": "840fd027-af16-4a0d-de07-c21279eb86ad",
+        "name": "clock_string",
+        "type": "date",
+        "size": null,
+        "defaultValue": "\"\"",
+        "persistent": false
       }
     ],
     "structures": [],
@@ -583,6 +606,1492 @@
       "userProperties": [],
       "name": "Verify_WiFi",
       "implementationType": "native"
+    },
+    {
+      "objID": "d90e0acd-42a3-4b62-bc74-404a603d64f6",
+      "components": [
+        {
+          "objID": "d3d927f1-86ee-4c31-f3b3-b8192164b78a",
+          "type": "SetVariableActionComponent",
+          "left": 136.5,
+          "top": 26,
+          "width": 245,
+          "height": 79,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "2c39a18d-4cae-40ae-ff2a-99da5b7efdb2",
+              "variable": "Stato_Comando_Macchina",
+              "value": "\"START\""
+            },
+            {
+              "objID": "ab43f2d2-80da-4193-a59e-a432302dbb27",
+              "variable": "Comando_Macchina",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "objID": "71c9652f-05ff-47a2-ab2f-5f3c28f74623",
+          "type": "SetVariableActionComponent",
+          "left": 136.5,
+          "top": -118,
+          "width": 239,
+          "height": 79,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "ec40e72d-8707-4df8-ad9d-53deed9c86c5",
+              "variable": "Stato_Comando_Macchina",
+              "value": "\"STOP\""
+            },
+            {
+              "objID": "21e37ad9-fed2-49b5-b426-57c5d4fdd6cd",
+              "variable": "Comando_Macchina",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "objID": "20017af8-4c03-4ec0-f66c-5c0e4f6e5600",
+          "type": "LVGLActionComponent",
+          "left": -164.5,
+          "top": -118,
+          "width": 262,
+          "height": 92,
+          "customInputs": [],
+          "customOutputs": [],
+          "description": "Macchina_Avviata",
+          "actions": [
+            {
+              "objID": "77753e9f-efd6-4d54-8b6a-37d069eacb49",
+              "action": "objAddState",
+              "object": "puls_start_stop",
+              "objectType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "4b874163-130a-4c80-b544-71252d910615",
+              "action": "objSetStateDisabled",
+              "object": "contrmot",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "3a851519-605a-4a89-f4ea-1949a82df904",
+              "action": "objSetFlagHidden",
+              "object": "blocco_jogger",
+              "objectType": "literal",
+              "hidden": false,
+              "hiddenType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "8e87c293-f953-4b43-b4dd-8a6b1e94d7c2",
+          "type": "LVGLActionComponent",
+          "left": -164.5,
+          "top": 26,
+          "width": 274,
+          "height": 92,
+          "customInputs": [],
+          "customOutputs": [],
+          "description": "Macchina_Ferma",
+          "actions": [
+            {
+              "objID": "e3c841ae-7e23-4faf-fd7f-bee07e2bb9cc",
+              "action": "objClearState",
+              "object": "puls_start_stop",
+              "objectType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "91fe16a2-c52c-4014-f7f8-3b947b7c9f6d",
+              "action": "objSetStateDisabled",
+              "object": "contrmot",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "925a406c-cb90-43b5-ec25-0e1c89e48bcb",
+              "action": "objSetFlagHidden",
+              "object": "blocco_jogger",
+              "objectType": "literal",
+              "hidden": true,
+              "hiddenType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "2a8d9943-d74d-4b7e-e408-342977c897cb",
+          "type": "IsTrueActionComponent",
+          "left": -381.5,
+          "top": -96,
+          "width": 147,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Comando_Macchina"
+        }
+      ],
+      "connectionLines": [
+        {
+          "objID": "bc9257c6-3ce7-4085-b7a8-56d5fd35194d",
+          "source": "20017af8-4c03-4ec0-f66c-5c0e4f6e5600",
+          "output": "@seqout",
+          "target": "71c9652f-05ff-47a2-ab2f-5f3c28f74623",
+          "input": "@seqin"
+        },
+        {
+          "objID": "ff2e9af2-ec6b-4f7f-e240-c04e5f2fa896",
+          "source": "8e87c293-f953-4b43-b4dd-8a6b1e94d7c2",
+          "output": "@seqout",
+          "target": "d3d927f1-86ee-4c31-f3b3-b8192164b78a",
+          "input": "@seqin"
+        },
+        {
+          "objID": "03230558-a9e7-4022-f08f-9ce7013b64e0",
+          "source": "2a8d9943-d74d-4b7e-e408-342977c897cb",
+          "output": "True",
+          "target": "20017af8-4c03-4ec0-f66c-5c0e4f6e5600",
+          "input": "@seqin"
+        },
+        {
+          "objID": "0961050f-ddeb-49e3-b2ed-e175418cc1aa",
+          "source": "2a8d9943-d74d-4b7e-e408-342977c897cb",
+          "output": "False",
+          "target": "8e87c293-f953-4b43-b4dd-8a6b1e94d7c2",
+          "input": "@seqin"
+        }
+      ],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "Comando_Macchina",
+      "implementationType": "flow"
+    },
+    {
+      "objID": "8bc60643-0977-4cad-9e25-76e4524c43ad",
+      "components": [
+        {
+          "objID": "8cb400e3-325e-45ec-dc9a-0c1ea1d34353",
+          "type": "CompareActionComponent",
+          "left": 452,
+          "top": -75,
+          "width": 285,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "A": "Password_Corretta",
+          "B": "Password_inserita",
+          "operator": "="
+        },
+        {
+          "objID": "60a40000-f970-4eb9-cbcf-daf38687c4c6",
+          "type": "LVGLActionComponent",
+          "left": 1664,
+          "top": -89,
+          "width": 409,
+          "height": 111,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "b76bda53-ef2c-4d4a-e3cb-2829dfe200c5",
+              "action": "changeScreen",
+              "screen": "Schermata Diagnostica",
+              "screenType": "literal",
+              "fadeMode": "FADE_IN",
+              "fadeModeType": "literal",
+              "speed": 200,
+              "speedType": "literal",
+              "delay": 0,
+              "delayType": "literal",
+              "useStack": true,
+              "useStackType": "literal"
+            },
+            {
+              "objID": "afd0509d-3829-4152-ce96-f50bc27f0c72",
+              "action": "objSetFlagHidden",
+              "object": "messaggio_pssw",
+              "objectType": "literal",
+              "hidden": true,
+              "hiddenType": "literal"
+            },
+            {
+              "objID": "e657926d-b276-4e74-c2dd-e6dadb3b3830",
+              "action": "objSetStateDisabled",
+              "object": "tastiera_pssw",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "d34ca386-83e1-4c2d-d935-1e353872b65d",
+              "action": "objSetStateDisabled",
+              "object": "annulla_pssw",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "f845d1da-db4b-4602-87d6-d6fb593c1b02",
+          "type": "SetVariableActionComponent",
+          "left": 1209,
+          "top": -42,
+          "width": 306,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "1e9f78a0-6315-4b2a-ec12-c1eea2aa1dc3",
+              "variable": "Esito_Controllo_PSWW",
+              "value": "\"PASSWORD CORRETTA\""
+            }
+          ]
+        },
+        {
+          "objID": "9c8a6e67-b6f4-49a4-a88a-137a8ad02b26",
+          "type": "DelayActionComponent",
+          "left": 1542,
+          "top": -56,
+          "width": 87,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "milliseconds": "1500"
+        },
+        {
+          "objID": "51846a1f-47cb-4f5e-bfdb-44e45cb91932",
+          "type": "SetVariableActionComponent",
+          "left": 1209,
+          "top": 157,
+          "width": 294,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "efbd7edc-1541-4a74-fb49-ae84abbf5e47",
+              "variable": "Esito_Controllo_PSWW",
+              "value": "\"PASSWORD ERRATA\""
+            }
+          ]
+        },
+        {
+          "objID": "0b48421d-03c8-4ebb-95e0-c7fb26ae7a96",
+          "type": "DelayActionComponent",
+          "left": 1541,
+          "top": 130,
+          "width": 87,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "milliseconds": "1500"
+        },
+        {
+          "objID": "6dd8c39f-bc2d-4ebb-c293-84b7dfe9fad4",
+          "type": "SetVariableActionComponent",
+          "left": 1209,
+          "top": 53,
+          "width": 183,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "be6cfd7b-2d15-4cc6-c6b5-a4bf64dd4455",
+              "variable": "Password_inserita",
+              "value": "\"\""
+            }
+          ]
+        },
+        {
+          "objID": "69263188-7a3a-4a97-dc88-bd2d865325f4",
+          "type": "LVGLActionComponent",
+          "left": 789,
+          "top": -58,
+          "width": 354,
+          "height": 111,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "3eef6c94-21b7-4ebc-e892-50f2bb9eee71",
+              "action": "objClearFlag",
+              "object": "messaggio_pssw",
+              "objectType": "literal",
+              "flag": "HIDDEN",
+              "flagType": "literal"
+            },
+            {
+              "objID": "86a6ebe2-b078-43cc-c327-40d1b653c622",
+              "action": "objStyleSetProperty",
+              "object": "messaggio_pssw",
+              "objectType": "literal",
+              "property": "bg_color",
+              "propertyType": "literal",
+              "value": "#3AC906",
+              "valueType": "literal",
+              "part": "MAIN",
+              "partType": "literal",
+              "state": "DEFAULT",
+              "stateType": "literal"
+            },
+            {
+              "objID": "d64fd0a8-f409-4a37-bb41-e9bee8b02368",
+              "action": "objSetStateDisabled",
+              "object": "tastiera_pssw",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "b54980df-bc8e-4506-b67f-b2a91bc554e7",
+              "action": "objSetStateDisabled",
+              "object": "annulla_pssw",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "52ecb5c5-549d-4a7d-e2fa-c1f4b876b3d4",
+          "type": "LVGLActionComponent",
+          "left": 789,
+          "top": 141,
+          "width": 354,
+          "height": 111,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "34b2c2d7-f91b-42cf-bba9-0aaad21c0e2c",
+              "action": "objClearFlag",
+              "object": "messaggio_pssw",
+              "objectType": "literal",
+              "flag": "HIDDEN",
+              "flagType": "literal"
+            },
+            {
+              "objID": "e1178366-c066-43d3-e2ea-da4f44e41047",
+              "action": "objStyleSetProperty",
+              "object": "messaggio_pssw",
+              "objectType": "literal",
+              "property": "bg_color",
+              "propertyType": "literal",
+              "value": "#B80000",
+              "valueType": "literal",
+              "part": "MAIN",
+              "partType": "literal",
+              "state": "DEFAULT",
+              "stateType": "literal"
+            },
+            {
+              "objID": "b136f764-22b8-4efd-ec84-463cef331ec0",
+              "action": "objSetStateDisabled",
+              "object": "tastiera_pssw",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "8577325f-6f69-4dc9-f0d0-e2a07c275b5a",
+              "action": "objSetStateDisabled",
+              "object": "annulla_pssw",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "6a975672-6209-45e7-c269-72f8cd10771a",
+          "type": "LVGLActionComponent",
+          "left": 1663,
+          "top": 138,
+          "width": 280,
+          "height": 92,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "8c3148ff-2d50-4bd4-f3ca-0cf84dc7571b",
+              "action": "objSetFlagHidden",
+              "object": "messaggio_pssw",
+              "objectType": "literal",
+              "hidden": true,
+              "hiddenType": "literal"
+            },
+            {
+              "objID": "8202df20-9055-4ead-8b33-35d02a6b8f77",
+              "action": "objSetStateDisabled",
+              "object": "tastiera_pssw",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "d094d66e-efe1-4c1f-8f90-261f85c95b68",
+              "action": "objSetStateDisabled",
+              "object": "annulla_pssw",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            }
+          ]
+        }
+      ],
+      "connectionLines": [
+        {
+          "objID": "47810591-af36-464b-a761-23a8ae9efb60",
+          "source": "f845d1da-db4b-4602-87d6-d6fb593c1b02",
+          "output": "@seqout",
+          "target": "9c8a6e67-b6f4-49a4-a88a-137a8ad02b26",
+          "input": "@seqin"
+        },
+        {
+          "objID": "96ff5d8c-a47f-4cb1-c816-9679637613ef",
+          "source": "9c8a6e67-b6f4-49a4-a88a-137a8ad02b26",
+          "output": "@seqout",
+          "target": "60a40000-f970-4eb9-cbcf-daf38687c4c6",
+          "input": "@seqin"
+        },
+        {
+          "objID": "0ebe38a1-3677-4508-b97b-a27f27fd67ba",
+          "source": "51846a1f-47cb-4f5e-bfdb-44e45cb91932",
+          "output": "@seqout",
+          "target": "0b48421d-03c8-4ebb-95e0-c7fb26ae7a96",
+          "input": "@seqin"
+        },
+        {
+          "objID": "c5623ea8-0709-4002-8e10-ce22b4780bdf",
+          "source": "8cb400e3-325e-45ec-dc9a-0c1ea1d34353",
+          "output": "True",
+          "target": "69263188-7a3a-4a97-dc88-bd2d865325f4",
+          "input": "@seqin"
+        },
+        {
+          "objID": "75069956-1fec-4792-cffa-521ed41033cf",
+          "source": "69263188-7a3a-4a97-dc88-bd2d865325f4",
+          "output": "@seqout",
+          "target": "f845d1da-db4b-4602-87d6-d6fb593c1b02",
+          "input": "@seqin"
+        },
+        {
+          "objID": "c32c5272-c91a-429d-82a8-8e240c473b14",
+          "source": "8cb400e3-325e-45ec-dc9a-0c1ea1d34353",
+          "output": "False",
+          "target": "52ecb5c5-549d-4a7d-e2fa-c1f4b876b3d4",
+          "input": "@seqin"
+        },
+        {
+          "objID": "8a9c0099-1576-40eb-abdf-06aaee3b921c",
+          "source": "52ecb5c5-549d-4a7d-e2fa-c1f4b876b3d4",
+          "output": "@seqout",
+          "target": "51846a1f-47cb-4f5e-bfdb-44e45cb91932",
+          "input": "@seqin"
+        },
+        {
+          "objID": "92e7c102-739c-48b3-8444-20a88244cfdb",
+          "source": "0b48421d-03c8-4ebb-95e0-c7fb26ae7a96",
+          "output": "@seqout",
+          "target": "6a975672-6209-45e7-c269-72f8cd10771a",
+          "input": "@seqin"
+        },
+        {
+          "objID": "9111a0cd-fe00-4a21-f1f7-a7e515300da5",
+          "source": "52ecb5c5-549d-4a7d-e2fa-c1f4b876b3d4",
+          "output": "@seqout",
+          "target": "6dd8c39f-bc2d-4ebb-c293-84b7dfe9fad4",
+          "input": "@seqin"
+        },
+        {
+          "objID": "857f83c7-6cb6-4046-a740-0983a402a25b",
+          "source": "69263188-7a3a-4a97-dc88-bd2d865325f4",
+          "output": "@seqout",
+          "target": "6dd8c39f-bc2d-4ebb-c293-84b7dfe9fad4",
+          "input": "@seqin"
+        }
+      ],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "Controllo_Password",
+      "implementationType": "flow"
+    },
+    {
+      "objID": "7b27ab01-2dab-465a-c95e-06bf57c935b3",
+      "components": [
+        {
+          "objID": "cec3442d-ab84-4175-9a51-42dda634481a",
+          "type": "LVGLActionComponent",
+          "left": -516,
+          "top": -336,
+          "width": 323,
+          "height": 320,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "daa1d8d3-c5e1-426f-9c89-ab70f1a23738",
+              "action": "objAddState",
+              "object": "homing",
+              "objectType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "b043f0d8-c5e4-493f-9789-2f554007ce61",
+              "action": "objSetStateDisabled",
+              "object": "gradi_per_click_punz",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "11638e75-03c0-4e0d-bb99-228716c5fb50",
+              "action": "objSetStateDisabled",
+              "object": "gradi_per_click_ralla",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "6bacd21b-4058-4f4c-c54b-affb42f0abea",
+              "action": "objSetStateDisabled",
+              "object": "speed_motore_punz",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "b82867a5-7032-4f5a-f875-04da9e1b5dab",
+              "action": "objSetStateDisabled",
+              "object": "speed_motore_ralla",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "81060040-9dd3-42bb-9762-813fb8a5336b",
+              "action": "objSetStateDisabled",
+              "object": "puls_en_dis_punz",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "827055e1-5e1c-476f-b496-d6f18bff7f32",
+              "action": "objSetStateDisabled",
+              "object": "puls_en_dis_ralla",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "4aa474a1-f5d1-4a12-deda-8d22246de76c",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_av_punz",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "e0bbe8be-439d-4963-fe6f-d2beae4dc080",
+              "action": "objAddFlag",
+              "object": "puls_jog_av_punz",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            },
+            {
+              "objID": "6d0ffc92-b928-421e-890f-4b00da5eea64",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_av_ralla",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "03c8353c-8e03-45ad-91e7-c3578bfe0364",
+              "action": "objAddFlag",
+              "object": "puls_jog_av_ralla",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            },
+            {
+              "objID": "cf1feb0b-ff18-44cc-d53a-a863488d4a4c",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_ind_punz",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "e55dcc24-f8ac-46cd-9809-8fdb32b59fdb",
+              "action": "objAddFlag",
+              "object": "puls_jog_ind_punz",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            },
+            {
+              "objID": "4ccbb4ce-e755-40e1-e742-fbc05e295508",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_ind_ralla",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "41e597b5-372c-46ff-b454-38b5bc502bd3",
+              "action": "objAddFlag",
+              "object": "puls_jog_ind_ralla",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "ac5c64ec-2c5c-4cb7-b945-9ff87ae17708",
+          "type": "LVGLActionComponent",
+          "left": 30,
+          "top": -226,
+          "width": 366,
+          "height": 73,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "ae0f5692-4ed3-4e8b-f5ac-653da4e1139a",
+              "action": "objStyleSetProperty",
+              "object": "homing",
+              "objectType": "literal",
+              "property": "bg_color",
+              "propertyType": "literal",
+              "value": "#FFF800",
+              "valueType": "literal",
+              "part": "MAIN",
+              "partType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "454f1b6d-2702-41a2-cecf-896d7a32173d",
+              "action": "objStyleSetProperty",
+              "object": "homing",
+              "objectType": "literal",
+              "property": "text_color",
+              "propertyType": "literal",
+              "value": "#000000",
+              "valueType": "literal",
+              "part": "MAIN",
+              "partType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "3f3c7328-37b1-4b10-cbab-2cdb24b690c2",
+          "type": "DelayActionComponent",
+          "left": 431,
+          "top": -226,
+          "width": 87,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "milliseconds": "500"
+        },
+        {
+          "objID": "0592786e-3ead-4b07-de7e-6ef92db7b88f",
+          "type": "LVGLActionComponent",
+          "left": 30,
+          "top": -112,
+          "width": 366,
+          "height": 73,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "7e64fc8e-526a-499a-ad62-44969c62fa7c",
+              "action": "objStyleSetProperty",
+              "object": "homing",
+              "objectType": "literal",
+              "property": "bg_color",
+              "propertyType": "literal",
+              "value": "#FF8100",
+              "valueType": "literal",
+              "part": "MAIN",
+              "partType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "80ad90bd-bb83-4654-9d67-eb525b3cd63f",
+              "action": "objStyleSetProperty",
+              "object": "homing",
+              "objectType": "literal",
+              "property": "text_color",
+              "propertyType": "literal",
+              "value": "#000000",
+              "valueType": "literal",
+              "part": "MAIN",
+              "partType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "018f195e-e09f-4c19-bb3e-f8e298cff132",
+          "type": "DelayActionComponent",
+          "left": 444,
+          "top": -112,
+          "width": 87,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "milliseconds": "500"
+        },
+        {
+          "objID": "23cf4713-6324-4dc0-ea43-0755690f503b",
+          "type": "LVGLActionComponent",
+          "left": -516,
+          "top": 16,
+          "width": 329,
+          "height": 320,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "098bd080-6bbd-4b97-cc85-082748182a6a",
+              "action": "objClearState",
+              "object": "homing",
+              "objectType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "d8e579a7-1ef7-4fbb-ffc9-c4b96efc7c7e",
+              "action": "objSetStateDisabled",
+              "object": "gradi_per_click_punz",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "a3078970-8c3e-450b-d53b-28451a95fd61",
+              "action": "objSetStateDisabled",
+              "object": "gradi_per_click_ralla",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "2c89805d-c8e9-4273-b6d9-73de6e694c7f",
+              "action": "objSetStateDisabled",
+              "object": "speed_motore_punz",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "f75aeef4-2655-4b05-99a0-d12214f75b93",
+              "action": "objSetStateDisabled",
+              "object": "speed_motore_ralla",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "6490cf1d-0eec-449a-ace5-2f34bea1c450",
+              "action": "objSetStateDisabled",
+              "object": "puls_en_dis_punz",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "b3ede3c7-e73d-42a1-a2ee-68de4bbb3748",
+              "action": "objSetStateDisabled",
+              "object": "puls_en_dis_ralla",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "643a1faf-826b-43a6-e7b3-9af6986f451b",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_av_punz",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "ec5c4383-e526-48c2-f783-65658fc3eb43",
+              "action": "objAddFlag",
+              "object": "puls_jog_av_punz",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            },
+            {
+              "objID": "81dcfbc3-9f92-40ae-9f13-9c38927210a3",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_av_ralla",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "a63116ac-f864-4513-b76a-dd07931edb06",
+              "action": "objAddFlag",
+              "object": "puls_jog_av_ralla",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            },
+            {
+              "objID": "3b77c7e0-ce47-4076-a556-dca644bd48f1",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_ind_punz",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "298cdca0-c52a-47f8-fa1a-b75389ddd944",
+              "action": "objAddFlag",
+              "object": "puls_jog_ind_punz",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            },
+            {
+              "objID": "8729b221-d59b-4320-cf0d-0589688df565",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_ind_ralla",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "dd961a0c-f8cd-4447-b638-f24ea5aa35a1",
+              "action": "objAddFlag",
+              "object": "puls_jog_ind_ralla",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "b3f97e4c-da02-4064-964f-71833a52a175",
+          "type": "IsTrueActionComponent",
+          "left": -680,
+          "top": -90,
+          "width": 87,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Homing"
+        },
+        {
+          "objID": "bdbd14b1-2195-47bb-dc31-771d163f78de",
+          "type": "IsTrueActionComponent",
+          "left": 593,
+          "top": -120,
+          "width": 87,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Homing"
+        }
+      ],
+      "connectionLines": [
+        {
+          "objID": "f51b0bf3-ed7e-4a52-8adf-5d0ace37b193",
+          "source": "3f3c7328-37b1-4b10-cbab-2cdb24b690c2",
+          "output": "@seqout",
+          "target": "0592786e-3ead-4b07-de7e-6ef92db7b88f",
+          "input": "@seqin"
+        },
+        {
+          "objID": "445329cd-e4de-44e7-e619-6d2fb491c995",
+          "source": "ac5c64ec-2c5c-4cb7-b945-9ff87ae17708",
+          "output": "@seqout",
+          "target": "3f3c7328-37b1-4b10-cbab-2cdb24b690c2",
+          "input": "@seqin"
+        },
+        {
+          "objID": "62d93818-467d-4e2e-c51e-b0baad3346c4",
+          "source": "0592786e-3ead-4b07-de7e-6ef92db7b88f",
+          "output": "@seqout",
+          "target": "018f195e-e09f-4c19-bb3e-f8e298cff132",
+          "input": "@seqin"
+        },
+        {
+          "objID": "a9ef9dba-45ad-4598-e323-2628eaf7fc63",
+          "source": "cec3442d-ab84-4175-9a51-42dda634481a",
+          "output": "@seqout",
+          "target": "ac5c64ec-2c5c-4cb7-b945-9ff87ae17708",
+          "input": "@seqin"
+        },
+        {
+          "objID": "40bf1563-bbd9-4240-aafb-a99c82eb15b7",
+          "source": "b3f97e4c-da02-4064-964f-71833a52a175",
+          "output": "True",
+          "target": "cec3442d-ab84-4175-9a51-42dda634481a",
+          "input": "@seqin"
+        },
+        {
+          "objID": "c71b6043-e240-42ac-84e4-dd361e9d39a2",
+          "source": "b3f97e4c-da02-4064-964f-71833a52a175",
+          "output": "False",
+          "target": "23cf4713-6324-4dc0-ea43-0755690f503b",
+          "input": "@seqin"
+        },
+        {
+          "objID": "04a26787-0773-4130-92aa-c97fbcf1d650",
+          "source": "018f195e-e09f-4c19-bb3e-f8e298cff132",
+          "output": "@seqout",
+          "target": "bdbd14b1-2195-47bb-dc31-771d163f78de",
+          "input": "@seqin"
+        },
+        {
+          "objID": "d9d41f21-ec79-47df-9d2d-b18b0b14b287",
+          "source": "bdbd14b1-2195-47bb-dc31-771d163f78de",
+          "output": "True",
+          "target": "cec3442d-ab84-4175-9a51-42dda634481a",
+          "input": "@seqin"
+        },
+        {
+          "objID": "a9f21251-358e-48b0-b7d6-9184cae72408",
+          "source": "bdbd14b1-2195-47bb-dc31-771d163f78de",
+          "output": "False",
+          "target": "23cf4713-6324-4dc0-ea43-0755690f503b",
+          "input": "@seqin"
+        }
+      ],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "Homing",
+      "implementationType": "flow"
+    },
+    {
+      "objID": "03a60149-b671-4f64-8468-52aeaf81fc3c",
+      "components": [
+        {
+          "objID": "2289ec24-7b49-48da-c884-ffe3f587fc18",
+          "type": "SetVariableActionComponent",
+          "left": 22.5,
+          "top": 36.5,
+          "width": 257,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "cc8636a0-3b63-4ca6-ca41-67a1a63b5caf",
+              "variable": "Titolo_Bottone_Punzone",
+              "value": "\"ABILITA\""
+            }
+          ]
+        },
+        {
+          "objID": "89789757-7e8b-49bb-8140-3063c3e1a9ee",
+          "type": "SetVariableActionComponent",
+          "left": 22.5,
+          "top": -86.5,
+          "width": 275,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "0a677107-7e4d-4f9b-c1cc-7354fa208640",
+              "variable": "Titolo_Bottone_Punzone",
+              "value": "\"DISABILITA\""
+            }
+          ]
+        },
+        {
+          "objID": "b0b718f5-5d0a-42af-d78d-3c608479ca3a",
+          "type": "LVGLActionComponent",
+          "left": -332.5,
+          "top": -151.5,
+          "width": 305,
+          "height": 130,
+          "customInputs": [],
+          "customOutputs": [],
+          "description": "Motore Punzone Abilitato",
+          "actions": [
+            {
+              "objID": "a61cf84f-759e-4176-b229-a433c4274313",
+              "action": "objAddState",
+              "object": "puls_en_dis_punz",
+              "objectType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "3f4c2f37-627a-4d75-8fbe-036551f95760",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_av_punz",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "5f2e23c3-44f2-4aea-9c9e-a66bcce0c48c",
+              "action": "objAddFlag",
+              "object": "puls_jog_av_punz",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            },
+            {
+              "objID": "edf81103-c342-4842-f340-6539878469d2",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_ind_punz",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "0c4f7ce9-a611-48a0-9e5c-66dcd0feca8f",
+              "action": "objAddFlag",
+              "object": "puls_jog_ind_punz",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "483c5e60-def0-4477-d1ea-10479b7e93e8",
+          "type": "SetVariableActionComponent",
+          "left": 356.5,
+          "top": -86.5,
+          "width": 226,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "b86646dc-a42d-49d7-bc2b-922a9adc72ba",
+              "variable": "Comando_Motore_Punzone",
+              "value": "true"
+            }
+          ]
+        },
+        {
+          "objID": "16cb863f-13a9-418d-f932-2c10fd917b40",
+          "type": "LVGLActionComponent",
+          "left": -326.5,
+          "top": 21.5,
+          "width": 299,
+          "height": 130,
+          "customInputs": [],
+          "customOutputs": [],
+          "description": "Motore Punzone Disabilitato",
+          "actions": [
+            {
+              "objID": "1df2d020-6973-4d45-e630-04087891de30",
+              "action": "objClearState",
+              "object": "puls_en_dis_punz",
+              "objectType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "7d52b754-c6bd-44ce-88a0-d8b94b3a04c5",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_av_punz",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "8591f6a7-287e-4913-fc87-de165699f340",
+              "action": "objClearFlag",
+              "object": "puls_jog_av_punz",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            },
+            {
+              "objID": "91ef9bdb-00cb-4265-848d-02a4ddd55997",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_ind_punz",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "32223b4a-8b06-4205-cbff-b04e1f5cbcaf",
+              "action": "objClearFlag",
+              "object": "puls_jog_ind_punz",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "77833562-948f-4b6a-d316-421c6ad2ecd0",
+          "type": "SetVariableActionComponent",
+          "left": 356.5,
+          "top": 36.5,
+          "width": 232,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "fc243189-fb3f-4687-d6e5-b1fe54c67e0c",
+              "variable": "Comando_Motore_Punzone",
+              "value": "false"
+            }
+          ]
+        },
+        {
+          "objID": "348acc4d-2fae-419a-f22f-77e3ca8b06fe",
+          "type": "IsTrueActionComponent",
+          "left": -588.5,
+          "top": -29.5,
+          "width": 190,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Comando_Bottone_Punzone"
+        },
+        {
+          "objID": "2300f58b-632b-497a-ca55-9c640ee696be",
+          "type": "CommentActionComponent",
+          "left": 190,
+          "top": 1073,
+          "width": 435,
+          "height": 56,
+          "customInputs": [],
+          "customOutputs": [],
+          "text": "<div><!--block-->ABILITAZIONE/DISABILITAZIONE MOTORE PUNZONE</div>",
+          "collapsed": false,
+          "expandedWidth": 435
+        },
+        {
+          "objID": "d5753b6a-5283-4e9c-8c5a-09fda87f8e7f",
+          "type": "CommentActionComponent",
+          "left": -661,
+          "top": -249,
+          "width": 435,
+          "height": 56,
+          "customInputs": [],
+          "customOutputs": [],
+          "text": "<div><!--block-->ABILITAZIONE/DISABILITAZIONE MOTORE PUNZONE</div>",
+          "collapsed": false,
+          "expandedWidth": 435
+        }
+      ],
+      "connectionLines": [
+        {
+          "objID": "f1cfeb72-741a-4979-b9a4-2c1e66bcb670",
+          "source": "b0b718f5-5d0a-42af-d78d-3c608479ca3a",
+          "output": "@seqout",
+          "target": "89789757-7e8b-49bb-8140-3063c3e1a9ee",
+          "input": "@seqin"
+        },
+        {
+          "objID": "aeed7503-46d0-4030-87d3-7aa9634c1b3d",
+          "source": "89789757-7e8b-49bb-8140-3063c3e1a9ee",
+          "output": "@seqout",
+          "target": "483c5e60-def0-4477-d1ea-10479b7e93e8",
+          "input": "@seqin"
+        },
+        {
+          "objID": "9b91371f-cdf0-41d4-8ab1-d710228f0786",
+          "source": "16cb863f-13a9-418d-f932-2c10fd917b40",
+          "output": "@seqout",
+          "target": "2289ec24-7b49-48da-c884-ffe3f587fc18",
+          "input": "@seqin"
+        },
+        {
+          "objID": "ffa2f6b9-6cd0-4724-e60a-675dcceeebac",
+          "source": "2289ec24-7b49-48da-c884-ffe3f587fc18",
+          "output": "@seqout",
+          "target": "77833562-948f-4b6a-d316-421c6ad2ecd0",
+          "input": "@seqin"
+        },
+        {
+          "objID": "812fde2f-8d2a-4297-d73d-d2f41996eb69",
+          "source": "348acc4d-2fae-419a-f22f-77e3ca8b06fe",
+          "output": "True",
+          "target": "b0b718f5-5d0a-42af-d78d-3c608479ca3a",
+          "input": "@seqin"
+        },
+        {
+          "objID": "91fd1eed-dd2e-477a-b7ed-752f118e3286",
+          "source": "348acc4d-2fae-419a-f22f-77e3ca8b06fe",
+          "output": "False",
+          "target": "16cb863f-13a9-418d-f932-2c10fd917b40",
+          "input": "@seqin"
+        }
+      ],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "Comando_Bottone_Punzone",
+      "implementationType": "flow"
+    },
+    {
+      "objID": "dbe83986-323b-49ba-d021-fdf547fba1f2",
+      "components": [
+        {
+          "objID": "8de78c7a-a29a-4d23-ab63-1f8189d7cec7",
+          "type": "SetVariableActionComponent",
+          "left": 1018,
+          "top": 852,
+          "width": 245,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "217e3bb4-23d7-4fc8-b93d-16e352a637f7",
+              "variable": "Titolo_Bottone_Ralla",
+              "value": "\"ABILITA\""
+            }
+          ]
+        },
+        {
+          "objID": "b3d68eb8-583d-4fdb-a9be-9a5140f0c820",
+          "type": "SetVariableActionComponent",
+          "left": 1018,
+          "top": 729,
+          "width": 263,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "9cf950b5-2208-4254-e032-547dee167af2",
+              "variable": "Titolo_Bottone_Ralla",
+              "value": "\"DISABILITA\""
+            }
+          ]
+        },
+        {
+          "objID": "541e9d81-f1d5-46b8-cdd3-086762f995ec",
+          "type": "LVGLActionComponent",
+          "left": 668,
+          "top": 694,
+          "width": 311,
+          "height": 130,
+          "customInputs": [],
+          "customOutputs": [],
+          "description": "Motore Punzone Abilitato",
+          "actions": [
+            {
+              "objID": "4a4ec377-303c-4411-c115-00555a73e6b4",
+              "action": "objAddState",
+              "object": "puls_en_dis_ralla",
+              "objectType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "7b1848ab-9cca-46ce-fc10-dbfc6e56aff8",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_av_ralla",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "cb322139-9c38-45b6-d4c6-adc8872bcfb0",
+              "action": "objAddFlag",
+              "object": "puls_jog_av_ralla",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            },
+            {
+              "objID": "63d681ba-9cb9-4e06-cbe3-33920efbe14f",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_ind_ralla",
+              "objectType": "literal",
+              "disabled": false,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "bd7046c9-262f-4f3e-96ab-97661cae002b",
+              "action": "objAddFlag",
+              "object": "puls_jog_ind_ralla",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "5929222d-7217-4deb-a896-4680a1ea0f5d",
+          "type": "SetVariableActionComponent",
+          "left": 1358,
+          "top": 808,
+          "width": 318,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "e37f0384-738c-4902-f309-561d18744f6b",
+              "variable": "Comando_Motore_Ralla",
+              "value": "!Comando_Motore_Ralla"
+            }
+          ]
+        },
+        {
+          "objID": "a5c37209-a8d1-4222-a1d4-395812ebb745",
+          "type": "LVGLActionComponent",
+          "left": 671,
+          "top": 854,
+          "width": 305,
+          "height": 130,
+          "customInputs": [],
+          "customOutputs": [],
+          "description": "Motore Punzone Disabilitato",
+          "actions": [
+            {
+              "objID": "d01c8881-c4f1-48af-9e93-ade39e2295ac",
+              "action": "objClearState",
+              "object": "puls_en_dis_ralla",
+              "objectType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "2fc6cb34-8852-4c59-cc71-2bb96f2601cc",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_av_ralla",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "64686228-1b17-40cf-e3a8-99f739e0321c",
+              "action": "objClearFlag",
+              "object": "puls_jog_av_ralla",
+              "objectType": "literal",
+              "flag": "CLICKABLE",
+              "flagType": "literal"
+            },
+            {
+              "objID": "bf6d715d-e358-49c3-e4cb-68228eaee12a",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_ind_ralla",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            },
+            {
+              "objID": "a0d32728-9024-4b34-9f66-3f06a1414b02",
+              "action": "objClearFlag",
+              "object": "puls_jog_ind_ralla",
+              "objectType": "literal",
+              "flag": "CHECKABLE",
+              "flagType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "3a2c2650-fcf4-494e-ec0e-48afab589709",
+          "type": "IsTrueActionComponent",
+          "left": 416,
+          "top": 774,
+          "width": 178,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Comando_Bottone_Ralla"
+        },
+        {
+          "objID": "e240180c-4782-4ff0-cf25-9b23a60ce8b8",
+          "type": "CommentActionComponent",
+          "left": 389,
+          "top": 601,
+          "width": 435,
+          "height": 56,
+          "customInputs": [],
+          "customOutputs": [],
+          "text": "<div><!--block-->&nbsp;ABILITAZIONE/DISABILITAZIONE MOTORE RALLA</div>",
+          "collapsed": false,
+          "expandedWidth": 435
+        }
+      ],
+      "connectionLines": [
+        {
+          "objID": "12f04498-0e5e-40fc-863d-38b048b3e4d8",
+          "source": "541e9d81-f1d5-46b8-cdd3-086762f995ec",
+          "output": "@seqout",
+          "target": "b3d68eb8-583d-4fdb-a9be-9a5140f0c820",
+          "input": "@seqin"
+        },
+        {
+          "objID": "528b2014-a60b-4f66-bfd5-6f37c61c4a91",
+          "source": "8de78c7a-a29a-4d23-ab63-1f8189d7cec7",
+          "output": "@seqout",
+          "target": "5929222d-7217-4deb-a896-4680a1ea0f5d",
+          "input": "@seqin"
+        },
+        {
+          "objID": "f1b10b4a-2afa-4dc1-91ed-57137bd7d158",
+          "source": "b3d68eb8-583d-4fdb-a9be-9a5140f0c820",
+          "output": "@seqout",
+          "target": "5929222d-7217-4deb-a896-4680a1ea0f5d",
+          "input": "@seqin"
+        },
+        {
+          "objID": "09ebe653-4f9b-4cac-a344-e54ffac60f93",
+          "source": "a5c37209-a8d1-4222-a1d4-395812ebb745",
+          "output": "@seqout",
+          "target": "8de78c7a-a29a-4d23-ab63-1f8189d7cec7",
+          "input": "@seqin"
+        },
+        {
+          "objID": "d2becce4-5467-4bfb-e179-8c2587478c3b",
+          "source": "3a2c2650-fcf4-494e-ec0e-48afab589709",
+          "output": "True",
+          "target": "541e9d81-f1d5-46b8-cdd3-086762f995ec",
+          "input": "@seqin"
+        },
+        {
+          "objID": "d80d3ec8-2aa3-449b-cf36-0ea13e7ce961",
+          "source": "3a2c2650-fcf4-494e-ec0e-48afab589709",
+          "output": "False",
+          "target": "a5c37209-a8d1-4222-a1d4-395812ebb745",
+          "input": "@seqin"
+        }
+      ],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "Comando_Bottone_Ralla",
+      "implementationType": "flow"
     }
   ],
   "userPages": [
@@ -712,7 +2221,7 @@
               "type": "LVGLLabelWidget",
               "left": 215,
               "top": 288,
-              "width": 129,
+              "width": 0,
               "height": 16,
               "customInputs": [],
               "customOutputs": [],
@@ -863,19 +2372,6 @@
           "variable": "Stato_Avvio_Macchina"
         },
         {
-          "objID": "5f9f0e40-d4f3-4266-d732-f08a9ad5d008",
-          "type": "CompareActionComponent",
-          "left": 784,
-          "top": 353,
-          "width": 223,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Stato_Avvio_Macchina",
-          "B": "true",
-          "operator": "="
-        },
-        {
           "objID": "202f37cd-b424-4e65-c7d1-f2fe8bcbbac2",
           "type": "SetVariableActionComponent",
           "left": 638,
@@ -891,6 +2387,17 @@
               "value": "true"
             }
           ]
+        },
+        {
+          "objID": "0c5fd31f-684d-4155-8736-4f55dd57d9bb",
+          "type": "IsTrueActionComponent",
+          "left": 819,
+          "top": 344,
+          "width": 172,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Stato_Avvio_Macchina"
         }
       ],
       "connectionLines": [
@@ -909,31 +2416,31 @@
           "input": "@seqin"
         },
         {
-          "objID": "f545382c-c19d-4468-b916-f17ca4015126",
-          "source": "b99e2730-d49b-44f3-f01d-5c95af04609c",
-          "output": "variable",
-          "target": "5f9f0e40-d4f3-4266-d732-f08a9ad5d008",
+          "objID": "16f7e828-ced7-4eda-d352-f3f120826b06",
+          "source": "d6661042-6b88-4b2e-8288-827695cb25dc",
+          "output": "PRESSED",
+          "target": "202f37cd-b424-4e65-c7d1-f2fe8bcbbac2",
           "input": "@seqin"
         },
         {
-          "objID": "1d1c2ba5-5834-492a-a4cc-da375ca39887",
-          "source": "5f9f0e40-d4f3-4266-d732-f08a9ad5d008",
+          "objID": "88ff365e-51ee-4ecf-e3fd-b1ee38369ded",
+          "source": "b99e2730-d49b-44f3-f01d-5c95af04609c",
+          "output": "variable",
+          "target": "0c5fd31f-684d-4155-8736-4f55dd57d9bb",
+          "input": "@seqin"
+        },
+        {
+          "objID": "7e3842c5-d325-4be7-d174-0103292b101c",
+          "source": "0c5fd31f-684d-4155-8736-4f55dd57d9bb",
           "output": "True",
           "target": "3e4974ed-9708-4708-d724-075149a20458",
           "input": "@seqin"
         },
         {
-          "objID": "cca27b8d-94d7-4ac2-f1b0-89622582b5c8",
-          "source": "5f9f0e40-d4f3-4266-d732-f08a9ad5d008",
+          "objID": "12320e0c-9663-413d-f1b7-a2ac4169629d",
+          "source": "0c5fd31f-684d-4155-8736-4f55dd57d9bb",
           "output": "False",
           "target": "1be44033-b51c-49cf-863f-f431a60944c0",
-          "input": "@seqin"
-        },
-        {
-          "objID": "16f7e828-ced7-4eda-d352-f3f120826b06",
-          "source": "d6661042-6b88-4b2e-8288-827695cb25dc",
-          "output": "PRESSED",
-          "target": "202f37cd-b424-4e65-c7d1-f2fe8bcbbac2",
           "input": "@seqin"
         }
       ],
@@ -990,7 +2497,15 @@
                 "childStyles": []
               },
               "timeline": [],
-              "eventHandlers": [],
+              "eventHandlers": [
+                {
+                  "objID": "e5633126-68ac-4dc5-95f9-3afec32886c0",
+                  "eventName": "PRESSED",
+                  "handlerType": "flow",
+                  "action": "Calibrazione_Touch",
+                  "userData": 0
+                }
+              ],
               "identifier": "LOGO",
               "leftUnit": "px",
               "topUnit": "px",
@@ -1363,7 +2878,7 @@
               "objID": "b40bdc37-d6fd-4c4d-8d1f-429e3c35bb86",
               "type": "LVGLImgbuttonWidget",
               "left": 38,
-              "top": 164,
+              "top": 217,
               "width": 80,
               "height": 80,
               "customInputs": [],
@@ -1570,7 +3085,7 @@
               "objID": "1f3f3a7c-2fe8-401d-940f-1e882d51af9d",
               "type": "LVGLPanelWidget",
               "left": 92,
-              "top": 28,
+              "top": 35,
               "width": 300,
               "height": 200,
               "customInputs": [],
@@ -1763,6 +3278,346 @@
               },
               "group": "",
               "groupIndex": 0
+            },
+            {
+              "objID": "89046b83-ba96-49f9-ef2b-2ef8dbdabae5",
+              "type": "LVGLButtonWidget",
+              "left": -12,
+              "top": 15,
+              "width": 100,
+              "height": 50,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "59fd852b-06a9-4394-e990-9dfc04310cc4",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [
+                {
+                  "objID": "93155374-1157-4824-d0a3-0452973e4995",
+                  "eventName": "PRESSED",
+                  "handlerType": "flow",
+                  "action": "Calibrazione_Touch",
+                  "userData": 0
+                }
+              ],
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [
+                {
+                  "objID": "d9bbd5b5-3188-41df-dbed-aec1bbf29171",
+                  "type": "LVGLLabelWidget",
+                  "left": 0,
+                  "top": 0,
+                  "width": 52,
+                  "height": 16,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "7ac33514-7fc6-420c-f0c3-8f8ff8cce70d",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "content",
+                  "heightUnit": "content",
+                  "children": [],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlagType": "literal",
+                  "clickableFlagType": "literal",
+                  "flagScrollbarMode": "",
+                  "flagScrollDirection": "",
+                  "scrollSnapX": "",
+                  "scrollSnapY": "",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "60c20600-6ee0-4e37-890d-6effcc3ac166",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "align": "CENTER"
+                        }
+                      }
+                    }
+                  },
+                  "group": "",
+                  "groupIndex": 0,
+                  "text": "Button",
+                  "textType": "literal",
+                  "longMode": "WRAP",
+                  "recolor": false
+                }
+              ],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlag": true,
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "d1497865-f44d-4a25-fc5f-10feb6f145cb"
+              },
+              "group": "",
+              "groupIndex": 0
+            },
+            {
+              "objID": "3f589feb-b7dc-46a1-9e8c-8c5c4e73d1ea",
+              "type": "LVGLButtonWidget",
+              "left": 28,
+              "top": 103,
+              "width": 99,
+              "height": 67,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "d9914900-4568-4f98-97ae-cbc16f448adf",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [
+                {
+                  "objID": "0e3121b8-3bda-40cc-af76-b7cc43d762d9",
+                  "eventName": "PRESSED",
+                  "handlerType": "flow",
+                  "action": "Calibrazione_Touch",
+                  "userData": 0
+                }
+              ],
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [
+                {
+                  "objID": "0fae7a64-5750-4a01-a670-ff52c0db9dcc",
+                  "type": "LVGLLabelWidget",
+                  "left": 0,
+                  "top": 0,
+                  "width": 65,
+                  "height": 32,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "d20b21c3-329e-4f01-fdf7-5600bf65e32c",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "content",
+                  "heightUnit": "content",
+                  "children": [],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlagType": "literal",
+                  "clickableFlagType": "literal",
+                  "flagScrollbarMode": "",
+                  "flagScrollDirection": "",
+                  "scrollSnapX": "",
+                  "scrollSnapY": "",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "6aae55c8-19be-4a30-93f2-7bae31e53418",
+                    "definition": {
+                      "MAIN": {
+                        "DEFAULT": {
+                          "align": "CENTER",
+                          "text_color": "#000000",
+                          "text_align": "CENTER"
+                        }
+                      }
+                    }
+                  },
+                  "group": "",
+                  "groupIndex": 0,
+                  "text": "Sito\nProgetto",
+                  "textType": "literal",
+                  "longMode": "WRAP",
+                  "recolor": false
+                }
+              ],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_ON_FOCUS|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlag": true,
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "49410be1-ab0f-4041-8065-703c26824880",
+                "definition": {
+                  "MAIN": {
+                    "DEFAULT": {
+                      "bg_color": "#CBC331"
+                    }
+                  }
+                }
+              },
+              "group": "",
+              "groupIndex": 0
+            },
+            {
+              "objID": "290b4c90-23bf-4c37-da7e-5468238af8ea",
+              "type": "LVGLQRCodeWidget",
+              "left": 160,
+              "top": 64,
+              "width": 160,
+              "height": 160,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "47ba7988-024b-4338-bc67-fd59e14f418d",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [],
+              "identifier": "QR sito",
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [],
+              "widgetFlags": "CLICK_FOCUSABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_CHAIN|SCROLL_WITH_ARROW|SNAPPABLE|PRESS_LOCK|GESTURE_BUBBLE|ADV_HITTEST",
+              "hiddenFlag": true,
+              "hiddenFlagType": "literal",
+              "clickableFlag": false,
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "819db876-d45e-4485-cbc2-a44a6b0e712d",
+                "definition": {
+                  "MAIN": {
+                    "DEFAULT": {
+                      "align": "OUT_TOP_MID"
+                    }
+                  }
+                }
+              },
+              "group": "",
+              "groupIndex": 0,
+              "text": "https://envox.eu/",
+              "darkColor": "#20429F",
+              "lightColor": "#E2F5FE"
+            },
+            {
+              "objID": "9df2756f-525f-499e-938a-d23b622e1546",
+              "type": "LVGLLabelWidget",
+              "left": 98,
+              "top": 0,
+              "width": 90,
+              "height": 33,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "0cefd597-33cc-4190-b7e2-11f59e6af208",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [],
+              "identifier": "data_ora",
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "dc123035-159b-4bc3-82a5-c4cb797355ca"
+              },
+              "group": "",
+              "groupIndex": 0,
+              "text": "(Date.getHours(clock_string)) + \":\" + (Date.getMinutes(clock_string)) + \":\" + (Date.getSeconds(clock_string))",
+              "textType": "expression",
+              "longMode": "WRAP",
+              "recolor": false
+            },
+            {
+              "objID": "38f8b9e3-a30a-40d8-a4c3-efa475ca97a6",
+              "type": "LVGLLabelWidget",
+              "left": 247,
+              "top": 0,
+              "width": 90,
+              "height": 33,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "cdfcf90e-6301-41ba-94ab-a4e19c4768c7",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [],
+              "identifier": "data_ora_1",
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "bffb5fe0-574d-40f7-a689-3ae2973c5574"
+              },
+              "group": "",
+              "groupIndex": 0,
+              "text": "Date.getDay(clock_string) + \"/\" + Date.getMonth(clock_string) + \"/\" + Date.getYear(clock_string)",
+              "textType": "expression",
+              "longMode": "WRAP",
+              "recolor": false
             }
           ],
           "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
@@ -1804,131 +3659,13 @@
         {
           "objID": "ce1c7146-7447-490b-884a-622b197be97a",
           "type": "WatchVariableActionComponent",
-          "left": -404,
-          "top": 522,
+          "left": -32,
+          "top": 475,
           "width": 172,
           "height": 54,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Comando_Macchina"
-        },
-        {
-          "objID": "7741c944-0208-4ade-baf6-f3de6f5162ff",
-          "type": "SetVariableActionComponent",
-          "left": 339,
-          "top": 644,
-          "width": 245,
-          "height": 79,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "3e37887a-0c29-410a-b4a7-f46f85955618",
-              "variable": "Stato_Comando_Macchina",
-              "value": "\"START\""
-            },
-            {
-              "objID": "03e9af07-5307-4141-e98b-f5d2e5200e4e",
-              "variable": "Comando_Macchina",
-              "value": "false"
-            }
-          ]
-        },
-        {
-          "objID": "5f93b08b-6bd8-4618-ff3f-1450ee27637d",
-          "type": "SetVariableActionComponent",
-          "left": 339,
-          "top": 500,
-          "width": 239,
-          "height": 79,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "f2382be3-4ea5-43f0-b09c-4756aaf18b47",
-              "variable": "Stato_Comando_Macchina",
-              "value": "\"STOP\""
-            },
-            {
-              "objID": "62767b4e-6cd6-43dc-cf13-16f6fcb0a26c",
-              "variable": "Comando_Macchina",
-              "value": "true"
-            }
-          ]
-        },
-        {
-          "objID": "beb4df1c-196d-486a-877c-f0f2dffc91d0",
-          "type": "LVGLActionComponent",
-          "left": 38,
-          "top": 500,
-          "width": 262,
-          "height": 92,
-          "customInputs": [],
-          "customOutputs": [],
-          "description": "Macchina_Avviata",
-          "actions": [
-            {
-              "objID": "850d38b3-f12e-4915-8993-e52b3c7dbdc7",
-              "action": "objAddState",
-              "object": "puls_start_stop",
-              "objectType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            },
-            {
-              "objID": "7b1e32d5-27f6-4e30-efaa-18e12b3a980c",
-              "action": "objSetStateDisabled",
-              "object": "contrmot",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "70fba187-62ac-487d-8a1c-a50469752e60",
-              "action": "objSetFlagHidden",
-              "object": "blocco_jogger",
-              "objectType": "literal",
-              "hidden": false,
-              "hiddenType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "5a59509f-b097-4d99-92ab-04809ffde17f",
-          "type": "LVGLActionComponent",
-          "left": 38,
-          "top": 644,
-          "width": 274,
-          "height": 92,
-          "customInputs": [],
-          "customOutputs": [],
-          "description": "Macchina_Ferma",
-          "actions": [
-            {
-              "objID": "19949eb5-6d8b-4b8e-eddd-927db5d921a0",
-              "action": "objClearState",
-              "object": "puls_start_stop",
-              "objectType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            },
-            {
-              "objID": "79d8b84b-f507-44cc-a37c-251c9737e42e",
-              "action": "objSetStateDisabled",
-              "object": "contrmot",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "d66d67da-53c4-440c-e07f-5518cb54d019",
-              "action": "objSetFlagHidden",
-              "object": "blocco_jogger",
-              "objectType": "literal",
-              "hidden": true,
-              "hiddenType": "literal"
-            }
-          ]
         },
         {
           "objID": "4c3c0e39-3763-4358-a554-a061d16b5302",
@@ -1957,19 +3694,6 @@
           ]
         },
         {
-          "objID": "6968be6b-766d-419b-b2a4-1bb506d1c495",
-          "type": "CompareActionComponent",
-          "left": -210,
-          "top": 522,
-          "width": 199,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Comando_Macchina",
-          "B": "true",
-          "operator": "="
-        },
-        {
           "objID": "8cc45fa4-4626-4f4a-bcf2-c58f29d67cd3",
           "type": "WatchVariableActionComponent",
           "left": -279,
@@ -1979,19 +3703,6 @@
           "customInputs": [],
           "customOutputs": [],
           "variable": "Presenza_Errore"
-        },
-        {
-          "objID": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
-          "type": "CompareActionComponent",
-          "left": 140,
-          "top": -228,
-          "width": 193,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Presenza_Errore",
-          "B": "true",
-          "operator": "="
         },
         {
           "objID": "5d096f73-79c5-4e97-a5a7-b4e6ae42a5f1",
@@ -2067,19 +3778,6 @@
           ]
         },
         {
-          "objID": "bef20122-b63d-4aa0-d86e-a3850fb00dbf",
-          "type": "CompareActionComponent",
-          "left": 192,
-          "top": 348,
-          "width": 199,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Comando_Macchina",
-          "B": "true",
-          "operator": "="
-        },
-        {
           "objID": "f5749af8-293c-4d4b-efa7-f3271d0d58f0",
           "type": "SetVariableActionComponent",
           "left": 417,
@@ -2108,19 +3806,6 @@
           "variable": "Pulsante_Errore"
         },
         {
-          "objID": "744b4ebc-1436-4eeb-a569-26491c75ff94",
-          "type": "CompareActionComponent",
-          "left": 391,
-          "top": -236,
-          "width": 193,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Pulsante_Errore",
-          "B": "true",
-          "operator": "="
-        },
-        {
           "objID": "86082b21-af41-4707-d28c-d1bd81fe4696",
           "type": "SetVariableActionComponent",
           "left": -84,
@@ -2138,23 +3823,10 @@
           ]
         },
         {
-          "objID": "cb15f696-0d95-4d6c-b138-fc2bd6bd2b51",
-          "type": "CompareActionComponent",
-          "left": -87,
-          "top": 341,
-          "width": 193,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Presenza_Errore",
-          "B": "true",
-          "operator": "="
-        },
-        {
           "objID": "f79efe23-6a28-4ea7-81e9-e2e2ae4bf6ee",
           "type": "LVGLActionComponent",
           "left": 391,
-          "top": -331,
+          "top": -394,
           "width": 262,
           "height": 73,
           "customInputs": [],
@@ -2182,7 +3854,7 @@
           "objID": "3ca1df21-ade1-468d-a926-11c44bb21671",
           "type": "LVGLActionComponent",
           "left": 391,
-          "top": -404,
+          "top": -321,
           "width": 256,
           "height": 73,
           "customInputs": [],
@@ -2205,49 +3877,196 @@
               "hiddenType": "literal"
             }
           ]
+        },
+        {
+          "objID": "c7d9bec1-4a5c-4dae-e10d-dc21617f8f3b",
+          "type": "IsTrueActionComponent",
+          "left": 170,
+          "top": -258,
+          "width": 141,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Presenza_Errore"
+        },
+        {
+          "objID": "842a8a5c-b9f5-46d1-8bd0-0a215066944a",
+          "type": "IsTrueActionComponent",
+          "left": 426,
+          "top": -231,
+          "width": 141,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Pulsante_Errore"
+        },
+        {
+          "objID": "1f67a439-64e5-470a-e53a-90f35182c9bb",
+          "type": "IsTrueActionComponent",
+          "left": 192,
+          "top": 361,
+          "width": 147,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Comando_Macchina"
+        },
+        {
+          "objID": "192ba854-ec2d-4905-dbc9-a182d4337454",
+          "type": "IsTrueActionComponent",
+          "left": -32,
+          "top": 348,
+          "width": 141,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Presenza_Errore"
+        },
+        {
+          "objID": "2673361b-09d8-4193-fb55-359c276a01ce",
+          "type": "SetVariableActionComponent",
+          "left": -195,
+          "top": -92,
+          "width": 232,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "314bc58d-845f-4eba-97bc-6d8c8d68914a",
+              "variable": "Presenza_WiFi",
+              "value": "!Presenza_WiFi"
+            }
+          ]
+        },
+        {
+          "objID": "1eec1541-ad60-4687-e694-9c3dd4d62ef3",
+          "type": "SetVariableActionComponent",
+          "left": -795,
+          "top": 106,
+          "width": 196,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "7f811603-b3e7-46e0-e977-8ac6dcacc276",
+              "variable": "qr_visible",
+              "value": "!qr_visible"
+            }
+          ]
+        },
+        {
+          "objID": "cea201eb-cac8-4d9b-91d6-934c6dc9adb9",
+          "type": "IsTrueActionComponent",
+          "left": -533,
+          "top": 106,
+          "width": 110,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "qr_visible"
+        },
+        {
+          "objID": "31369f3f-2ff5-4f64-8d4d-db28267935ba",
+          "type": "LVGLActionComponent",
+          "left": -386,
+          "top": 163,
+          "width": 200,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "92b734b5-17be-4728-9ad6-253b9aa35b74",
+              "action": "objSetFlagHidden",
+              "object": "qr_sito",
+              "objectType": "literal",
+              "hidden": true,
+              "hiddenType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "0d6cde5a-da11-4ade-950e-744c9e9a3990",
+          "type": "LVGLActionComponent",
+          "left": -386,
+          "top": 97,
+          "width": 207,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "1945ff64-8211-4164-fdbb-1ab583b39dd3",
+              "action": "objSetFlagHidden",
+              "object": "qr_sito",
+              "objectType": "literal",
+              "hidden": false,
+              "hiddenType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "89603484-aa1a-4fc5-faf1-73c61dac2e32",
+          "type": "CallActionActionComponent",
+          "left": 184,
+          "top": 502,
+          "width": 151,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "Comando_Macchina",
+          "userPropertyValues": {
+            "objID": "14679824-6209-4ab9-889a-703bb920fbb1",
+            "values": {}
+          }
+        },
+        {
+          "objID": "ca60d3bc-a9fd-417f-f80c-38bb9badbb6c",
+          "type": "StartActionComponent",
+          "left": 11,
+          "top": -616,
+          "width": 87,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": []
+        },
+        {
+          "objID": "ddaf32f3-e43b-4194-f296-7f239c5a0f10",
+          "type": "DelayActionComponent",
+          "left": 393,
+          "top": -616,
+          "width": 87,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "milliseconds": "500"
+        },
+        {
+          "objID": "a8e6ceb5-6dac-4fd3-b216-85ab96809fcd",
+          "type": "SetVariableActionComponent",
+          "left": 155,
+          "top": -616,
+          "width": 202,
+          "height": 57,
+          "customInputs": [],
+          "customOutputs": [],
+          "entries": [
+            {
+              "objID": "c221c6f2-84fd-44fd-8365-b98059d41ff7",
+              "variable": "clock_string",
+              "value": "Date.now()"
+            }
+          ]
         }
       ],
       "connectionLines": [
-        {
-          "objID": "2fe61665-469c-4029-dd10-3fd73b33e4a0",
-          "source": "beb4df1c-196d-486a-877c-f0f2dffc91d0",
-          "output": "@seqout",
-          "target": "5f93b08b-6bd8-4618-ff3f-1450ee27637d",
-          "input": "@seqin"
-        },
-        {
-          "objID": "f7c3bb2a-5b31-48fb-fee8-c0d98fbdc55e",
-          "source": "5a59509f-b097-4d99-92ab-04809ffde17f",
-          "output": "@seqout",
-          "target": "7741c944-0208-4ade-baf6-f3de6f5162ff",
-          "input": "@seqin"
-        },
         {
           "objID": "3852484d-8c19-43b1-df60-b34aa51ea20b",
           "source": "b40bdc37-d6fd-4c4d-8d1f-429e3c35bb86",
           "output": "PRESSED",
           "target": "4c3c0e39-3763-4358-a554-a061d16b5302",
-          "input": "@seqin"
-        },
-        {
-          "objID": "7d1f8450-456d-4af1-e6fa-35ef14832ced",
-          "source": "6968be6b-766d-419b-b2a4-1bb506d1c495",
-          "output": "True",
-          "target": "beb4df1c-196d-486a-877c-f0f2dffc91d0",
-          "input": "@seqin"
-        },
-        {
-          "objID": "129968a0-a7da-4171-b0e3-227c60103468",
-          "source": "6968be6b-766d-419b-b2a4-1bb506d1c495",
-          "output": "False",
-          "target": "5a59509f-b097-4d99-92ab-04809ffde17f",
-          "input": "@seqin"
-        },
-        {
-          "objID": "a7d0594f-42f4-4f4c-f371-4247edd918ce",
-          "source": "ce1c7146-7447-490b-884a-622b197be97a",
-          "output": "variable",
-          "target": "6968be6b-766d-419b-b2a4-1bb506d1c495",
           "input": "@seqin"
         },
         {
@@ -2258,20 +4077,6 @@
           "input": "@seqin"
         },
         {
-          "objID": "57d05ecf-ece0-49cf-bf42-8f433363cee5",
-          "source": "bef20122-b63d-4aa0-d86e-a3850fb00dbf",
-          "output": "True",
-          "target": "b3f2f6c8-b623-46f1-f8b2-9a274166bdb8",
-          "input": "@seqin"
-        },
-        {
-          "objID": "6de0f11b-3402-4869-c9e6-75673d01d7c7",
-          "source": "bef20122-b63d-4aa0-d86e-a3850fb00dbf",
-          "output": "False",
-          "target": "f5749af8-293c-4d4b-efa7-f3271d0d58f0",
-          "input": "@seqin"
-        },
-        {
           "objID": "4257c186-1324-442e-d45a-faaa5b1362ab",
           "source": "8cc45fa4-4626-4f4a-bcf2-c58f29d67cd3",
           "output": "variable",
@@ -2279,80 +4084,164 @@
           "input": "@seqin"
         },
         {
-          "objID": "71ea50a7-2df4-491a-feac-1518312afc35",
+          "objID": "ebc3011b-9e78-4a82-bb02-48b24180feae",
           "source": "86082b21-af41-4707-d28c-d1bd81fe4696",
           "output": "@seqout",
-          "target": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "target": "c7d9bec1-4a5c-4dae-e10d-dc21617f8f3b",
           "input": "@seqin"
         },
         {
-          "objID": "0dec10c4-daf9-4233-d404-04253e5caeae",
-          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
-          "output": "False",
-          "target": "712d1dea-46fb-475c-ccc4-852938cca1bd",
-          "input": "@seqin"
-        },
-        {
-          "objID": "b7b8dc11-da71-4bb6-ecf7-c255ac35940d",
-          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
-          "output": "True",
-          "target": "744b4ebc-1436-4eeb-a569-26491c75ff94",
-          "input": "@seqin"
-        },
-        {
-          "objID": "34575c7b-58ec-4e7c-a190-51afc8564109",
-          "source": "744b4ebc-1436-4eeb-a569-26491c75ff94",
-          "output": "True",
-          "target": "5d096f73-79c5-4e97-a5a7-b4e6ae42a5f1",
-          "input": "@seqin"
-        },
-        {
-          "objID": "016d906f-cf9b-473e-9533-02d3ae89b13f",
-          "source": "744b4ebc-1436-4eeb-a569-26491c75ff94",
-          "output": "False",
-          "target": "712d1dea-46fb-475c-ccc4-852938cca1bd",
-          "input": "@seqin"
-        },
-        {
-          "objID": "018e528a-ec67-416a-9ff7-4696c6091f3b",
+          "objID": "03a0a37b-665b-4427-9320-5f4f7d8c244b",
           "source": "20f02536-b85a-4c41-f1d8-88600c6d0619",
           "output": "variable",
-          "target": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "target": "c7d9bec1-4a5c-4dae-e10d-dc21617f8f3b",
           "input": "@seqin"
         },
         {
-          "objID": "4916c576-e5b8-4f1a-a142-e5ee07cd50cd",
-          "source": "8b46e9ff-8509-47c0-eaaa-969c57e99d46",
-          "output": "PRESSED",
-          "target": "cb15f696-0d95-4d6c-b138-fc2bd6bd2b51",
-          "input": "@seqin"
-        },
-        {
-          "objID": "b3a18c77-fe96-47ad-995f-c63dbd650343",
-          "source": "cb15f696-0d95-4d6c-b138-fc2bd6bd2b51",
-          "output": "False",
-          "target": "bef20122-b63d-4aa0-d86e-a3850fb00dbf",
-          "input": "@seqin"
-        },
-        {
-          "objID": "c3034f94-c3e2-4ba2-a849-19df02f3df72",
-          "source": "cb15f696-0d95-4d6c-b138-fc2bd6bd2b51",
-          "output": "True",
-          "target": "86082b21-af41-4707-d28c-d1bd81fe4696",
-          "input": "@seqin"
-        },
-        {
-          "objID": "933aa4b9-c064-43bb-927b-ddbf9b8a7da6",
-          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "objID": "f2d78750-7bec-4a24-d460-a5e35f89e3fd",
+          "source": "c7d9bec1-4a5c-4dae-e10d-dc21617f8f3b",
           "output": "True",
           "target": "f79efe23-6a28-4ea7-81e9-e2e2ae4bf6ee",
           "input": "@seqin"
         },
         {
-          "objID": "af5baeaf-d64c-4258-b701-db8c45cffbb8",
-          "source": "987a5efa-f1ff-4dff-90be-79e139aa70c5",
+          "objID": "2d31d9a6-95d6-4099-b1dd-ced8522ab0b9",
+          "source": "c7d9bec1-4a5c-4dae-e10d-dc21617f8f3b",
           "output": "False",
           "target": "3ca1df21-ade1-468d-a926-11c44bb21671",
+          "input": "@seqin"
+        },
+        {
+          "objID": "3c2a330e-86c3-4de6-cec5-a6dd7438cf80",
+          "source": "c7d9bec1-4a5c-4dae-e10d-dc21617f8f3b",
+          "output": "False",
+          "target": "712d1dea-46fb-475c-ccc4-852938cca1bd",
+          "input": "@seqin"
+        },
+        {
+          "objID": "39b3cfac-20c3-4dd9-f7df-169739d931e4",
+          "source": "842a8a5c-b9f5-46d1-8bd0-0a215066944a",
+          "output": "True",
+          "target": "5d096f73-79c5-4e97-a5a7-b4e6ae42a5f1",
+          "input": "@seqin"
+        },
+        {
+          "objID": "22ce4349-7eb1-4d9b-da92-593627738fff",
+          "source": "842a8a5c-b9f5-46d1-8bd0-0a215066944a",
+          "output": "False",
+          "target": "712d1dea-46fb-475c-ccc4-852938cca1bd",
+          "input": "@seqin"
+        },
+        {
+          "objID": "5e9670e1-7010-40d4-eee0-12983c8f64aa",
+          "source": "c7d9bec1-4a5c-4dae-e10d-dc21617f8f3b",
+          "output": "True",
+          "target": "842a8a5c-b9f5-46d1-8bd0-0a215066944a",
+          "input": "@seqin"
+        },
+        {
+          "objID": "de352714-6303-45c2-dec1-d82b7da52dad",
+          "source": "1f67a439-64e5-470a-e53a-90f35182c9bb",
+          "output": "True",
+          "target": "b3f2f6c8-b623-46f1-f8b2-9a274166bdb8",
+          "input": "@seqin"
+        },
+        {
+          "objID": "c60b760a-80a1-411a-84a7-1efd780c9972",
+          "source": "1f67a439-64e5-470a-e53a-90f35182c9bb",
+          "output": "False",
+          "target": "f5749af8-293c-4d4b-efa7-f3271d0d58f0",
+          "input": "@seqin"
+        },
+        {
+          "objID": "1af3c058-c0cc-47b7-9753-29ec328994f0",
+          "source": "192ba854-ec2d-4905-dbc9-a182d4337454",
+          "output": "False",
+          "target": "1f67a439-64e5-470a-e53a-90f35182c9bb",
+          "input": "@seqin"
+        },
+        {
+          "objID": "7be1598d-9440-4934-ba0d-a7b55fe55ffd",
+          "source": "192ba854-ec2d-4905-dbc9-a182d4337454",
+          "output": "True",
+          "target": "86082b21-af41-4707-d28c-d1bd81fe4696",
+          "input": "@seqin"
+        },
+        {
+          "objID": "9be94a6c-28a9-4709-82d2-35ee5bea14fb",
+          "source": "8b46e9ff-8509-47c0-eaaa-969c57e99d46",
+          "output": "PRESSED",
+          "target": "192ba854-ec2d-4905-dbc9-a182d4337454",
+          "input": "@seqin"
+        },
+        {
+          "objID": "40be088c-f0d2-4a96-abad-35f8fdb76051",
+          "source": "89046b83-ba96-49f9-ef2b-2ef8dbdabae5",
+          "output": "PRESSED",
+          "target": "2673361b-09d8-4193-fb55-359c276a01ce",
+          "input": "@seqin"
+        },
+        {
+          "objID": "b48796fb-9879-466a-f2d1-605817fd6925",
+          "source": "3f589feb-b7dc-46a1-9e8c-8c5c4e73d1ea",
+          "output": "PRESSED",
+          "target": "1eec1541-ad60-4687-e694-9c3dd4d62ef3",
+          "input": "@seqin"
+        },
+        {
+          "objID": "fef003e2-4f18-49f8-99f5-e76631d302dd",
+          "source": "1eec1541-ad60-4687-e694-9c3dd4d62ef3",
+          "output": "@seqout",
+          "target": "cea201eb-cac8-4d9b-91d6-934c6dc9adb9",
+          "input": "@seqin"
+        },
+        {
+          "objID": "542be949-230f-4c1a-e927-c0e30da95563",
+          "source": "cea201eb-cac8-4d9b-91d6-934c6dc9adb9",
+          "output": "True",
+          "target": "0d6cde5a-da11-4ade-950e-744c9e9a3990",
+          "input": "@seqin"
+        },
+        {
+          "objID": "ac8be6f4-f520-4393-defd-141d04257d81",
+          "source": "cea201eb-cac8-4d9b-91d6-934c6dc9adb9",
+          "output": "False",
+          "target": "31369f3f-2ff5-4f64-8d4d-db28267935ba",
+          "input": "@seqin"
+        },
+        {
+          "objID": "805f1e6d-9c83-40f8-b155-69f70ff9b9cc",
+          "source": "60581008-5674-4afd-d149-b2f94b3023d6",
+          "output": "PRESSED",
+          "target": "1eec1541-ad60-4687-e694-9c3dd4d62ef3",
+          "input": "@seqin"
+        },
+        {
+          "objID": "f114c7b8-917d-4519-a89c-383ecee1e339",
+          "source": "ce1c7146-7447-490b-884a-622b197be97a",
+          "output": "variable",
+          "target": "89603484-aa1a-4fc5-faf1-73c61dac2e32",
+          "input": "@seqin"
+        },
+        {
+          "objID": "704f1212-01f6-456f-bfa9-fddbb787b898",
+          "source": "ca60d3bc-a9fd-417f-f80c-38bb9badbb6c",
+          "output": "@seqout",
+          "target": "a8e6ceb5-6dac-4fd3-b216-85ab96809fcd",
+          "input": "@seqin"
+        },
+        {
+          "objID": "91b90f35-51e1-4fc5-fd2f-d26c0b1c11fd",
+          "source": "ddaf32f3-e43b-4194-f296-7f239c5a0f10",
+          "output": "@seqout",
+          "target": "a8e6ceb5-6dac-4fd3-b216-85ab96809fcd",
+          "input": "@seqin"
+        },
+        {
+          "objID": "7fe73aeb-2ec1-4ab3-d7fe-fea1608fc922",
+          "source": "a8e6ceb5-6dac-4fd3-b216-85ab96809fcd",
+          "output": "@seqout",
+          "target": "ddaf32f3-e43b-4194-f296-7f239c5a0f10",
           "input": "@seqin"
         }
       ],
@@ -2719,278 +4608,6 @@
           ]
         },
         {
-          "objID": "571cfbb6-805a-49f5-c59f-c958dd2c87a3",
-          "type": "CompareActionComponent",
-          "left": 513,
-          "top": 174,
-          "width": 285,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Password_Corretta",
-          "B": "Password_inserita",
-          "operator": "="
-        },
-        {
-          "objID": "0834f175-71f3-47dd-cb4d-b73246059af4",
-          "type": "LVGLActionComponent",
-          "left": 1725,
-          "top": 160,
-          "width": 409,
-          "height": 111,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "5eb63dc9-90cf-4c2d-e88c-7bae63a3845a",
-              "action": "changeScreen",
-              "screen": "Schermata Diagnostica",
-              "screenType": "literal",
-              "fadeMode": "FADE_IN",
-              "fadeModeType": "literal",
-              "speed": 200,
-              "speedType": "literal",
-              "delay": 0,
-              "delayType": "literal",
-              "useStack": true,
-              "useStackType": "literal"
-            },
-            {
-              "objID": "6fdbf41f-df4d-4a3c-dde6-6879341fb09c",
-              "action": "objSetFlagHidden",
-              "object": "messaggio_pssw",
-              "objectType": "literal",
-              "hidden": true,
-              "hiddenType": "literal"
-            },
-            {
-              "objID": "5bbe3910-514b-429f-b55e-9d5b663071d3",
-              "action": "objSetStateDisabled",
-              "object": "tastiera_pssw",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "d5217703-38fb-4ad5-8b81-18fb4fd9f918",
-              "action": "objSetStateDisabled",
-              "object": "annulla_pssw",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "125b2724-72b5-4197-dc69-e1748b7d8b7a",
-          "type": "SetVariableActionComponent",
-          "left": 1270,
-          "top": 207,
-          "width": 306,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "95823275-a996-4548-a570-6412a2f6e70d",
-              "variable": "Esito_Controllo_PSWW",
-              "value": "\"PASSWORD CORRETTA\""
-            }
-          ]
-        },
-        {
-          "objID": "c0d890aa-880b-4c15-faa5-2722a44c0511",
-          "type": "DelayActionComponent",
-          "left": 1603,
-          "top": 193,
-          "width": 87,
-          "height": 54,
-          "customInputs": [],
-          "customOutputs": [],
-          "milliseconds": "1500"
-        },
-        {
-          "objID": "bf2c0170-7d6c-411e-e0d9-99d9036df6ab",
-          "type": "SetVariableActionComponent",
-          "left": 1270,
-          "top": 406,
-          "width": 294,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "728c6b5a-3c0e-4d1e-ee2e-4caaabd736eb",
-              "variable": "Esito_Controllo_PSWW",
-              "value": "\"PASSWORD ERRATA\""
-            }
-          ]
-        },
-        {
-          "objID": "95062ad1-fdd4-4626-c488-bcefc4a69eaa",
-          "type": "DelayActionComponent",
-          "left": 1602,
-          "top": 379,
-          "width": 87,
-          "height": 54,
-          "customInputs": [],
-          "customOutputs": [],
-          "milliseconds": "1500"
-        },
-        {
-          "objID": "b050bd7c-b170-41e2-d405-13f498916215",
-          "type": "SetVariableActionComponent",
-          "left": 1270,
-          "top": 302,
-          "width": 183,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "eace862e-b681-4176-aef5-b71fb930ce34",
-              "variable": "Password_inserita",
-              "value": "\"\""
-            }
-          ]
-        },
-        {
-          "objID": "ff317a53-756a-4320-a194-9b96c7caf823",
-          "type": "LVGLActionComponent",
-          "left": 850,
-          "top": 191,
-          "width": 354,
-          "height": 111,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "ba369398-c8ab-42a1-d1e1-f9e06f81f3aa",
-              "action": "objClearFlag",
-              "object": "messaggio_pssw",
-              "objectType": "literal",
-              "flag": "HIDDEN",
-              "flagType": "literal"
-            },
-            {
-              "objID": "42c87bf7-2299-4fc0-eea7-226ef546fc61",
-              "action": "objStyleSetProperty",
-              "object": "messaggio_pssw",
-              "objectType": "literal",
-              "property": "bg_color",
-              "propertyType": "literal",
-              "value": "#3AC906",
-              "valueType": "literal",
-              "part": "MAIN",
-              "partType": "literal",
-              "state": "DEFAULT",
-              "stateType": "literal"
-            },
-            {
-              "objID": "6c88b0cc-83d2-431b-ee93-bd1a1518ead7",
-              "action": "objSetStateDisabled",
-              "object": "tastiera_pssw",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "b3a9c6b3-b258-4549-d7c2-c16e3dbc80cf",
-              "action": "objSetStateDisabled",
-              "object": "annulla_pssw",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "d1b81385-9802-4c29-bb00-33c5878e6810",
-          "type": "LVGLActionComponent",
-          "left": 850,
-          "top": 390,
-          "width": 354,
-          "height": 111,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "5433f7f8-8422-46b6-c9a0-e31e1af8aaf6",
-              "action": "objClearFlag",
-              "object": "messaggio_pssw",
-              "objectType": "literal",
-              "flag": "HIDDEN",
-              "flagType": "literal"
-            },
-            {
-              "objID": "c7d318bc-97c4-4cb0-a62f-a65a854cdedf",
-              "action": "objStyleSetProperty",
-              "object": "messaggio_pssw",
-              "objectType": "literal",
-              "property": "bg_color",
-              "propertyType": "literal",
-              "value": "#B80000",
-              "valueType": "literal",
-              "part": "MAIN",
-              "partType": "literal",
-              "state": "DEFAULT",
-              "stateType": "literal"
-            },
-            {
-              "objID": "e6284906-84c8-4826-dc46-f5455abfc239",
-              "action": "objSetStateDisabled",
-              "object": "tastiera_pssw",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "3615c718-650b-43fd-e115-a3b667a48394",
-              "action": "objSetStateDisabled",
-              "object": "annulla_pssw",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "32e68b5c-95b6-48d7-da37-28ccb47dc80b",
-          "type": "LVGLActionComponent",
-          "left": 1724,
-          "top": 387,
-          "width": 280,
-          "height": 92,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "f2a2fadc-2b11-4d3c-b673-8dadf5f6b3d3",
-              "action": "objSetFlagHidden",
-              "object": "messaggio_pssw",
-              "objectType": "literal",
-              "hidden": true,
-              "hiddenType": "literal"
-            },
-            {
-              "objID": "21c4e0a4-2915-4651-a922-e71573e3a2c3",
-              "action": "objSetStateDisabled",
-              "object": "tastiera_pssw",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "452e86a5-fddb-482c-9b26-f06b494c75b1",
-              "action": "objSetStateDisabled",
-              "object": "annulla_pssw",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            }
-          ]
-        },
-        {
           "objID": "18f0d9c0-c084-4787-d084-b89fc58df6d7",
           "type": "WatchVariableActionComponent",
           "left": -127,
@@ -3037,91 +4654,29 @@
               "useStackType": "literal"
             }
           ]
+        },
+        {
+          "objID": "aa9ecff1-bc28-42a3-a626-86e5e75fe7c6",
+          "type": "CallActionActionComponent",
+          "left": 575,
+          "top": 174,
+          "width": 148,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "Controllo_Password",
+          "userPropertyValues": {
+            "objID": "ede78f53-d8a4-4001-ba94-4f1ecad319e7",
+            "values": {}
+          }
         }
       ],
       "connectionLines": [
-        {
-          "objID": "1ff2230b-60f7-4c6b-99bc-67d48131454c",
-          "source": "aeb61912-4361-4062-d7dd-866db1f41795",
-          "output": "READY",
-          "target": "571cfbb6-805a-49f5-c59f-c958dd2c87a3",
-          "input": "@seqin"
-        },
-        {
-          "objID": "d56863b1-85ff-4309-c9ae-14d39c083ed8",
-          "source": "125b2724-72b5-4197-dc69-e1748b7d8b7a",
-          "output": "@seqout",
-          "target": "c0d890aa-880b-4c15-faa5-2722a44c0511",
-          "input": "@seqin"
-        },
-        {
-          "objID": "ef72b86c-fec6-4bce-aaee-e1426cd4efa4",
-          "source": "c0d890aa-880b-4c15-faa5-2722a44c0511",
-          "output": "@seqout",
-          "target": "0834f175-71f3-47dd-cb4d-b73246059af4",
-          "input": "@seqin"
-        },
-        {
-          "objID": "2e30124c-b8e7-4980-cbbe-f577b0dfbb9e",
-          "source": "bf2c0170-7d6c-411e-e0d9-99d9036df6ab",
-          "output": "@seqout",
-          "target": "95062ad1-fdd4-4626-c488-bcefc4a69eaa",
-          "input": "@seqin"
-        },
         {
           "objID": "1f709ef9-c6f0-48c2-856d-8615449de451",
           "source": "834670be-e1ed-493d-a815-a4c64ff1a962",
           "output": "PRESSED",
           "target": "93231d0e-46da-4a2f-b8a5-911c4de86149",
-          "input": "@seqin"
-        },
-        {
-          "objID": "87a768c4-9c6c-4dde-d512-06cee2bb5665",
-          "source": "571cfbb6-805a-49f5-c59f-c958dd2c87a3",
-          "output": "True",
-          "target": "ff317a53-756a-4320-a194-9b96c7caf823",
-          "input": "@seqin"
-        },
-        {
-          "objID": "5b1fbe7f-1815-4bd3-ffc8-a1085c61ab94",
-          "source": "ff317a53-756a-4320-a194-9b96c7caf823",
-          "output": "@seqout",
-          "target": "125b2724-72b5-4197-dc69-e1748b7d8b7a",
-          "input": "@seqin"
-        },
-        {
-          "objID": "7225acac-5772-487f-d76e-71ea4b8b4982",
-          "source": "571cfbb6-805a-49f5-c59f-c958dd2c87a3",
-          "output": "False",
-          "target": "d1b81385-9802-4c29-bb00-33c5878e6810",
-          "input": "@seqin"
-        },
-        {
-          "objID": "19d585b7-eb0b-461c-b14e-4312ede3ca36",
-          "source": "d1b81385-9802-4c29-bb00-33c5878e6810",
-          "output": "@seqout",
-          "target": "bf2c0170-7d6c-411e-e0d9-99d9036df6ab",
-          "input": "@seqin"
-        },
-        {
-          "objID": "9efd2ad8-c5b8-4c92-9959-ad6cb998d11f",
-          "source": "95062ad1-fdd4-4626-c488-bcefc4a69eaa",
-          "output": "@seqout",
-          "target": "32e68b5c-95b6-48d7-da37-28ccb47dc80b",
-          "input": "@seqin"
-        },
-        {
-          "objID": "02214dec-819a-4df6-f266-2857d2afddcb",
-          "source": "d1b81385-9802-4c29-bb00-33c5878e6810",
-          "output": "@seqout",
-          "target": "b050bd7c-b170-41e2-d405-13f498916215",
-          "input": "@seqin"
-        },
-        {
-          "objID": "5aeecf5e-c869-4b66-9ee4-b39b92a4ab05",
-          "source": "ff317a53-756a-4320-a194-9b96c7caf823",
-          "output": "@seqout",
-          "target": "b050bd7c-b170-41e2-d405-13f498916215",
           "input": "@seqin"
         },
         {
@@ -3136,6 +4691,13 @@
           "source": "f99cf1ca-f99d-44e6-c0ad-8a9f9026f7d2",
           "output": "True",
           "target": "95e92462-ed1c-44b3-c677-a2edd30c9dee",
+          "input": "@seqin"
+        },
+        {
+          "objID": "2b3c6b6d-e232-436c-d844-7c1efc79c07b",
+          "source": "aeb61912-4361-4062-d7dd-866db1f41795",
+          "output": "READY",
+          "target": "aa9ecff1-bc28-42a3-a626-86e5e75fe7c6",
           "input": "@seqin"
         }
       ],
@@ -4456,7 +6018,7 @@
                           "type": "LVGLLabelWidget",
                           "left": 0,
                           "top": 0,
-                          "width": 0,
+                          "width": 176,
                           "height": 18,
                           "customInputs": [],
                           "customOutputs": [],
@@ -4993,7 +6555,7 @@
                           "type": "LVGLLabelWidget",
                           "left": 0,
                           "top": 0,
-                          "width": 0,
+                          "width": 209,
                           "height": 18,
                           "customInputs": [],
                           "customOutputs": [],
@@ -6854,8 +8416,8 @@
         {
           "objID": "b1451263-9f6d-41fd-fbb8-17bb593e38b4",
           "type": "WatchVariableActionComponent",
-          "left": 165,
-          "top": 766,
+          "left": 199,
+          "top": 829,
           "width": 203,
           "height": 54,
           "customInputs": [],
@@ -6863,167 +8425,10 @@
           "variable": "Comando_Bottone_Ralla"
         },
         {
-          "objID": "837656ca-4a0c-4be7-c133-36654d2fc9d7",
-          "type": "SetVariableActionComponent",
-          "left": 1018,
-          "top": 852,
-          "width": 245,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "aee9f4b1-0dde-434d-ca40-b022f6701f38",
-              "variable": "Titolo_Bottone_Ralla",
-              "value": "\"ABILITA\""
-            }
-          ]
-        },
-        {
-          "objID": "9cad8575-8f5e-4fe3-fc3f-93fd951c0ff1",
-          "type": "SetVariableActionComponent",
-          "left": 1018,
-          "top": 729,
-          "width": 263,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "633f45c5-fcfb-4e72-9569-ceb6a921cc5e",
-              "variable": "Titolo_Bottone_Ralla",
-              "value": "\"DISABILITA\""
-            }
-          ]
-        },
-        {
-          "objID": "49d448fe-6b9b-49c5-ea98-add0cb511206",
-          "type": "LVGLActionComponent",
-          "left": 668,
-          "top": 694,
-          "width": 311,
-          "height": 130,
-          "customInputs": [],
-          "customOutputs": [],
-          "description": "Motore Punzone Abilitato",
-          "actions": [
-            {
-              "objID": "9089bc42-d670-486d-dc01-4cc2ac8056f2",
-              "action": "objAddState",
-              "object": "puls_en_dis_ralla",
-              "objectType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            },
-            {
-              "objID": "0a9d7b25-a711-4d01-b9d7-ec82b365c554",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_av_ralla",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "b0fb9572-abea-4520-b44a-26ff4ba39b88",
-              "action": "objAddFlag",
-              "object": "puls_jog_av_ralla",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
-              "objID": "2d27992d-869b-41b1-ee98-947b4baf75ac",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_ind_ralla",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "e2751ec3-6af0-4f4c-b209-9f3b14918e99",
-              "action": "objAddFlag",
-              "object": "puls_jog_ind_ralla",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "00681ba8-59e1-43a4-94f9-e3e71e9372e3",
-          "type": "SetVariableActionComponent",
-          "left": 1358,
-          "top": 808,
-          "width": 318,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "2516edf8-6073-4f91-edb2-c6643ccd06b8",
-              "variable": "Comando_Motore_Ralla",
-              "value": "!Comando_Motore_Ralla"
-            }
-          ]
-        },
-        {
-          "objID": "3ef99223-58ac-4813-def3-14abc447f03c",
-          "type": "LVGLActionComponent",
-          "left": 671,
-          "top": 854,
-          "width": 305,
-          "height": 130,
-          "customInputs": [],
-          "customOutputs": [],
-          "description": "Motore Punzone Disabilitato",
-          "actions": [
-            {
-              "objID": "2b213949-c452-4b4e-e1af-ec3b1dfd5f20",
-              "action": "objClearState",
-              "object": "puls_en_dis_ralla",
-              "objectType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            },
-            {
-              "objID": "de0b6d79-3d1f-49ac-f154-88e1055736ec",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_av_ralla",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "3e195068-2807-4f80-e1a8-2483c2a66896",
-              "action": "objClearFlag",
-              "object": "puls_jog_av_ralla",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
-              "objID": "f80b597b-6245-432b-a3f8-9e1ac90ea03a",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_ind_ralla",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "ea968d29-18d1-4e53-803d-b88bc73e9425",
-              "action": "objClearFlag",
-              "object": "puls_jog_ind_ralla",
-              "objectType": "literal",
-              "flag": "CHECKABLE",
-              "flagType": "literal"
-            }
-          ]
-        },
-        {
           "objID": "8bd6832d-b47f-40d1-ec15-ac1334c951af",
           "type": "CommentActionComponent",
-          "left": 181,
-          "top": 694,
+          "left": 190,
+          "top": 757,
           "width": 435,
           "height": 56,
           "customInputs": [],
@@ -7035,8 +8440,8 @@
         {
           "objID": "fcfebdef-f6e0-413c-d1e1-e07b15905598",
           "type": "WatchVariableActionComponent",
-          "left": 103,
-          "top": 1162,
+          "left": 181,
+          "top": 1019,
           "width": 215,
           "height": 54,
           "customInputs": [],
@@ -7044,167 +8449,10 @@
           "variable": "Comando_Bottone_Punzone"
         },
         {
-          "objID": "a12b657c-2641-4742-a05e-90cb403f992e",
-          "type": "SetVariableActionComponent",
-          "left": 1027,
-          "top": 1231,
-          "width": 257,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "dfbab93b-964b-43d9-dbc9-a219e859a5bb",
-              "variable": "Titolo_Bottone_Punzone",
-              "value": "\"ABILITA\""
-            }
-          ]
-        },
-        {
-          "objID": "0cb3d325-416a-4f32-c8c1-2e53cc5223b7",
-          "type": "SetVariableActionComponent",
-          "left": 1027,
-          "top": 1108,
-          "width": 275,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "eab19e73-24a9-4e48-c3b5-c5a960ab538f",
-              "variable": "Titolo_Bottone_Punzone",
-              "value": "\"DISABILITA\""
-            }
-          ]
-        },
-        {
-          "objID": "c0f91ff1-4373-45d2-d8f4-e639a8b75de7",
-          "type": "LVGLActionComponent",
-          "left": 672,
-          "top": 1043,
-          "width": 305,
-          "height": 130,
-          "customInputs": [],
-          "customOutputs": [],
-          "description": "Motore Punzone Abilitato",
-          "actions": [
-            {
-              "objID": "3938b572-e783-4c3e-8298-6500d0a1843c",
-              "action": "objAddState",
-              "object": "puls_en_dis_punz",
-              "objectType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            },
-            {
-              "objID": "7f58a33f-8998-41a7-dcf8-ac0caa133eee",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_av_punz",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "09354ae3-db45-4bb5-dc4c-a17feea5e7d5",
-              "action": "objAddFlag",
-              "object": "puls_jog_av_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
-              "objID": "7dc61972-ea2b-4aa4-ad56-fd2d38ae2744",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_ind_punz",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "95066115-8f9c-46e2-f1ff-9a02a7b5c52c",
-              "action": "objAddFlag",
-              "object": "puls_jog_ind_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "dcf21f3e-312d-4bc0-9f53-d46a637da641",
-          "type": "SetVariableActionComponent",
-          "left": 1361,
-          "top": 1108,
-          "width": 226,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "e70aa563-2ca7-4553-83b6-48a2b8ad1f89",
-              "variable": "Comando_Motore_Punzone",
-              "value": "true"
-            }
-          ]
-        },
-        {
-          "objID": "65b13adc-0be7-4fb2-c2e7-a4d2a2fc602d",
-          "type": "LVGLActionComponent",
-          "left": 678,
-          "top": 1216,
-          "width": 299,
-          "height": 130,
-          "customInputs": [],
-          "customOutputs": [],
-          "description": "Motore Punzone Disabilitato",
-          "actions": [
-            {
-              "objID": "d71b938e-fd29-4e61-9a00-759c0738f0d1",
-              "action": "objClearState",
-              "object": "puls_en_dis_punz",
-              "objectType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            },
-            {
-              "objID": "debcc26f-8fe5-4541-b694-5874ec870585",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_av_punz",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "254e7a7b-8a88-4bcd-848a-6804aaeec79f",
-              "action": "objClearFlag",
-              "object": "puls_jog_av_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
-              "objID": "52aa3d26-8bc9-4118-e1b8-3de21155de2b",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_ind_punz",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "f0c3643d-6607-424e-9ca4-21577f14bc93",
-              "action": "objClearFlag",
-              "object": "puls_jog_ind_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            }
-          ]
-        },
-        {
           "objID": "0ee0ac82-b802-4373-bb93-7c56bd14017f",
           "type": "CommentActionComponent",
-          "left": 190,
-          "top": 1073,
+          "left": 189,
+          "top": 940,
           "width": 435,
           "height": 56,
           "customInputs": [],
@@ -7272,8 +8520,8 @@
         {
           "objID": "66b23341-18cf-4c45-f430-3480434db944",
           "type": "WatchVariableActionComponent",
-          "left": -87,
-          "top": 1467,
+          "left": 682,
+          "top": 708,
           "width": 252,
           "height": 54,
           "customInputs": [],
@@ -7283,8 +8531,8 @@
         {
           "objID": "43e92182-80be-4566-ed61-05a0a0595278",
           "type": "LVGLActionComponent",
-          "left": 457,
-          "top": 1467,
+          "left": 1226,
+          "top": 708,
           "width": 329,
           "height": 54,
           "customInputs": [],
@@ -7303,8 +8551,8 @@
         {
           "objID": "4162826b-3459-4e9b-fa60-09cd1e00d495",
           "type": "SetVariableActionComponent",
-          "left": 846,
-          "top": 1467,
+          "left": 1615,
+          "top": 708,
           "width": 318,
           "height": 57,
           "customInputs": [],
@@ -7320,8 +8568,8 @@
         {
           "objID": "1ff7bbec-0aeb-432b-9864-d2f833da7fa4",
           "type": "LVGLActionComponent",
-          "left": 457,
-          "top": 1543,
+          "left": 1226,
+          "top": 784,
           "width": 342,
           "height": 54,
           "customInputs": [],
@@ -7340,8 +8588,8 @@
         {
           "objID": "d7421971-7eda-4a81-ef83-2380f4b7fa00",
           "type": "SetVariableActionComponent",
-          "left": 846,
-          "top": 1543,
+          "left": 1615,
+          "top": 784,
           "width": 331,
           "height": 57,
           "customInputs": [],
@@ -7357,8 +8605,8 @@
         {
           "objID": "8e8de6f7-a1dc-443e-c774-f25fc12a8b89",
           "type": "WatchVariableActionComponent",
-          "left": -87,
-          "top": 1630,
+          "left": 682,
+          "top": 871,
           "width": 191,
           "height": 54,
           "customInputs": [],
@@ -7368,8 +8616,8 @@
         {
           "objID": "e7016e8b-4c75-4f18-928f-6eb10a90945d",
           "type": "LVGLActionComponent",
-          "left": 457,
-          "top": 1627,
+          "left": 1226,
+          "top": 868,
           "width": 268,
           "height": 54,
           "customInputs": [],
@@ -7388,8 +8636,8 @@
         {
           "objID": "404a7aba-4691-4414-b207-6a39f192e904",
           "type": "SetVariableActionComponent",
-          "left": 846,
-          "top": 1627,
+          "left": 1615,
+          "top": 868,
           "width": 275,
           "height": 57,
           "customInputs": [],
@@ -7405,8 +8653,8 @@
         {
           "objID": "7a92e162-2fd6-40ee-c6b4-5cd311af44c9",
           "type": "LVGLActionComponent",
-          "left": 457,
-          "top": 1703,
+          "left": 1226,
+          "top": 944,
           "width": 280,
           "height": 54,
           "customInputs": [],
@@ -7425,8 +8673,8 @@
         {
           "objID": "fc92a21e-da76-45d6-be62-e95c32c17613",
           "type": "SetVariableActionComponent",
-          "left": 846,
-          "top": 1703,
+          "left": 1615,
+          "top": 944,
           "width": 288,
           "height": 57,
           "customInputs": [],
@@ -7442,8 +8690,8 @@
         {
           "objID": "d4daf3d1-f39e-421d-e96c-6f2f9d5b65c3",
           "type": "WatchVariableActionComponent",
-          "left": -35,
-          "top": 1784,
+          "left": 734,
+          "top": 1025,
           "width": 191,
           "height": 54,
           "customInputs": [],
@@ -7453,8 +8701,8 @@
         {
           "objID": "ba0b1cca-b870-441a-8408-a14e1a046dde",
           "type": "LVGLActionComponent",
-          "left": 457,
-          "top": 1784,
+          "left": 1226,
+          "top": 1025,
           "width": 268,
           "height": 54,
           "customInputs": [],
@@ -7473,8 +8721,8 @@
         {
           "objID": "5ec35317-0801-4e60-e7d7-80a36fde8f4c",
           "type": "SetVariableActionComponent",
-          "left": 846,
-          "top": 1784,
+          "left": 1615,
+          "top": 1025,
           "width": 275,
           "height": 57,
           "customInputs": [],
@@ -7490,8 +8738,8 @@
         {
           "objID": "ba942ccf-633c-4b98-9882-1fa9b03db034",
           "type": "LVGLActionComponent",
-          "left": 457,
-          "top": 1860,
+          "left": 1226,
+          "top": 1101,
           "width": 280,
           "height": 54,
           "customInputs": [],
@@ -7510,8 +8758,8 @@
         {
           "objID": "30505328-e528-476d-d592-4e473aa03ce5",
           "type": "SetVariableActionComponent",
-          "left": 846,
-          "top": 1860,
+          "left": 1615,
+          "top": 1101,
           "width": 288,
           "height": 57,
           "customInputs": [],
@@ -7678,279 +8926,15 @@
           ]
         },
         {
-          "objID": "728811c9-30f9-4cd8-ebab-6a1b3e9329ed",
-          "type": "SetVariableActionComponent",
-          "left": 1361,
-          "top": 1231,
-          "width": 232,
-          "height": 57,
-          "customInputs": [],
-          "customOutputs": [],
-          "entries": [
-            {
-              "objID": "c289fdc6-1f6e-4dd7-b7f5-bb16a11e96c1",
-              "variable": "Comando_Motore_Punzone",
-              "value": "false"
-            }
-          ]
-        },
-        {
           "objID": "8b0ccc5f-0ea0-4e31-c0c3-41523a63d274",
           "type": "WatchVariableActionComponent",
-          "left": 1122,
-          "top": -95,
+          "left": 956,
+          "top": -295,
           "width": 111,
           "height": 54,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Homing"
-        },
-        {
-          "objID": "6fa95dff-23ef-4c2f-f19f-3d7a0a6e5ddc",
-          "type": "LVGLActionComponent",
-          "left": 1438,
-          "top": -314,
-          "width": 323,
-          "height": 320,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "bbc8141c-7415-4ce0-d7f7-e28d3c77736c",
-              "action": "objAddState",
-              "object": "homing",
-              "objectType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            },
-            {
-              "objID": "46752066-1f42-471d-daaf-3cd59ca8c959",
-              "action": "objSetStateDisabled",
-              "object": "gradi_per_click_punz",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "6587c551-ffc2-4dc0-d291-1a64fbeb2bc3",
-              "action": "objSetStateDisabled",
-              "object": "gradi_per_click_ralla",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "2ac78978-4321-4a13-c69f-b5a7b670f82b",
-              "action": "objSetStateDisabled",
-              "object": "speed_motore_punz",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "15ba2e29-552f-4ae8-f9ec-0b4593149419",
-              "action": "objSetStateDisabled",
-              "object": "speed_motore_ralla",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "e768ca7d-d0a6-4d02-c6ae-8794ce288eee",
-              "action": "objSetStateDisabled",
-              "object": "puls_en_dis_punz",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "4f32b195-732a-4afa-bd2c-8fa4d6d141a6",
-              "action": "objSetStateDisabled",
-              "object": "puls_en_dis_ralla",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "d7060df6-5e11-4b0b-fdd7-084853d11d24",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_av_punz",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "96772059-7074-449a-ba12-35c465098808",
-              "action": "objAddFlag",
-              "object": "puls_jog_av_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
-              "objID": "8322b3c1-1fb1-40e7-f367-84a170ef8c7f",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_av_ralla",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "705811a3-1e72-411b-fc91-4b0e8fa6e6b2",
-              "action": "objAddFlag",
-              "object": "puls_jog_av_ralla",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
-              "objID": "51c68acb-bffe-464e-8d87-5e2e544b2b94",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_ind_punz",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "09c2ec79-df03-47d9-e485-1104a91332f8",
-              "action": "objAddFlag",
-              "object": "puls_jog_ind_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
-              "objID": "7c6347b3-2550-4c13-9546-97d150a1ce88",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_ind_ralla",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "9d938822-25ce-44d2-cfd3-22aa3fa6cdb5",
-              "action": "objAddFlag",
-              "object": "puls_jog_ind_ralla",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "630c92f7-4a16-41e1-d01d-d751d55f3990",
-          "type": "LVGLActionComponent",
-          "left": 1984,
-          "top": -204,
-          "width": 366,
-          "height": 73,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "fb9a9a97-ac50-48e9-eabb-d2cca09e20b4",
-              "action": "objStyleSetProperty",
-              "object": "homing",
-              "objectType": "literal",
-              "property": "bg_color",
-              "propertyType": "literal",
-              "value": "#FFF800",
-              "valueType": "literal",
-              "part": "MAIN",
-              "partType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            },
-            {
-              "objID": "f2aebf6b-c0b0-4d4b-ed64-435989bd31d5",
-              "action": "objStyleSetProperty",
-              "object": "homing",
-              "objectType": "literal",
-              "property": "text_color",
-              "propertyType": "literal",
-              "value": "#000000",
-              "valueType": "literal",
-              "part": "MAIN",
-              "partType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "3b2f31c3-ad4a-41c5-ffeb-751edc8b71c9",
-          "type": "DelayActionComponent",
-          "left": 2385,
-          "top": -204,
-          "width": 87,
-          "height": 54,
-          "customInputs": [],
-          "customOutputs": [],
-          "milliseconds": "500"
-        },
-        {
-          "objID": "e842b371-be18-4c04-cc04-5e31dd19438d",
-          "type": "LVGLActionComponent",
-          "left": 1984,
-          "top": -90,
-          "width": 366,
-          "height": 73,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "e0343133-24d4-4289-975d-08d8f7a93bf0",
-              "action": "objStyleSetProperty",
-              "object": "homing",
-              "objectType": "literal",
-              "property": "bg_color",
-              "propertyType": "literal",
-              "value": "#FF8100",
-              "valueType": "literal",
-              "part": "MAIN",
-              "partType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            },
-            {
-              "objID": "6cb5d636-d4a2-4873-cc2b-fa25c22f8792",
-              "action": "objStyleSetProperty",
-              "object": "homing",
-              "objectType": "literal",
-              "property": "text_color",
-              "propertyType": "literal",
-              "value": "#000000",
-              "valueType": "literal",
-              "part": "MAIN",
-              "partType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            }
-          ]
-        },
-        {
-          "objID": "549ebbb1-980b-4329-a885-0a7892a37028",
-          "type": "DelayActionComponent",
-          "left": 2398,
-          "top": -90,
-          "width": 87,
-          "height": 54,
-          "customInputs": [],
-          "customOutputs": [],
-          "milliseconds": "500"
-        },
-        {
-          "objID": "519b801e-9bf4-4953-d559-0b38f6325df9",
-          "type": "CompareActionComponent",
-          "left": 2523,
-          "top": -87,
-          "width": 137,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Homing",
-          "B": "true",
-          "operator": "="
         },
         {
           "objID": "a789ac7f-a62a-42c0-8a8f-e877368ce97e",
@@ -7968,8 +8952,8 @@
         {
           "objID": "fb5ce068-a75a-4d11-ca7b-966f4601dc5b",
           "type": "WatchVariableActionComponent",
-          "left": -941,
-          "top": 888,
+          "left": -935,
+          "top": 870,
           "width": 197,
           "height": 54,
           "customInputs": [],
@@ -7980,7 +8964,7 @@
           "objID": "9c4830c2-7cf4-46ed-cdae-552ff7b8892d",
           "type": "WatchVariableActionComponent",
           "left": -947,
-          "top": 950,
+          "top": 946,
           "width": 209,
           "height": 54,
           "customInputs": [],
@@ -8028,185 +9012,14 @@
           ]
         },
         {
-          "objID": "9bf69bd3-5907-4035-d104-dda315205ea4",
-          "type": "LVGLActionComponent",
-          "left": 1438,
-          "top": 38,
-          "width": 329,
-          "height": 320,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "8b2ebd1b-1cd2-4385-e07c-1cfb45ee7a98",
-              "action": "objClearState",
-              "object": "homing",
-              "objectType": "literal",
-              "state": "CHECKED",
-              "stateType": "literal"
-            },
-            {
-              "objID": "cc59b87e-029c-4095-c56e-d3a290ab4f31",
-              "action": "objSetStateDisabled",
-              "object": "gradi_per_click_punz",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "52f4ea54-621f-434d-b8c5-07ecd9410a87",
-              "action": "objSetStateDisabled",
-              "object": "gradi_per_click_ralla",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "ad2ce937-6e8b-4146-a035-212f7d13cf5f",
-              "action": "objSetStateDisabled",
-              "object": "speed_motore_punz",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "f15e1e85-42a8-438e-d461-8a8fc78e57b7",
-              "action": "objSetStateDisabled",
-              "object": "speed_motore_ralla",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "4b5db5df-a53c-4915-a4b0-fe2fec7d1289",
-              "action": "objSetStateDisabled",
-              "object": "puls_en_dis_punz",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "1f299fcf-9c6a-4294-c6be-98c967a043cf",
-              "action": "objSetStateDisabled",
-              "object": "puls_en_dis_ralla",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "27a1067b-5e0c-41fa-a878-27b8bded6c0a",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_av_punz",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "75ae9037-78d6-4e72-dbc0-5e6bf4242787",
-              "action": "objAddFlag",
-              "object": "puls_jog_av_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
-              "objID": "4379e26f-8864-4ccb-c329-a304e62dd5ef",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_av_ralla",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "2b7878d7-5780-429b-a717-6989cb8928a3",
-              "action": "objAddFlag",
-              "object": "puls_jog_av_ralla",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
-              "objID": "ba1a6239-af20-4116-ec3b-9c97c38ce125",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_ind_punz",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "cf8792c7-8ab2-489d-e395-89c8738edfe1",
-              "action": "objAddFlag",
-              "object": "puls_jog_ind_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
-              "objID": "02093aeb-365e-41a0-8a3f-72df55b0f97a",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_ind_ralla",
-              "objectType": "literal",
-              "disabled": false,
-              "disabledType": "literal"
-            },
-            {
-              "objID": "4a2232e3-4a93-49ba-f570-fafed05772c8",
-              "action": "objAddFlag",
-              "object": "puls_jog_ind_ralla",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            }
-          ]
-        },
-        {
           "objID": "c8f75826-c59b-4f48-8d30-b534e3997f0e",
           "type": "StartActionComponent",
-          "left": -819,
-          "top": 797,
+          "left": -825,
+          "top": 922,
           "width": 87,
           "height": 24,
           "customInputs": [],
           "customOutputs": []
-        },
-        {
-          "objID": "651ed30d-3506-4829-d989-a7acc4761944",
-          "type": "CompareActionComponent",
-          "left": 201,
-          "top": 1784,
-          "width": 217,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Stato_Finecorsa_Max",
-          "B": "true",
-          "operator": "="
-        },
-        {
-          "objID": "4d268b3f-3c8d-4756-ce30-fc54e3690db7",
-          "type": "CompareActionComponent",
-          "left": 139,
-          "top": 1622,
-          "width": 279,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Stato_Sensore_di_Calibrazione",
-          "B": "true",
-          "operator": "="
-        },
-        {
-          "objID": "54f534e4-dc1f-421f-81eb-e718958bcbd8",
-          "type": "CompareActionComponent",
-          "left": 201,
-          "top": 1467,
-          "width": 217,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Stato_Finecorsa_Max",
-          "B": "true",
-          "operator": "="
         },
         {
           "objID": "0801001a-0822-45d6-c93d-c3f77e78cb77",
@@ -8271,20 +9084,10 @@
           }
         },
         {
-          "objID": "1e46de67-8a6c-4415-d20f-f949d889f34c",
-          "type": "StartActionComponent",
-          "left": 231,
-          "top": 1216,
-          "width": 87,
-          "height": 24,
-          "customInputs": [],
-          "customOutputs": []
-        },
-        {
           "objID": "a45c6921-f45f-4181-cce5-d23a316b52d7",
           "type": "StartActionComponent",
-          "left": 281,
-          "top": 828,
+          "left": 315,
+          "top": 891,
           "width": 87,
           "height": 24,
           "customInputs": [],
@@ -8355,28 +9158,6 @@
           ]
         },
         {
-          "objID": "4235ebd8-a684-497f-aad9-664ece318c4d",
-          "type": "IsTrueActionComponent",
-          "left": 416,
-          "top": 774,
-          "width": 178,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "value": "Comando_Bottone_Ralla"
-        },
-        {
-          "objID": "11f2a6e0-cd25-442f-cbdd-56ba23251a7a",
-          "type": "IsTrueActionComponent",
-          "left": 416,
-          "top": 1165,
-          "width": 190,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "value": "Comando_Bottone_Punzone"
-        },
-        {
           "objID": "f207d756-8bd1-4261-f791-49e88afda8f4",
           "type": "IsTrueActionComponent",
           "left": -384,
@@ -8397,17 +9178,6 @@
           "customInputs": [],
           "customOutputs": [],
           "value": "Stato_Motore_Ralla"
-        },
-        {
-          "objID": "19cf22cd-dc90-41da-ef04-3ede173f1d21",
-          "type": "IsTrueActionComponent",
-          "left": 1274,
-          "top": -68,
-          "width": 87,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "value": "Homing"
         },
         {
           "objID": "b34f1898-8bac-4018-8500-91835b41bc3a",
@@ -8435,6 +9205,94 @@
               "value": "false"
             }
           ]
+        },
+        {
+          "objID": "6a519e08-afa3-449a-a754-62c994e7ae85",
+          "type": "IsTrueActionComponent",
+          "left": 980,
+          "top": 700,
+          "width": 165,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Stato_Finecorsa_Max"
+        },
+        {
+          "objID": "73e31c6d-d670-48a3-af46-603061893d8a",
+          "type": "IsTrueActionComponent",
+          "left": 922,
+          "top": 887,
+          "width": 227,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Stato_Sensore_di_Calibrazione"
+        },
+        {
+          "objID": "cef0c29b-332b-4b57-86a5-d6ce332d4778",
+          "type": "IsTrueActionComponent",
+          "left": 984,
+          "top": 1031,
+          "width": 165,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Stato_Finecorsa_Max"
+        },
+        {
+          "objID": "09a20dde-3f25-4ce7-b1c6-7ca351aedf8e",
+          "type": "CallActionActionComponent",
+          "left": 1093,
+          "top": -270,
+          "width": 87,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "Homing",
+          "userPropertyValues": {
+            "objID": "c577e4ce-537f-4096-aa11-a0c477df7978",
+            "values": {}
+          }
+        },
+        {
+          "objID": "6f3882cf-2d82-445e-dd5a-adad1a220660",
+          "type": "CallActionActionComponent",
+          "left": 439,
+          "top": 1046,
+          "width": 195,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "Comando_Bottone_Punzone",
+          "userPropertyValues": {
+            "objID": "c38e6cac-c14d-4fef-b8d9-cb7e8862e988",
+            "values": {}
+          }
+        },
+        {
+          "objID": "814f1eda-5c12-4280-a224-e5189b3c9220",
+          "type": "StartActionComponent",
+          "left": 309,
+          "top": 1070,
+          "width": 87,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": []
+        },
+        {
+          "objID": "50e4f80a-a497-4cf3-ce4f-a1489276f283",
+          "type": "CallActionActionComponent",
+          "left": 442,
+          "top": 856,
+          "width": 174,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": [],
+          "action": "Comando_Bottone_Ralla",
+          "userPropertyValues": {
+            "objID": "223172c0-a73b-4aa8-dc10-a7099546164c",
+            "values": {}
+          }
         }
       ],
       "connectionLines": [
@@ -8513,55 +9371,6 @@
           "source": "d4c76a7a-cc61-40bb-de88-6c7682d59971",
           "output": "RELEASED",
           "target": "ccc589f2-0e1c-4fc8-8cf8-e15c224c3fad",
-          "input": "@seqin"
-        },
-        {
-          "objID": "f6b90fe8-451e-4f24-a63a-e6bd1aa36afc",
-          "source": "49d448fe-6b9b-49c5-ea98-add0cb511206",
-          "output": "@seqout",
-          "target": "9cad8575-8f5e-4fe3-fc3f-93fd951c0ff1",
-          "input": "@seqin"
-        },
-        {
-          "objID": "4cc6e8ac-1cb7-41ba-c28a-2362a90a8b3a",
-          "source": "837656ca-4a0c-4be7-c133-36654d2fc9d7",
-          "output": "@seqout",
-          "target": "00681ba8-59e1-43a4-94f9-e3e71e9372e3",
-          "input": "@seqin"
-        },
-        {
-          "objID": "6ae3fb23-86c0-4b8b-97a7-cebe0e1d12da",
-          "source": "9cad8575-8f5e-4fe3-fc3f-93fd951c0ff1",
-          "output": "@seqout",
-          "target": "00681ba8-59e1-43a4-94f9-e3e71e9372e3",
-          "input": "@seqin"
-        },
-        {
-          "objID": "a0085ea6-b8b7-443b-8ebf-affaacb91b42",
-          "source": "3ef99223-58ac-4813-def3-14abc447f03c",
-          "output": "@seqout",
-          "target": "837656ca-4a0c-4be7-c133-36654d2fc9d7",
-          "input": "@seqin"
-        },
-        {
-          "objID": "96305714-4be7-4978-9fc7-4908b2e5ebc1",
-          "source": "c0f91ff1-4373-45d2-d8f4-e639a8b75de7",
-          "output": "@seqout",
-          "target": "0cb3d325-416a-4f32-c8c1-2e53cc5223b7",
-          "input": "@seqin"
-        },
-        {
-          "objID": "478702b1-d637-4f96-9948-b92483486c87",
-          "source": "0cb3d325-416a-4f32-c8c1-2e53cc5223b7",
-          "output": "@seqout",
-          "target": "dcf21f3e-312d-4bc0-9f53-d46a637da641",
-          "input": "@seqin"
-        },
-        {
-          "objID": "2c71168d-0deb-4d08-c363-d0af60cea2be",
-          "source": "65b13adc-0be7-4fb2-c2e7-a4d2a2fc602d",
-          "output": "@seqout",
-          "target": "a12b657c-2641-4742-a05e-90cb403f992e",
           "input": "@seqin"
         },
         {
@@ -8677,41 +9486,6 @@
           "input": "@seqin"
         },
         {
-          "objID": "a18a3e36-7e1d-4133-fc4e-da4122fd06de",
-          "source": "a12b657c-2641-4742-a05e-90cb403f992e",
-          "output": "@seqout",
-          "target": "728811c9-30f9-4cd8-ebab-6a1b3e9329ed",
-          "input": "@seqin"
-        },
-        {
-          "objID": "59568e4a-674d-497d-bc90-12294b86e7f7",
-          "source": "3b2f31c3-ad4a-41c5-ffeb-751edc8b71c9",
-          "output": "@seqout",
-          "target": "e842b371-be18-4c04-cc04-5e31dd19438d",
-          "input": "@seqin"
-        },
-        {
-          "objID": "f5adf898-ef66-4f54-a66d-4373d0ec78b3",
-          "source": "630c92f7-4a16-41e1-d01d-d751d55f3990",
-          "output": "@seqout",
-          "target": "3b2f31c3-ad4a-41c5-ffeb-751edc8b71c9",
-          "input": "@seqin"
-        },
-        {
-          "objID": "5a71f828-dfcc-422c-d1c0-1e16cf5f21f0",
-          "source": "e842b371-be18-4c04-cc04-5e31dd19438d",
-          "output": "@seqout",
-          "target": "549ebbb1-980b-4329-a885-0a7892a37028",
-          "input": "@seqin"
-        },
-        {
-          "objID": "a5f2e659-29c4-4ab7-f622-6ebf80bde6d7",
-          "source": "549ebbb1-980b-4329-a885-0a7892a37028",
-          "output": "@seqout",
-          "target": "519b801e-9bf4-4953-d559-0b38f6325df9",
-          "input": "@seqin"
-        },
-        {
           "objID": "b955c8dd-add5-4bfa-f07b-6a3c9b73d1b0",
           "source": "fb5ce068-a75a-4d11-ca7b-966f4601dc5b",
           "output": "variable",
@@ -8740,90 +9514,6 @@
           "input": "@seqin"
         },
         {
-          "objID": "ce4ae900-5dee-45fe-d4e8-fbfa21bf12fd",
-          "source": "6fa95dff-23ef-4c2f-f19f-3d7a0a6e5ddc",
-          "output": "@seqout",
-          "target": "630c92f7-4a16-41e1-d01d-d751d55f3990",
-          "input": "@seqin"
-        },
-        {
-          "objID": "33670166-17e8-428f-ee00-cf5bc5d3ab56",
-          "source": "519b801e-9bf4-4953-d559-0b38f6325df9",
-          "output": "True",
-          "target": "6fa95dff-23ef-4c2f-f19f-3d7a0a6e5ddc",
-          "input": "@seqin"
-        },
-        {
-          "objID": "c8a15d2b-f8fd-4391-b263-c3dfdb14b893",
-          "source": "519b801e-9bf4-4953-d559-0b38f6325df9",
-          "output": "False",
-          "target": "9bf69bd3-5907-4035-d104-dda315205ea4",
-          "input": "@seqin"
-        },
-        {
-          "objID": "7d6bd263-9dce-4ce0-cc20-29b9aab95aec",
-          "source": "d4daf3d1-f39e-421d-e96c-6f2f9d5b65c3",
-          "output": "variable",
-          "target": "651ed30d-3506-4829-d989-a7acc4761944",
-          "input": "@seqin"
-        },
-        {
-          "objID": "9a2b7e6e-6b19-4b71-9028-76a1bf8f26a1",
-          "source": "651ed30d-3506-4829-d989-a7acc4761944",
-          "output": "True",
-          "target": "ba0b1cca-b870-441a-8408-a14e1a046dde",
-          "input": "@seqin"
-        },
-        {
-          "objID": "10102c20-0c80-4ea6-9823-8bc9e266fb3d",
-          "source": "651ed30d-3506-4829-d989-a7acc4761944",
-          "output": "False",
-          "target": "ba942ccf-633c-4b98-9882-1fa9b03db034",
-          "input": "@seqin"
-        },
-        {
-          "objID": "153ee3fe-8f15-482e-e68b-a8f8234aa41a",
-          "source": "8e8de6f7-a1dc-443e-c774-f25fc12a8b89",
-          "output": "variable",
-          "target": "4d268b3f-3c8d-4756-ce30-fc54e3690db7",
-          "input": "@seqin"
-        },
-        {
-          "objID": "0d817af7-239f-4256-d844-595f58444cb4",
-          "source": "66b23341-18cf-4c45-f430-3480434db944",
-          "output": "variable",
-          "target": "54f534e4-dc1f-421f-81eb-e718958bcbd8",
-          "input": "@seqin"
-        },
-        {
-          "objID": "7c45fbb5-ed9a-40ae-e391-2d9393d11f11",
-          "source": "54f534e4-dc1f-421f-81eb-e718958bcbd8",
-          "output": "True",
-          "target": "43e92182-80be-4566-ed61-05a0a0595278",
-          "input": "@seqin"
-        },
-        {
-          "objID": "2bd61b4b-8bdc-40ee-d6cc-221b7fb8b133",
-          "source": "54f534e4-dc1f-421f-81eb-e718958bcbd8",
-          "output": "False",
-          "target": "1ff7bbec-0aeb-432b-9864-d2f833da7fa4",
-          "input": "@seqin"
-        },
-        {
-          "objID": "555c731a-50fb-46b1-afd0-5786c84f13b8",
-          "source": "4d268b3f-3c8d-4756-ce30-fc54e3690db7",
-          "output": "True",
-          "target": "e7016e8b-4c75-4f18-928f-6eb10a90945d",
-          "input": "@seqin"
-        },
-        {
-          "objID": "f000257b-12b7-4223-abab-b4ad437dfa26",
-          "source": "4d268b3f-3c8d-4756-ce30-fc54e3690db7",
-          "output": "False",
-          "target": "7a92e162-2fd6-40ee-c6b4-5cd311af44c9",
-          "input": "@seqin"
-        },
-        {
           "objID": "c9a86fda-252d-47de-da73-c23db0933b5d",
           "source": "c8f75826-c59b-4f48-8d30-b534e3997f0e",
           "output": "@seqout",
@@ -8849,62 +9539,6 @@
           "source": "bb896935-c869-45ae-d3a3-d00b3636a6e8",
           "output": "True",
           "target": "219a4963-6347-43ba-9c84-7ceccb9b8d62",
-          "input": "@seqin"
-        },
-        {
-          "objID": "05b3ce3b-50ac-471b-9157-29610d2a6ce2",
-          "source": "a45c6921-f45f-4181-cce5-d23a316b52d7",
-          "output": "@seqout",
-          "target": "4235ebd8-a684-497f-aad9-664ece318c4d",
-          "input": "@seqin"
-        },
-        {
-          "objID": "cab9c573-d1e5-4f35-b8a9-770e5aeca886",
-          "source": "4235ebd8-a684-497f-aad9-664ece318c4d",
-          "output": "True",
-          "target": "49d448fe-6b9b-49c5-ea98-add0cb511206",
-          "input": "@seqin"
-        },
-        {
-          "objID": "bd8da53c-ad9c-4f1c-d1d5-90d0ed683324",
-          "source": "4235ebd8-a684-497f-aad9-664ece318c4d",
-          "output": "False",
-          "target": "3ef99223-58ac-4813-def3-14abc447f03c",
-          "input": "@seqin"
-        },
-        {
-          "objID": "d7017427-68d4-4a9d-828f-2c0298ad1c35",
-          "source": "11f2a6e0-cd25-442f-cbdd-56ba23251a7a",
-          "output": "True",
-          "target": "c0f91ff1-4373-45d2-d8f4-e639a8b75de7",
-          "input": "@seqin"
-        },
-        {
-          "objID": "b9ee1461-5f2f-4daf-c8fe-118053e28ae7",
-          "source": "11f2a6e0-cd25-442f-cbdd-56ba23251a7a",
-          "output": "False",
-          "target": "65b13adc-0be7-4fb2-c2e7-a4d2a2fc602d",
-          "input": "@seqin"
-        },
-        {
-          "objID": "3e562de8-50e8-4dea-c19a-cb486645cc82",
-          "source": "1e46de67-8a6c-4415-d20f-f949d889f34c",
-          "output": "@seqout",
-          "target": "11f2a6e0-cd25-442f-cbdd-56ba23251a7a",
-          "input": "@seqin"
-        },
-        {
-          "objID": "2b85e252-b885-460f-ec81-691e629e5b7f",
-          "source": "fcfebdef-f6e0-413c-d1e1-e07b15905598",
-          "output": "variable",
-          "target": "11f2a6e0-cd25-442f-cbdd-56ba23251a7a",
-          "input": "@seqin"
-        },
-        {
-          "objID": "641d77ea-8f58-474c-b6fd-cb14105f6ada",
-          "source": "b1451263-9f6d-41fd-fbb8-17bb593e38b4",
-          "output": "variable",
-          "target": "4235ebd8-a684-497f-aad9-664ece318c4d",
           "input": "@seqin"
         },
         {
@@ -8950,31 +9584,108 @@
           "input": "@seqin"
         },
         {
-          "objID": "9de92037-5f6c-4be2-9df0-34d35750c937",
-          "source": "8b0ccc5f-0ea0-4e31-c0c3-41523a63d274",
-          "output": "variable",
-          "target": "19cf22cd-dc90-41da-ef04-3ede173f1d21",
-          "input": "@seqin"
-        },
-        {
-          "objID": "e21d2661-1a9a-49b4-d25a-65f5fa178bf8",
-          "source": "19cf22cd-dc90-41da-ef04-3ede173f1d21",
-          "output": "True",
-          "target": "6fa95dff-23ef-4c2f-f19f-3d7a0a6e5ddc",
-          "input": "@seqin"
-        },
-        {
-          "objID": "f4771d14-d30e-4bd8-f5cb-6c8403b3b706",
-          "source": "19cf22cd-dc90-41da-ef04-3ede173f1d21",
-          "output": "False",
-          "target": "9bf69bd3-5907-4035-d104-dda315205ea4",
-          "input": "@seqin"
-        },
-        {
           "objID": "63325a85-fe57-4291-b906-06c14c953a81",
           "source": "219a4963-6347-43ba-9c84-7ceccb9b8d62",
           "output": "@seqout",
           "target": "b34f1898-8bac-4018-8500-91835b41bc3a",
+          "input": "@seqin"
+        },
+        {
+          "objID": "57f63c75-0f21-4d3c-a450-7e5e2ebf4264",
+          "source": "66b23341-18cf-4c45-f430-3480434db944",
+          "output": "variable",
+          "target": "6a519e08-afa3-449a-a754-62c994e7ae85",
+          "input": "@seqin"
+        },
+        {
+          "objID": "17870a67-8396-497b-d01e-d0d67d947e7f",
+          "source": "6a519e08-afa3-449a-a754-62c994e7ae85",
+          "output": "True",
+          "target": "43e92182-80be-4566-ed61-05a0a0595278",
+          "input": "@seqin"
+        },
+        {
+          "objID": "d51f76ff-c479-45a9-e0b1-60dc911befa9",
+          "source": "6a519e08-afa3-449a-a754-62c994e7ae85",
+          "output": "False",
+          "target": "1ff7bbec-0aeb-432b-9864-d2f833da7fa4",
+          "input": "@seqin"
+        },
+        {
+          "objID": "c6f2539a-a18e-41e1-d889-5917b17261b5",
+          "source": "8e8de6f7-a1dc-443e-c774-f25fc12a8b89",
+          "output": "variable",
+          "target": "73e31c6d-d670-48a3-af46-603061893d8a",
+          "input": "@seqin"
+        },
+        {
+          "objID": "9b65a668-45f6-4e55-9dc9-7b3c2c787369",
+          "source": "73e31c6d-d670-48a3-af46-603061893d8a",
+          "output": "True",
+          "target": "e7016e8b-4c75-4f18-928f-6eb10a90945d",
+          "input": "@seqin"
+        },
+        {
+          "objID": "9a550872-8504-41a9-cf59-5613d4b83393",
+          "source": "73e31c6d-d670-48a3-af46-603061893d8a",
+          "output": "False",
+          "target": "7a92e162-2fd6-40ee-c6b4-5cd311af44c9",
+          "input": "@seqin"
+        },
+        {
+          "objID": "38601cad-4993-4461-c2cb-57dae5a4abb2",
+          "source": "d4daf3d1-f39e-421d-e96c-6f2f9d5b65c3",
+          "output": "variable",
+          "target": "cef0c29b-332b-4b57-86a5-d6ce332d4778",
+          "input": "@seqin"
+        },
+        {
+          "objID": "fa859eec-aee7-4528-b7e7-25c05e1c0814",
+          "source": "cef0c29b-332b-4b57-86a5-d6ce332d4778",
+          "output": "True",
+          "target": "ba0b1cca-b870-441a-8408-a14e1a046dde",
+          "input": "@seqin"
+        },
+        {
+          "objID": "03e00177-15a1-4414-8fc1-08285af69cc6",
+          "source": "cef0c29b-332b-4b57-86a5-d6ce332d4778",
+          "output": "False",
+          "target": "ba942ccf-633c-4b98-9882-1fa9b03db034",
+          "input": "@seqin"
+        },
+        {
+          "objID": "a073723a-1978-4e2d-b171-80649acc8aa0",
+          "source": "8b0ccc5f-0ea0-4e31-c0c3-41523a63d274",
+          "output": "variable",
+          "target": "09a20dde-3f25-4ce7-b1c6-7ca351aedf8e",
+          "input": "@seqin"
+        },
+        {
+          "objID": "76ba04f5-80e3-4f51-f5f0-74340f5627c7",
+          "source": "fcfebdef-f6e0-413c-d1e1-e07b15905598",
+          "output": "variable",
+          "target": "6f3882cf-2d82-445e-dd5a-adad1a220660",
+          "input": "@seqin"
+        },
+        {
+          "objID": "51e87f94-a317-427c-d598-6b736f761d09",
+          "source": "814f1eda-5c12-4280-a224-e5189b3c9220",
+          "output": "@seqout",
+          "target": "6f3882cf-2d82-445e-dd5a-adad1a220660",
+          "input": "@seqin"
+        },
+        {
+          "objID": "d2a26876-5a26-443d-d9fc-ee81ff214c2d",
+          "source": "b1451263-9f6d-41fd-fbb8-17bb593e38b4",
+          "output": "variable",
+          "target": "50e4f80a-a497-4cf3-ce4f-a1489276f283",
+          "input": "@seqin"
+        },
+        {
+          "objID": "ede5de99-7245-4694-a775-7826946218b6",
+          "source": "a45c6921-f45f-4181-cce5-d23a316b52d7",
+          "output": "@seqout",
+          "target": "50e4f80a-a497-4cf3-ce4f-a1489276f283",
           "input": "@seqin"
         }
       ],
@@ -10037,20 +10748,6 @@
           "variable": "Calibrazione_Touch_Finita"
         },
         {
-          "objID": "94553ac9-301a-4b43-aca0-2a780f0ee038",
-          "type": "CompareActionComponent",
-          "left": 69,
-          "top": 364,
-          "width": 254,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "catchError": false,
-          "A": "Calibrazione_Touch_Finita",
-          "B": "true",
-          "operator": "="
-        },
-        {
           "objID": "3a1eaafd-1b7d-4598-8e74-1c4f5524187d",
           "type": "LVGLActionComponent",
           "left": 638,
@@ -10077,19 +10774,6 @@
           ]
         },
         {
-          "objID": "1f65a78f-acd9-4c33-c185-0c14a8b540b3",
-          "type": "CompareActionComponent",
-          "left": 393,
-          "top": 364,
-          "width": 193,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "A": "Presenza_Errore",
-          "B": "true",
-          "operator": "="
-        },
-        {
           "objID": "3ec9e7fa-e9c0-426f-f3b3-0904a8b14851",
           "type": "LVGLActionComponent",
           "left": 638,
@@ -10114,35 +10798,57 @@
               "useStackType": "literal"
             }
           ]
+        },
+        {
+          "objID": "636ae1a6-9901-4882-ec3a-8d35e3eacf0b",
+          "type": "IsTrueActionComponent",
+          "left": 110,
+          "top": 353,
+          "width": 202,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Calibrazione_Touch_Finita"
+        },
+        {
+          "objID": "5af56dca-8d78-48d5-d08b-2afd719ce9e3",
+          "type": "IsTrueActionComponent",
+          "left": 410,
+          "top": 372,
+          "width": 141,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Presenza_Errore"
         }
       ],
       "connectionLines": [
         {
-          "objID": "3c17e88f-441a-4621-c390-861740c14201",
+          "objID": "ce0dc03e-2aae-4ef3-ce77-6a87cbb74d71",
           "source": "3908d20d-c8ae-4046-b2bb-3870c37f7079",
           "output": "variable",
-          "target": "94553ac9-301a-4b43-aca0-2a780f0ee038",
+          "target": "636ae1a6-9901-4882-ec3a-8d35e3eacf0b",
           "input": "@seqin"
         },
         {
-          "objID": "d988bdaf-ff4f-4292-ec7f-0c5da766542c",
-          "source": "94553ac9-301a-4b43-aca0-2a780f0ee038",
+          "objID": "791a97ab-6e15-45a0-e40b-dc0240363872",
+          "source": "636ae1a6-9901-4882-ec3a-8d35e3eacf0b",
           "output": "True",
-          "target": "1f65a78f-acd9-4c33-c185-0c14a8b540b3",
+          "target": "5af56dca-8d78-48d5-d08b-2afd719ce9e3",
           "input": "@seqin"
         },
         {
-          "objID": "1878c844-638d-4bb9-cf1b-9e2fa48f0daa",
-          "source": "1f65a78f-acd9-4c33-c185-0c14a8b540b3",
-          "output": "False",
-          "target": "3a1eaafd-1b7d-4598-8e74-1c4f5524187d",
-          "input": "@seqin"
-        },
-        {
-          "objID": "4b6d9264-365f-49a3-ce1f-d1af2cb3aa37",
-          "source": "1f65a78f-acd9-4c33-c185-0c14a8b540b3",
+          "objID": "e95377f1-7460-4a72-93bd-f58546c37c73",
+          "source": "5af56dca-8d78-48d5-d08b-2afd719ce9e3",
           "output": "True",
           "target": "3ec9e7fa-e9c0-426f-f3b3-0904a8b14851",
+          "input": "@seqin"
+        },
+        {
+          "objID": "7a4f4131-ca93-4ddb-c439-929d391687fb",
+          "source": "5af56dca-8d78-48d5-d08b-2afd719ce9e3",
+          "output": "False",
+          "target": "3a1eaafd-1b7d-4598-8e74-1c4f5524187d",
           "input": "@seqin"
         }
       ],
@@ -10159,7 +10865,209 @@
       "deleteOnScreenUnload": false
     }
   ],
-  "userWidgets": [],
+  "userWidgets": [
+    {
+      "objID": "b4c6c307-8088-4da8-8f41-614ec662f5ac",
+      "components": [
+        {
+          "objID": "2ea00c93-ff75-4528-c4d9-bffb2d0f5162",
+          "type": "LVGLPanelWidget",
+          "left": 0,
+          "top": 0,
+          "width": 488,
+          "height": 146,
+          "customInputs": [],
+          "customOutputs": [],
+          "style": {
+            "objID": "0fbe1694-d7e4-4519-ea59-b3bfb507a8c6",
+            "useStyle": "default",
+            "conditionalStyles": [],
+            "childStyles": []
+          },
+          "timeline": [],
+          "eventHandlers": [],
+          "leftUnit": "px",
+          "topUnit": "px",
+          "widthUnit": "px",
+          "heightUnit": "px",
+          "children": [
+            {
+              "objID": "00e58186-89eb-4278-82ba-cecd821624d4",
+              "type": "LVGLLabelWidget",
+              "left": 93,
+              "top": -11,
+              "width": 29,
+              "height": 16,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "acb4808b-2ace-49c3-ccca-3cc0a85666dd",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [],
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "content",
+              "heightUnit": "content",
+              "children": [],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "1e297f76-4054-4ee1-85e8-ddcb14574508"
+              },
+              "group": "",
+              "groupIndex": 0,
+              "text": "Text",
+              "textType": "literal",
+              "longMode": "WRAP",
+              "recolor": false
+            },
+            {
+              "objID": "7fc2dc1e-0c9b-4637-8f39-60ce445e36a8",
+              "type": "LVGLLabelWidget",
+              "left": -7,
+              "top": 64,
+              "width": 501,
+              "height": 16,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "d848bd32-cb01-4d41-bdfc-3c53795130fb",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [],
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "content",
+              "heightUnit": "content",
+              "children": [],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "df114faf-e318-455b-ae6a-156a5d8eb58e"
+              },
+              "group": "",
+              "groupIndex": 0,
+              "text": "Date.now()",
+              "textType": "expression",
+              "longMode": "WRAP",
+              "recolor": false
+            },
+            {
+              "objID": "a8948448-1766-46ec-8c65-049859a15b2f",
+              "type": "LVGLLabelWidget",
+              "left": 255,
+              "top": -13,
+              "width": 23,
+              "height": 21,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "1635f92f-9340-4b0c-e57a-6064441c982b",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [],
+              "identifier": "Logo WiFi",
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "content",
+              "heightUnit": "content",
+              "children": [],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "3eabd304-0eb3-4ac7-8cfa-50276efef991",
+                "definition": {
+                  "MAIN": {
+                    "DEFAULT": {
+                      "text_font": "MONTSERRAT_18"
+                    }
+                  }
+                }
+              },
+              "group": "",
+              "groupIndex": 0,
+              "text": "LVGL.LV_SYMBOL_WIFI",
+              "textType": "expression",
+              "longMode": "WRAP",
+              "recolor": false
+            }
+          ],
+          "widgetFlags": "",
+          "hiddenFlagType": "literal",
+          "clickableFlag": false,
+          "clickableFlagType": "literal",
+          "flagScrollbarMode": "",
+          "flagScrollDirection": "",
+          "scrollSnapX": "",
+          "scrollSnapY": "",
+          "checkedStateType": "literal",
+          "disabledStateType": "literal",
+          "states": "",
+          "localStyles": {
+            "objID": "8c1db550-8d7b-4961-d22a-8fa310c91f94",
+            "definition": {
+              "MAIN": {
+                "DEFAULT": {
+                  "align": "OUT_TOP_LEFT",
+                  "bg_color": "#515151",
+                  "bg_opa": 200,
+                  "text_color": "#FFFFFF"
+                }
+              }
+            }
+          },
+          "group": "",
+          "groupIndex": 0
+        }
+      ],
+      "connectionLines": [],
+      "localVariables": [],
+      "componentGroups": [],
+      "userProperties": [],
+      "name": "Dashboard_Principale",
+      "left": 0,
+      "top": 0,
+      "width": 480,
+      "height": 320,
+      "isUsedAsUserWidget": true,
+      "createAtStart": true,
+      "deleteOnScreenUnload": false
+    }
+  ],
   "lvglStyles": {
     "objID": "a31bd004-35c5-b3fb-5c8b-78ea5c7693b8",
     "styles": [

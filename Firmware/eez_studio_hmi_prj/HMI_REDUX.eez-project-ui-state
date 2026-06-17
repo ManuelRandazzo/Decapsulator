@@ -1,6 +1,6 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/3",
+    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/1",
     "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/2",
     "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/23",
     "selectedStyleObject": "[HMI_REDUX.eez-project]:/lvglStyles/styles/5",
@@ -85,7 +85,7 @@
           {
             "type": "border",
             "selected": 0,
-            "size": 266.5,
+            "size": 161.5,
             "location": "bottom",
             "children": [
               {
@@ -1275,16 +1275,17 @@
           "2": {}
         },
         "1": {},
+        "6": {},
         "7": {
           "$selected": true
         }
       },
       "transform": {
         "translate": {
-          "x": 48.13929291815123,
-          "y": -157.41151488872345
+          "x": -532.3758585970004,
+          "y": -229.22969670690514
         },
-        "scale": 1.1
+        "scale": 1.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1325,11 +1326,8 @@
         },
         "1": {},
         "5": {},
-        "14": {},
-        "19": {},
-        "20": {
-          "$selected": true
-        },
+        "15": {},
+        "16": {},
         "21": {
           "$selected": true
         },
@@ -1337,10 +1335,10 @@
       },
       "transform": {
         "translate": {
-          "x": -616.9483578229092,
-          "y": 133.53415172365646
+          "x": -295.34806864549023,
+          "y": -1048.6667039113595
         },
-        "scale": 1.1
+        "scale": 1.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1364,10 +1362,10 @@
       },
       "transform": {
         "translate": {
-          "x": -428.20820106959644,
-          "y": -49.27163537771807
+          "x": -619.2082010695965,
+          "y": -165.2716353777181
         },
-        "scale": 1.1
+        "scale": 1.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1395,10 +1393,10 @@
       },
       "transform": {
         "translate": {
-          "x": -273.5321144470738,
-          "y": -131.17957376493212
+          "x": -269.5321144470738,
+          "y": -96.17957376493212
         },
-        "scale": 1.1
+        "scale": 1.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1438,14 +1436,17 @@
           },
           "4": {}
         },
-        "69": {}
+        "55": {
+          "$selected": true
+        },
+        "65": {}
       },
       "transform": {
         "translate": {
-          "x": -301.6757386523631,
-          "y": -75.50899709575174
+          "x": -340.31956820589437,
+          "y": -412.6803529786753
         },
-        "scale": 1.1
+        "scale": 1.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1467,7 +1468,7 @@
           "x": -172.34523809523807,
           "y": -245.19727891156458
         },
-        "scale": 1.1
+        "scale": 1.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1492,7 +1493,7 @@
           "x": -342.0081373705041,
           "y": -137.59840650642644
         },
-        "scale": 1.1
+        "scale": 1.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1547,10 +1548,10 @@
       },
       "transform": {
         "translate": {
-          "x": -270.131638721977,
-          "y": 97.75583984837726
+          "x": -304.4930701255663,
+          "y": 175.22523177762002
         },
-        "scale": 1.1
+        "scale": 1.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1565,17 +1566,16 @@
         "1": {},
         "2": {},
         "3": {},
-        "4": {
+        "5": {
           "$selected": true
-        },
-        "5": {}
+        }
       },
       "transform": {
         "translate": {
-          "x": -531.3580952380953,
-          "y": -375.1821428571428
+          "x": -911.3469696969697,
+          "y": -768.2147727272726
         },
-        "scale": 1.1
+        "scale": 1.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1687,7 +1687,7 @@
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 1.1,
+  "flowZoom": 1.75,
   "implementationLanguage": "C++",
   "openDialogDefaultPath": "C:\\Users\\Tomma\\Downloads\\Image.png"
 }
