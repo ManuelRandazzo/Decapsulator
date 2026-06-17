@@ -3536,7 +3536,7 @@
             {
               "objID": "9df2756f-525f-499e-938a-d23b622e1546",
               "type": "LVGLLabelWidget",
-              "left": 98,
+              "left": 135,
               "top": 0,
               "width": 90,
               "height": 33,
@@ -3571,7 +3571,7 @@
               },
               "group": "",
               "groupIndex": 0,
-              "text": "(Date.getHours(clock_string)) + \":\" + (Date.getMinutes(clock_string)) + \":\" + (Date.getSeconds(clock_string))",
+              "text": "String.format(\"%02d\", Date.getHours(clock_string) ) + \":\" + String.format(\"%02d\", Date.getMinutes(clock_string)) + \":\" + String.format(\"%02d\", Date.getSeconds(clock_string)) ",
               "textType": "expression",
               "longMode": "WRAP",
               "recolor": false
@@ -3579,8 +3579,8 @@
             {
               "objID": "38f8b9e3-a30a-40d8-a4c3-efa475ca97a6",
               "type": "LVGLLabelWidget",
-              "left": 247,
-              "top": 0,
+              "left": 240,
+              "top": -1,
               "width": 90,
               "height": 33,
               "customInputs": [],
@@ -3614,7 +3614,7 @@
               },
               "group": "",
               "groupIndex": 0,
-              "text": "Date.getDay(clock_string) + \"/\" + Date.getMonth(clock_string) + \"/\" + Date.getYear(clock_string)",
+              "text": "String.format(\"%02d\", Date.getDay(clock_string)) + \"/\" + String.format(\"%02d\", Date.getMonth(clock_string)) + \"/\" + String.format(\"%02d\", Flow.toInteger(Date.getYear(clock_string)) )",
               "textType": "expression",
               "longMode": "WRAP",
               "recolor": false
@@ -4059,6 +4059,32 @@
               "value": "Date.now()"
             }
           ]
+        },
+        {
+          "objID": "32feb852-3078-4f62-822b-cb8af47f79b5",
+          "type": "LVGLActionComponent",
+          "left": -179,
+          "top": -146,
+          "width": 397,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "011e18de-6840-4436-facd-03c5651e7431",
+              "action": "changeScreen",
+              "screen": "Schermata Easter Egg",
+              "screenType": "literal",
+              "fadeMode": "FADE_IN",
+              "fadeModeType": "literal",
+              "speed": 200,
+              "speedType": "literal",
+              "delay": 100,
+              "delayType": "literal",
+              "useStack": true,
+              "useStackType": "literal"
+            }
+          ]
         }
       ],
       "connectionLines": [
@@ -4242,6 +4268,13 @@
           "source": "a8e6ceb5-6dac-4fd3-b216-85ab96809fcd",
           "output": "@seqout",
           "target": "ddaf32f3-e43b-4194-f296-7f239c5a0f10",
+          "input": "@seqin"
+        },
+        {
+          "objID": "5c6885f9-3b98-4d11-e315-cafdfa1143d5",
+          "source": "89046b83-ba96-49f9-ef2b-2ef8dbdabae5",
+          "output": "PRESSED",
+          "target": "32feb852-3078-4f62-822b-cb8af47f79b5",
           "input": "@seqin"
         }
       ],
@@ -9831,6 +9864,88 @@
               },
               "group": "",
               "groupIndex": 0
+            },
+            {
+              "objID": "ec8dcc1d-724f-411b-81d7-e6f1316089d7",
+              "type": "LVGLPanelWidget",
+              "left": 0,
+              "top": 81,
+              "width": 480,
+              "height": 200,
+              "customInputs": [],
+              "customOutputs": [],
+              "style": {
+                "objID": "fa9c2549-c0a9-4891-9043-5de447a0acbe",
+                "useStyle": "default",
+                "conditionalStyles": [],
+                "childStyles": []
+              },
+              "timeline": [],
+              "eventHandlers": [],
+              "leftUnit": "px",
+              "topUnit": "px",
+              "widthUnit": "px",
+              "heightUnit": "px",
+              "children": [
+                {
+                  "objID": "79af697c-7472-46af-befa-9d3d0f23062c",
+                  "type": "LVGLLabelWidget",
+                  "left": -18,
+                  "top": 66,
+                  "width": 500,
+                  "height": 16,
+                  "customInputs": [],
+                  "customOutputs": [],
+                  "style": {
+                    "objID": "4ba367d9-d34f-4303-986e-cddda4a01164",
+                    "useStyle": "default",
+                    "conditionalStyles": [],
+                    "childStyles": []
+                  },
+                  "timeline": [],
+                  "eventHandlers": [],
+                  "leftUnit": "px",
+                  "topUnit": "px",
+                  "widthUnit": "content",
+                  "heightUnit": "content",
+                  "children": [],
+                  "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+                  "hiddenFlagType": "literal",
+                  "clickableFlagType": "literal",
+                  "flagScrollbarMode": "",
+                  "flagScrollDirection": "",
+                  "scrollSnapX": "",
+                  "scrollSnapY": "",
+                  "checkedStateType": "literal",
+                  "disabledStateType": "literal",
+                  "states": "",
+                  "localStyles": {
+                    "objID": "15ec2e1e-8199-4c20-cddd-f167a4902714"
+                  },
+                  "group": "",
+                  "groupIndex": 0,
+                  "text": "Date.now()",
+                  "textType": "expression",
+                  "longMode": "WRAP",
+                  "recolor": false
+                }
+              ],
+              "widgetFlags": "CLICK_FOCUSABLE|GESTURE_BUBBLE|PRESS_LOCK|SCROLLABLE|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_WITH_ARROW|SNAPPABLE",
+              "hiddenFlagType": "literal",
+              "clickableFlag": true,
+              "clickableFlagType": "literal",
+              "flagScrollbarMode": "",
+              "flagScrollDirection": "",
+              "scrollSnapX": "",
+              "scrollSnapY": "",
+              "checkedStateType": "literal",
+              "disabledStateType": "literal",
+              "states": "",
+              "localStyles": {
+                "objID": "3e13856f-f33a-43eb-b430-1d2638d33476"
+              },
+              "group": "",
+              "groupIndex": 0
             }
           ],
           "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
@@ -10938,7 +11053,7 @@
               "type": "LVGLLabelWidget",
               "left": -7,
               "top": 64,
-              "width": 501,
+              "width": 496,
               "height": 16,
               "customInputs": [],
               "customOutputs": [],
