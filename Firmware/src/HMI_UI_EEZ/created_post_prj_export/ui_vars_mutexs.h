@@ -76,6 +76,8 @@ extern SemaphoreHandle_t mutex_password_rete_inserita;
 
 extern SemaphoreHandle_t mutex_wi_fi_success;
 
+extern SemaphoreHandle_t mutex_presenza_wi_fi;
+
 #ifdef __cplusplus
 extern "C" {
 #endif
