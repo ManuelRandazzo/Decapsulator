@@ -36,7 +36,7 @@ using namespace std;// Usato per le stringhe standard del c++
 #define LOGGER_BEGIN_INIT_TIMEOUT_MS 5000
 
 /// @attention Viene perso anche l'OTA e l'MQTT commentando questa riga la quale disattiva l'inizializzazione del WiFi
-//#define WiFi_ACTIVE
+#define WiFi_ACTIVE
 /// @info: Commentando questa riga si disattivano i LOG senza il bisogno di cancellarli nel programma
 #define LOG_ACTIVE
 /// @info: Commentando questa riga si disattivano i log in seriale senza il bisogno di cancellarli nel programma
