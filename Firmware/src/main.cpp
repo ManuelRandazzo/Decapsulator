@@ -24,12 +24,14 @@
 #include "Tasks.hpp"
 #include "tasks_cfg.hpp"
 #include "decapsulator_io.hpp"
-#include "ui_and_backend_cfg.hpp"
 #include "Debug.hpp"
 #include "OverTheAir_OTA.hpp"
 #include "DecapsulatorPRG.hpp"
 #include "JogMotoriPRG.hpp"
 #include "HMI.hpp"
+#include "AutoKillPRG.hpp"
+#include "DateAndTimePRG.hpp"
+#include "HMI_UI_EEZ/created_post_prj_export/ui_vars_mutexs.h"
 
 /**
  *  @brief il setupTask() crea le task e ritorna i log in caso di errore per tutte le task non create con successo 
@@ -42,19 +44,32 @@ BaseType_t setupTasks(void)
 {
     BaseType_t status = pdPASS;
 
-    //status &= decapsulator_io_begin();
-    
-    //status &= hmi_queues_begin();
-    
+    /// Creazione della task di LOGGER
+    status &= xTaskCreatePinnedToCore(LoggerTask, "task LOGGER", Logger_heap, NULL, Logger_priority, &LoggerHandler, APP_CPU_NUM);
+
+    /// Inizializzazione degli IO del decapsulator
+    status &= decapsulator_io_begin();
+
+    /// Inizializzazione dei mutex delle variabili utilizzate tra Frontend & Backend
+    status &= ui_init_var_mutexs() ? pdPASS : pdFAIL;
+
+    /// Creazione della task della Human Machine Interface
+    status &= xTaskCreatePinnedToCore(prgHMITask, "task HMI PRG", HMI_heap, NULL, HMI_priority, &HMIPrgHandler, APP_CPU_NUM); 
+
+    /// Creazione della task per il download del firmware
     //status &= OverTheAir.Init("task OTA", OTA_heap, NULL, OTA_priority, OTA_delay, OTA_Setup, OTA_Loop);
 
-    //status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PROGRAM", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM);
+    /// Creazione della task di gestione del programma principale
+    status &= xTaskCreatePinnedToCore(prgDecapsulatorTask, "task MAIN PRG", MainPrg_heap, NULL, MainPrg_priority, &MainPrgHandler, APP_CPU_NUM);
 
-    status &= xTaskCreatePinnedToCore(prgHMITask, "task HMI PROGRAM", HMI_heap, NULL, HMI_priority, &HMIPrgHandler, APP_CPU_NUM); 
+    /// Creazione della task per il controllo manuale dei motori
+    status &= xTaskCreatePinnedToCore(prgJogMotoriTask, "task JOG MOTORI", JogMotori_heap, NULL, JogMotori_priority, &JogMotoriPrgHandler, APP_CPU_NUM);
 
-    //status &= xTaskCreatePinnedToCore(prgJogMotoriTask, "task JOG MOTORI PROGRAM", JogMotori_heap, NULL, JogMotori_priority, &JogMotoriPrgHandler, APP_CPU_NUM);
+    /// Creazione della task per la gestione dell'autokill e del salvataggio dei dato in microSD
+    status &= xTaskCreatePinnedToCore(AutoKillTask, "task AUTOKILL", Autokill_heap, NULL, Autokill_priority, &AutokillHandler, APP_CPU_NUM);
 
-    
+    /// Creazione della task per la gestione della data e ora tramite RTC e sincronizzazione NTP
+    status &= xTaskCreatePinnedToCore(DateAndTimePRG, "task update RTC", DateAndTime_heap, NULL, DateAndTime_priority, &DateAndTimeHandler, APP_CPU_NUM);
 
     /// Restituisce lo stato generale di errore di almeno una delle task, comunque ci sono i log
     return status;
@@ -65,12 +80,12 @@ BaseType_t setupTasks(void)
  */
 void setup()
 {
+    vTaskPrioritySet(NULL, configMAX_PRIORITIES-1);
     pinMode(RALLA_ENABLE_PIN, OUTPUT);
     digitalWrite(RALLA_ENABLE_PIN, HIGH); // Disabilita ralla
     pinMode(PUNZ_ENABLE_PIN, OUTPUT);
     digitalWrite(PUNZ_ENABLE_PIN, HIGH); // Disabilita punzone
-    LogBegin();
-
+    
     /// crea le task, superato il timeout restarta l'esp32
     const uint32_t tmoSetupTask = millis();
     while(!setupTasks())
@@ -83,6 +98,8 @@ void setup()
     }
 
     LogInfo("setup", "create le tasks - Free Stack Space: %d", uxTaskGetStackHighWaterMark(NULL));
+
+    vTaskPrioritySet(NULL, 0);
 }
 
 /**
