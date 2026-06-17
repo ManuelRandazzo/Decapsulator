@@ -32,9 +32,9 @@ void DateAndTimePRG(void* pvParameters)
 
         tm time_info;
         getLocalTime(&time_info);
-        std::string time_and_date;
-        strftime(time_and_date.data(), sizeof(time_and_date), "%d/%m/%Y       %H:%M:%S", &time_info);
-        set_var_date_time_string(time_and_date.c_str());
+        char time_and_date[30];
+        strftime(time_and_date, sizeof(time_and_date), "%d/%m/%Y       %H:%M:%S", &time_info);
+        set_var_date_time_string(time_and_date);
         
         vTaskDelayUntil(&getLastTick, DateAndTime_delay);
     }
