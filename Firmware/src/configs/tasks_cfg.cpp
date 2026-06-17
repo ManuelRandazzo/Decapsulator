@@ -35,4 +35,7 @@ TaskHandle_t LoggerHandler;
 /// @brief Handler della task dell'autokill
 TaskHandle_t AutokillHandler;
 
+/// @brief Handler della task dell'update del RTC
+TaskHandle_t DateAndTimeHandler;
+
 #pragma endregion (TASKS HANDLERS)
