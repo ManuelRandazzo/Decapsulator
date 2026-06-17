@@ -114,13 +114,10 @@ typedef struct _objects_t {
     lv_obj_t *inserimento_valori;
     lv_obj_t *annulla_easter_egg;
     lv_obj_t *annulla_diag_2;
-    lv_obj_t *data_ora;
-    lv_obj_t *data_ora_1;
-    lv_obj_t *obj6;
     lv_obj_t *annulla_pssw_2;
     lv_obj_t *annulla_diag_1;
+    lv_obj_t *obj6;
     lv_obj_t *obj7;
-    lv_obj_t *obj8;
     lv_obj_t *annulla_config_wifi;
     lv_obj_t *annulla_config_wifi2;
     lv_obj_t *config_wifi;

@@ -1,6 +1,6 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/4",
+    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/5",
     "selectedUserWidgetObject": "[HMI_REDUX.eez-project]:/userWidgets/0",
     "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/13",
     "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/45",
@@ -215,7 +215,7 @@
               "type": "tabset",
               "id": "EDITORS",
               "weight": 62.70412003290298,
-              "selected": 8,
+              "selected": 9,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
@@ -1479,15 +1479,7 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
-          "0": {},
-          "1": {
-            "1": {
-              "$selected": true
-            },
-            "2": {
-              "$selected": true
-            }
-          }
+          "0": {}
         },
         "1": {}
       },

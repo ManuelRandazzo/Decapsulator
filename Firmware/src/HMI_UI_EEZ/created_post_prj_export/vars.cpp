@@ -814,20 +814,20 @@ extern "C" void set_var_presenza_wi_fi(bool value)
 
 
 
-bool date_time_string = false;
-extern "C" bool get_var_date_time_string()
+String date_time_string = "";
+extern "C" const char *get_var_date_time_string()
 {
     if(xSemaphoreTake(mutex_date_time_string, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
-        return false;
+        return "";
 
-    bool get = date_time_string;
+    const char *get = date_time_string.c_str();
 
     xSemaphoreGive(mutex_date_time_string);
 
     return get;
 }
 
-extern "C" void set_var_date_time_string(bool value)
+extern "C" void set_var_date_time_string(const char *value)
 {
     if(xSemaphoreTake(mutex_date_time_string, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
         return;
