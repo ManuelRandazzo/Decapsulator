@@ -66,6 +66,8 @@ SemaphoreHandle_t mutex_password_rete_inserita = NULL;
 
 SemaphoreHandle_t mutex_wi_fi_success = NULL;
 
+SemaphoreHandle_t mutex_presenza_wi_fi = NULL;
+
 bool ui_init_var_mutexs()
 {
     mutex_contatore_caps_totali = xSemaphoreCreateMutex();
@@ -231,6 +233,12 @@ bool ui_init_var_mutexs()
     mutex_wi_fi_success = xSemaphoreCreateMutex();
     if(mutex_wi_fi_success == NULL)
         return false;
+
+
+    mutex_presenza_wi_fi = xSemaphoreCreateMutex();
+    if(mutex_presenza_wi_fi == NULL)
+        return false;
     
+
     return true;
 }
