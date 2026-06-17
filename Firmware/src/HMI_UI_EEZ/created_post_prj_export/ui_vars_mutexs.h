@@ -78,6 +78,8 @@ extern SemaphoreHandle_t mutex_wi_fi_success;
 
 extern SemaphoreHandle_t mutex_presenza_wi_fi;
 
+extern SemaphoreHandle_t mutex_date_time_string;
+
 #ifdef __cplusplus
 extern "C" {
 #endif

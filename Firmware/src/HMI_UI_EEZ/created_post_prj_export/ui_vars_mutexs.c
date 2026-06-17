@@ -68,6 +68,9 @@ SemaphoreHandle_t mutex_wi_fi_success = NULL;
 
 SemaphoreHandle_t mutex_presenza_wi_fi = NULL;
 
+SemaphoreHandle_t mutex_date_time_string = NULL;
+
+
 bool ui_init_var_mutexs()
 {
     mutex_contatore_caps_totali = xSemaphoreCreateMutex();
@@ -238,7 +241,12 @@ bool ui_init_var_mutexs()
     mutex_presenza_wi_fi = xSemaphoreCreateMutex();
     if(mutex_presenza_wi_fi == NULL)
         return false;
+
     
+    mutex_date_time_string = xSemaphoreCreateMutex();
+    if(mutex_date_time_string == NULL)
+        return false;
+
 
     return true;
 }

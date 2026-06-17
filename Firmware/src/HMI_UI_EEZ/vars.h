@@ -27,8 +27,7 @@ enum FlowGlobalVariables {
     FLOW_GLOBAL_VARIABLE_TITOLO_STATO_FINECORSA_MIN = 11,
     FLOW_GLOBAL_VARIABLE_TITOLO_STATO_FINECORSA_MAX = 12,
     FLOW_GLOBAL_VARIABLE_MESSAGGIO_CONFIG_WI_FI = 13,
-    FLOW_GLOBAL_VARIABLE_QR_VISIBLE = 14,
-    FLOW_GLOBAL_VARIABLE_CLOCK_STRING = 15
+    FLOW_GLOBAL_VARIABLE_QR_VISIBLE = 14
 };
 
 // Native global variables
@@ -93,6 +92,8 @@ extern bool get_var_wi_fi_success();
 extern void set_var_wi_fi_success(bool value);
 extern bool get_var_presenza_wi_fi();
 extern void set_var_presenza_wi_fi(bool value);
+extern const char *get_var_date_time_string();
+extern void set_var_date_time_string(const char *value);
 
 #ifdef __cplusplus
 }

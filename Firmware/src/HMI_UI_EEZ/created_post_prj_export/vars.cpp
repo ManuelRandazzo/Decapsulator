@@ -810,3 +810,29 @@ extern "C" void set_var_presenza_wi_fi(bool value)
 
     xSemaphoreGive(mutex_presenza_wi_fi);
 }
+
+
+
+
+bool date_time_string = false;
+extern "C" bool get_var_date_time_string()
+{
+    if(xSemaphoreTake(mutex_date_time_string, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+        return false;
+
+    bool get = date_time_string;
+
+    xSemaphoreGive(mutex_date_time_string);
+
+    return get;
+}
+
+extern "C" void set_var_date_time_string(bool value)
+{
+    if(xSemaphoreTake(mutex_date_time_string, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+        return;
+    
+    date_time_string = value;
+
+    xSemaphoreGive(mutex_date_time_string);
+}
