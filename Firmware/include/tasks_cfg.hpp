@@ -36,6 +36,9 @@ extern TaskHandle_t LoggerHandler;
 /// @brief Handler della task dell'autokill
 extern TaskHandle_t AutokillHandler;
 
+/// @brief Handler della task dell'update del RTC
+extern TaskHandle_t DateAndTimeHandler;
+
 #pragma endregion (TASKS HANDLERS)
 
 
@@ -75,12 +78,13 @@ extern TaskHandle_t AutokillHandler;
  */
 enum taskHeapSize_t
 {
-    OTA_heap        =  2048, //  2.0 kiB
-    HMI_heap        =  6656, //  6.5 kiB
-    JogMotori_heap  =  4096, //  4.0 kiB 
-    MainPrg_heap    =  6656, //  6.5 kiB
-    Logger_heap     = 12288, // 12.0 kiB
-    Autokill_heap   =  4096, //  4.0 KiB
+    OTA_heap         =  2048, //  2.0 kiB
+    HMI_heap         =  6656, //  6.5 kiB
+    JogMotori_heap   =  4096, //  4.0 kiB 
+    MainPrg_heap     =  6656, //  6.5 kiB
+    Logger_heap      = 12288, // 12.0 kiB
+    Autokill_heap    =  4096, //  4.0 KiB
+    DateAndTime_heap =  6656, //  6.5 kiB
 };
 
 /**
@@ -91,12 +95,13 @@ enum taskHeapSize_t
  */
 enum taskPriority_t
 {
-    OTA_priority        = 10,
-    HMI_priority        =  5,
-    JogMotori_priority  =  7,
-    MainPrg_priority    =  7,
-    Logger_priority     =  3,
-    Autokill_priority   = 10,
+    OTA_priority          = 10,
+    HMI_priority          =  5,
+    JogMotori_priority    =  7,
+    MainPrg_priority      =  7,
+    Logger_priority       =  3,
+    Autokill_priority     = 10,
+    DateAndTime_priority  =  2,
 };
 
 /**
@@ -104,12 +109,13 @@ enum taskPriority_t
  */
 enum taskDelays_t
 {
-    MainPrg_delay    =    5,
-    JogMotori_delay  =    5,
-    HMI_delay        =  100,
-    OTA_delay        =  200,
-    Logger_delay     = 1000,
-    Autokill_delay   =   10,
+    MainPrg_delay     =    5,
+    JogMotori_delay   =    5,
+    HMI_delay         =  100,
+    OTA_delay         =  200,
+    Logger_delay      = 1000,
+    Autokill_delay    =   10,
+    DateAndTime_delay =  500, // Due volte la frequenza dei secondi
 };
 
 #pragma endregion (TASKS ENUMS)
