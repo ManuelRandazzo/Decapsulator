@@ -784,3 +784,29 @@ extern "C" void set_var_wi_fi_success(bool value)
 
     xSemaphoreGive(mutex_wi_fi_success);
 }
+
+
+
+
+bool presenza_wi_fi = false;
+extern "C" bool get_var_presenza_wi_fi()
+{
+    if(xSemaphoreTake(mutex_presenza_wi_fi, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+        return false;
+
+    bool get = presenza_wi_fi;
+
+    xSemaphoreGive(mutex_presenza_wi_fi);
+
+    return get;
+}
+
+extern "C" void set_var_presenza_wi_fi(bool value)
+{
+    if(xSemaphoreTake(mutex_presenza_wi_fi, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
+        return;
+    
+    presenza_wi_fi = value;
+
+    xSemaphoreGive(mutex_presenza_wi_fi);
+}
