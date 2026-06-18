@@ -36,6 +36,17 @@ enum { SCREENBUFFER_SIZE_PIXELS = screenWidth * screenHeight / BoardConstants::L
 static uint16_t buf[SCREENBUFFER_SIZE_PIXELS] __attribute__((aligned(4)));
 
 /* -------------------------------------------------------------------------- */
+/*  LVGL logging (ultra vital for mental health)                              */
+/* -------------------------------------------------------------------------- */
+
+#if LV_USE_LOG != 0
+    void my_print(const char *buf) {
+        Serial.printf(buf);
+        Serial.flush();
+}
+#endif
+
+/* -------------------------------------------------------------------------- */
 /*  Display flush callback                                                    */
 /* -------------------------------------------------------------------------- */
 
@@ -77,8 +88,6 @@ static uint32_t my_tick_get_cb(void) { return millis(); }
 
 void prgHMITask(void* pvParameters)
 {
-    LogDebug("HMI PRG", "Init TFT & LVGL");
-
     lv_init();
     
     /*Set a tick source so that LVGL will know how much time elapsed. */
@@ -95,33 +104,27 @@ void prgHMITask(void* pvParameters)
     lv_indev_set_type(indev, LV_INDEV_TYPE_POINTER);
     lv_indev_set_read_cb(indev, my_touchpad_read);
     
-        
-    LogDebug("CALIB TFT", "Calibrating");
 
     uint16_t calib_data[5] = { 365, 3394, 265, 3073, 5 };
-    uint16_t old_data[5];
+    uint16_t old_data[5] = { 0, 0, 0, 0, 0 };
+    bool useDefaulCalibDatas = false;
     /// Ottiene i dati di calibrazione dalla SD
-    for(uint8_t i=0; i < 5; i++)
+    for(uint8_t i = 0; i < 5; i++)
+    {
         old_data[i] = SD_Card.getValueByKey<uint16_t>("/touch_calibration.txt", "data[" + String(i) + "]");
-    
-    /*tft.fillScreen(TFT_BLACK);
-    tft.calibrateTouch(calib_data, TFT_RED, TFT_BLACK, 40);*/
-    tft.setTouch(calib_data);
-    /*tft.fillScreen(TFT_RED);
-    vTaskDelay(2000);
+        if(old_data[i] == 0)
+        {
+            /// Usa i dati default se quelli in SD non sono corretti
+            useDefaulCalibDatas = true;
+            break;
+        }
+    }
 
-    /// Scrive i dati di calibrazione che sono cambiati rispetto a prima nella SD
-    for(uint8_t i=0; i < 5; i++)
-        if(calib_data[i] != old_data[i])
-            SD_Card.setValueByKey("/touch_calibration.txt", "data[" + String(i) + "]", calib_data[i]);*/
+    tft.setTouch(useDefaulCalibDatas ? calib_data : old_data);
 
+    /// Init EEZ-Studio UI
     ui_init();
-
-    LogInfo("HMI Setup", "HMI Setup Done");//\nDatas : %d, %d, %d, %d, %d", calib_data[0], calib_data[1], calib_data[2], calib_data[3], calib_data[4]);
     
-    /// DEBUG : Bypass scena iniziale di avvio macchina
-    //set_var_stato_avvio_macchina(true);
-    uint32_t tmrLog = 0;
     while(1)
     {
         /// Update EEZ-Studio UI
@@ -131,7 +134,7 @@ void prgHMITask(void* pvParameters)
         uint32_t time_until_next = lv_timer_handler();
         /// Se non c'è nulla da fare ora, controllerà ancora fra un po'.
         if(time_until_next == LV_NO_TIMER_READY)
-            time_until_next = LV_DEF_REFR_PERIOD; //33 ms by default in lv_conf.h
+            time_until_next = LV_DEF_REFR_PERIOD; //16 ms (60Hz) in lv_conf.h
         
         /// Sempre consigliato dalla reference sopracitata
         vTaskDelay(pdMS_TO_TICKS(time_until_next)); //Sleep the thread
