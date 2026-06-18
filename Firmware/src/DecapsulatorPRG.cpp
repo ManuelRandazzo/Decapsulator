@@ -56,6 +56,7 @@ void prgDecapsulatorTask(void *pvParameters)
     TickType_t getLastTick = xTaskGetTickCount();
     
     bool FORCE_THE_STARTUP = true;
+    bool FORCE_THE_STARTUP = true;
 
     uint16_t local_caps_ses = 0;
     uint16_t local_caps_tot = 0; // = getCapsTotFromSD; /// Prende il dato dalla SD
@@ -118,6 +119,7 @@ void prgDecapsulatorTask(void *pvParameters)
         }
 
         //LogDebug("MAIN PRG LOOP", "Sequenza : %s\npresenzaCaps.event() : %d\ncadutaCaps.event() : %d", state_name_to_string(sequenza), presenzaCaps.rawRead(), cadutaCaps.rawRead());
+        //LogDebug("MAIN PRG LOOP", "Sequenza : %s\npresenzaCaps.event() : %d\ncadutaCaps.event() : %d", state_name_to_string(sequenza), presenzaCaps.rawRead(), cadutaCaps.rawRead());
 
         switch(sequenza)
         {
@@ -159,7 +161,9 @@ void prgDecapsulatorTask(void *pvParameters)
                         set_var_nome_errore("Contenitore Capsule pieno, svuotare e premere ok");
                     else if(cntContainerCoffeeFull >= 10)
                         set_var_nome_errore("Contenitore Caffè pieno, svuotare e premere ok");
+                        set_var_nome_errore("Contenitore Caffè pieno, svuotare e premere ok");
 
+                    LogDebug("CONTAINERS", "CONTAINERS FULL");    
                     LogDebug("CONTAINERS", "CONTAINERS FULL");    
                     Ventola.off();
                 }
@@ -267,6 +271,7 @@ void prgDecapsulatorTask(void *pvParameters)
                 /// Se sono presenti le capsule nello scivolo e c'è stato il segnale di start inizia il ciclo
                 if(get_var_comando_macchina())
                 {
+                {
                     if(doAnotherCycle == true)
                     {
                         Ventola.on(); // Si assicura che la ventola sia accesa
@@ -276,6 +281,8 @@ void prgDecapsulatorTask(void *pvParameters)
                     }
                     else
                     {
+                        set_var_nome_errore("Nessuna capsula inserita");
+                        
                         set_var_nome_errore("Nessuna capsula inserita");
                         
                         /// Disattiva il pulsante start
@@ -394,11 +401,72 @@ void prgDecapsulatorTask(void *pvParameters)
                 else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
                 {
                     sequenza = PUNCHER_FIRST_UP_FAST_STATE;     
+                    sequenza = PUNCHER_FIRST_DOWN_FAST_STATE;
                     cmd_exec = false;
                 }
             }
             break;
 
+            case PUNCHER_FIRST_DOWN_FAST_STATE :
+            {
+                if(!cmd_exec) // Dà il comando
+                {
+                    /// Setta la direzione di marcia del punzone e mette in coda 
+                    /// due movimenti uno veloce (bassa coppia) e uno lento (alta coppia)
+                    MotPunzone.moveRel(PUNZ_FAST_ROTATIONS * -360.0, PUNZ_FAST_SPEED, PUNZ_ACC, PUNZ_DEC); // Fa 10 giri = 20mm lineari ad alta velocità
+                    cmd_exec = true;
+                }
+                else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
+                {
+                    sequenza = PUNCHER_FIRST_DOWN_SLOW_STATE;
+                    cmd_exec = false;
+                }
+            }
+            break;
+
+            case PUNCHER_FIRST_DOWN_SLOW_STATE :
+            {
+                if(!cmd_exec) // Dà il comando
+                {
+                    /// Fa 15 giri = 30mm lineari ad alta coppia
+                    MotPunzone.moveRel(PUNZ_SLOW_ROTATIONS * -360.0, PUNZ_SLOW_SPEED, PUNZ_ACC, PUNZ_DEC);    
+                    cmd_exec = true;
+                }
+                else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
+                {
+                    sequenza = PUNCHER_FIRST_UP_FAST_STATE;     
+                    cmd_exec = false;
+                }
+            }
+            break;
+
+            case PUNCHER_FIRST_UP_FAST_STATE :
+            {
+                if(!cmd_exec) // Dà il comando
+                {
+                    /// Torna nella posizione 
+                    MotPunzone.moveRel(PUNZ_ROTATIONS_TOT * +360.0, PUNZ_FAST_SPEED, PUNZ_ACC, PUNZ_DEC);
+                    vTaskDelay(100);
+                    cmd_exec = true;
+                }
+                else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
+                {
+                    cntContainerCapsuleFull++;
+                    cntContainerCoffeeFull++;
+
+                    /// Incrementa i contatori della UI
+                    local_caps_ses++;
+                    local_caps_tot++;
+                    set_var_contatore_caps_ses(local_caps_ses);
+                    set_var_contatore_caps_totali(local_caps_tot);
+
+                    sequenza = SERVO_LOADER_OPEN_STATE; // Ricomincia il ciclo
+                    cmd_exec = false;
+                } 
+            }
+            break;
+
+            case PUNCHER_SECOND_DOWN_FAST_STATE :
             case PUNCHER_FIRST_UP_FAST_STATE :
             {
                 if(!cmd_exec) // Dà il comando
@@ -437,11 +505,13 @@ void prgDecapsulatorTask(void *pvParameters)
                 else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
                 {
                     sequenza = PUNCHER_SECOND_DOWN_SLOW_STATE;
+                    sequenza = PUNCHER_SECOND_DOWN_SLOW_STATE;
                     cmd_exec = false;
                 }
             }
             break;
 
+            case PUNCHER_SECOND_DOWN_SLOW_STATE :
             case PUNCHER_SECOND_DOWN_SLOW_STATE :
             {
                 if(!cmd_exec) // Dà il comando
@@ -453,11 +523,13 @@ void prgDecapsulatorTask(void *pvParameters)
                 else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
                 {
                     sequenza = PUNCHER_SECOND_UP_FAST_STATE;     
+                    sequenza = PUNCHER_SECOND_UP_FAST_STATE;     
                     cmd_exec = false;
                 }
             }
             break;
 
+            case PUNCHER_SECOND_UP_FAST_STATE :
             case PUNCHER_SECOND_UP_FAST_STATE :
             {
                 if(!cmd_exec) // Dà il comando
@@ -513,6 +585,23 @@ const char* state_name_to_string(Sequence_t seq_switch)
     #ifdef LOG_ACTIVE_MAIN_PRG
         switch(seq_switch)
         {
+            case EMERGENCY_STATE                : return "EMERGENCY_STATE";
+            case CONTAINER_FULL                 : return "CONTAINER_FULL";                
+            case TIMEOUT_STATE                  : return "TIMEOUT_STATE";           
+            case MACHINE_STARTUP_STATE          : return "MACHINE_STARTUP_STATE";       
+            case PUNZONE_STARTUP_STATE          : return "PUNZONE_STARTUP_STATE";        
+            case TAMBURO_STARTUP_STATE          : return "TAMBURO_STARTUP_STATE";      
+            case QUIETE_STATE                   : return "QUIETE_STATE";            
+            case SERVO_LOADER_OPEN_STATE        : return "SERVO_LOADER_OPEN_STATE";  
+            case SERVO_LOADER_CLOSE_STATE       : return "SERVO_LOADER_CLOSE_STATE"; 
+            case REACH_NEXT_STATION_STATE       : return "REACH_NEXT_STATION_STATE"; 
+            case PUNCHER_FIRST_DOWN_FAST_STATE  : return "PUNCHER_DOWN_FAST_STATE";   
+            case PUNCHER_FIRST_DOWN_SLOW_STATE  : return "PUNCHER_DOWN_SLOW_STATE";   
+            case PUNCHER_FIRST_UP_FAST_STATE    : return "PUNCHER_UP_FAST_STATE";
+            case PUNCHER_SECOND_DOWN_FAST_STATE : return "PUNCHER_SECOND_DOWN_FAST_STATE";   
+            case PUNCHER_SECOND_DOWN_SLOW_STATE : return "PUNCHER_SECOND_DOWN_SLOW_STATE";   
+            case PUNCHER_SECOND_UP_FAST_STATE   : return "PUNCHER_SECOND_UP_FAST_STATE";
+            default                             : return "INVALID MAIN PRG SEQUENCE STATE";       
             case EMERGENCY_STATE                : return "EMERGENCY_STATE";
             case CONTAINER_FULL                 : return "CONTAINER_FULL";                
             case TIMEOUT_STATE                  : return "TIMEOUT_STATE";           
