@@ -13,6 +13,8 @@
 
 #define buffSD std::vector<std::string>
 
+//#define SD_LOG_ACTIVE
+
 /// Configurazione dei pin SPI dedicati sull'ESP32-S3
 #define SD_CFG_CS   SD_CS
 #define SD_CFG_MOSI TFT_MOSI
@@ -132,27 +134,37 @@ class SaveToFile
             if constexpr (std::is_integral_v<valType>)
             {
                 ValueToReturn = static_cast<valType>(ValueStrToCast.toInt());
-                Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %d", FilePath.c_str(), key.c_str(), ValueToReturn);
+                #ifdef SD_LOG_ACTIVE
+                    Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %d", FilePath.c_str(), key.c_str(), ValueToReturn);
+                #endif
             }
             else if constexpr (std::is_same_v<valType, float>)
             {
                 ValueToReturn = ValueStrToCast.toFloat();
-                Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %.5f", FilePath.c_str(), key.c_str(), ValueToReturn);
+                #ifdef SD_LOG_ACTIVE
+                    Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %.5f", FilePath.c_str(), key.c_str(), ValueToReturn);
+                #endif
             }
             else if constexpr (std::is_same_v<valType, double>)
             {
                 ValueToReturn = ValueStrToCast.toDouble();
-                Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %.5f", FilePath.c_str(), key.c_str(), ValueToReturn);
+                #ifdef SD_LOG_ACTIVE
+                    Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %.5f", FilePath.c_str(), key.c_str(), ValueToReturn);
+                #endif
             }
             else if constexpr (std::is_same_v<valType, char> || std::is_same_v<valType, unsigned char>)
             {
                 ValueToReturn = static_cast<valType>(ValueStrToCast.charAt(0));
-                Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %c", FilePath.c_str(), key.c_str(), ValueToReturn);
+                #ifdef SD_LOG_ACTIVE
+                    Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %c", FilePath.c_str(), key.c_str(), ValueToReturn);
+                #endif
             }
             else if constexpr (std::is_same_v<valType, String>)
             {
                 ValueToReturn = ValueStrToCast;
-                Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %s", FilePath.c_str(), key.c_str(), ValueToReturn);
+                #ifdef SD_LOG_ACTIVE
+                    Serial.printf("\nSD Card get value\nIn file path %s :\n\"%s\": %s", FilePath.c_str(), key.c_str(), ValueToReturn);
+                #endif
             }
 
             /// Ritorna il valore castato della stringa
@@ -199,8 +211,10 @@ class SaveToFile
                 LogStr = "Creation of new key + value";
             }
 
-            Serial.printf("\n%s\nSD Card Set Value\n%s successfully written in file path %s :\n ", LogStr.c_str(), FilePath.c_str(), NewStr.c_str());
-
+            #ifdef SD_LOG_ACTIVE
+                Serial.printf("\n%s\nSD Card Set Value\n%s successfully written in file path %s :\n ", LogStr.c_str(), FilePath.c_str(), NewStr.c_str());
+            #endif
+            
             /// Ritorna la stringa scritta
             return NewStr;
         }

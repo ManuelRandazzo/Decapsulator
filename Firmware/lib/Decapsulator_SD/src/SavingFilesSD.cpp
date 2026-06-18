@@ -46,13 +46,15 @@ bool SaveToFile::Init(SPIClass &spi, uint8_t sck, uint8_t miso, uint8_t mosi, ui
 {
 	if(!SD.begin(cs, spi, SPI_SD_FREQUENCY, "/sd_card", 15, false))
 	{
-		Serial.printf("\nSD Card Init\nCard Mount Failed, check connections :\
-								     \nSD Card Declared Pins:\
-								     \n   - Sck : %d,\
-								     \n   - Miso: %d,\
-								     \n   - Mosi: %d,\
-								     \n   - Cs  : %d\n\n", 
-								     sck, miso, mosi, cs);
+        #ifdef SD_LOG_ACTIVE
+			Serial.printf("\nSD Card Init\nCard Mount Failed, check connections :\
+									     \nSD Card Declared Pins:\
+									     \n   - Sck : %d,\
+									     \n   - Miso: %d,\
+									     \n   - Mosi: %d,\
+									     \n   - Cs  : %d\n\n", 
+									     sck, miso, mosi, cs);
+		#endif
 		return false;
 	}
 
@@ -63,12 +65,23 @@ bool SaveToFile::Init(SPIClass &spi, uint8_t sck, uint8_t miso, uint8_t mosi, ui
 		case CARD_MMC  : CardType = "MMC"; break;
 		case CARD_SD   : CardType = "SDSC"; break;
 		case CARD_SDHC : CardType = "SDHC"; break;
-		case CARD_NONE : Serial.printf("\nSD Card Infos\nNo SD card attached"); return false;
-		default        : Serial.printf("\nSD Card Infos\nUnknown Card Type"); return false;
+		case CARD_NONE :
+			#ifdef SD_LOG_ACTIVE
+				Serial.printf("\nSD Card Infos\nNo SD card attached");
+			#endif 
+			return false;
+		default        :
+			#ifdef SD_LOG_ACTIVE
+				Serial.printf("\nSD Card Infos\nUnknown Card Type");
+			#endif 
+			return false;
 	}
 	
-	Serial.printf("\nSD Card Infos\nSD Card Type: %s\
-							  \nSD Card Size: %.6fMiB\n", CardType.c_str(), cardSize);
+
+    #ifdef SD_LOG_ACTIVE
+		Serial.printf("\nSD Card Infos\nSD Card Type: %s\
+								  \nSD Card Size: %.6fMiB\n", CardType.c_str(), cardSize);
+	#endif
 
 	return true;
 }
@@ -84,18 +97,24 @@ bool SaveToFile::Init(SPIClass &spi, uint8_t sck, uint8_t miso, uint8_t mosi, ui
 /// Lista i file in una certa directory
 void SaveToFile::ls(String dirname, uint8_t levels, buffSD& existingFiles)
 {
-	Serial.printf("\nSD Card List\nListing directory: %s\n", dirname.c_str());
+	#ifdef SD_LOG_ACTIVE
+		Serial.printf("\nSD Card List\nListing directory: %s\n", dirname.c_str());
+	#endif
 
 	File root = fs.open(dirname);
 	if(!root)
 	{
-		Serial.printf("\nSD Card List\nFailed to open directory");
+		#ifdef SD_LOG_ACTIVE
+			Serial.printf("\nSD Card List\nFailed to open directory");
+		#endif
 		return;
 	}
 
 	if(!root.isDirectory())
 	{
-		Serial.printf("\nSD Card List\nNot a directory");
+		#ifdef SD_LOG_ACTIVE
+			Serial.printf("\nSD Card List\nNot a directory");
+		#endif
 		return;
 	}
 
@@ -125,28 +144,38 @@ void SaveToFile::ls(String dirname, uint8_t levels, buffSD& existingFiles)
 		PathInfo += s.c_str();  // stampa ogni nome file
 		PathInfo += "/";
 	}
-	
-	Serial.printf("\nSD Card List\n%s", PathInfo.c_str());
+
+	#ifdef SD_LOG_ACTIVE
+		Serial.printf("\nSD Card List\n%s", PathInfo.c_str());
+	#endif
 }
 
 /// Crea una nuova directory
-void  SaveToFile::mkdir(const String FilePath)
+void SaveToFile::mkdir(const String FilePath)
 {
-	Serial.printf("\nSD Card Make Directory\nCreating Directory: %s ...\n", FilePath.c_str());
-	if(fs.mkdir(FilePath))
-		Serial.printf("\nSD Card Make Directory\nDirectory created successfully: %s", FilePath.c_str());
-	else
-		Serial.printf("\nSD Card Make Directory\nFailed to make the directory: %s", FilePath.c_str());
+	bool mkdir = fs.mkdir(FilePath);
+
+	#ifdef SD_LOG_ACTIVE
+		Serial.printf("\nSD Card Make Directory\nCreating Directory: %s ...\n", FilePath.c_str());
+		if(mkdir)
+			Serial.printf("\nSD Card Make Directory\nDirectory created successfully: %s", FilePath.c_str());
+		else
+			Serial.printf("\nSD Card Make Directory\nFailed to make the directory: %s", FilePath.c_str());
+	#endif
 }
 
 /// Rimuove una directory e tutte le sue sottodirectory
 void SaveToFile::rmdir(const String FilePath)
 {
-	Serial.printf("\nSD Card Remove Directory\nRemoving Dir: %s\n ...", FilePath.c_str());
-	if(fs.rmdir(FilePath))
-		Serial.printf("\nSD Card Remove Directory\nDirectory removed successfully: %s", FilePath.c_str());
-	else
-		Serial.printf("\nSD Card Remove Directory\nFailed to remove the directory: %s", FilePath.c_str());
+	bool rmdir = fs.rmdir(FilePath);
+
+	#ifdef SD_LOG_ACTIVE
+		Serial.printf("\nSD Card Remove Directory\nRemoving Dir: %s\n ...", FilePath.c_str());
+		if(rmdir)
+			Serial.printf("\nSD Card Remove Directory\nDirectory removed successfully: %s", FilePath.c_str());
+		else
+			Serial.printf("\nSD Card Remove Directory\nFailed to remove the directory: %s", FilePath.c_str());
+	#endif
 }
 
 #pragma endregion DIRECTORIES MANAGMENT
@@ -168,26 +197,41 @@ void SaveToFile::rmdir(const String FilePath)
 		{
 			if(fs.exists(FilePath))
 			{
-				Serial.printf("\nSD Card Read\nFailed to open file for reading : %s", FilePath.c_str());
+				#ifdef SD_LOG_ACTIVE
+					Serial.printf("\nSD Card Read\nFailed to open file for reading : %s", FilePath.c_str());
+				#endif
 				return "";
 			}
 			else
 			{
-				Serial.printf("\nSD Card Read\nFile doesn't exist : %s", FilePath.c_str());
+				#ifdef SD_LOG_ACTIVE
+					Serial.printf("\nSD Card Read\nFile doesn't exist : %s", FilePath.c_str());
+				#endif
 				return "";
 			}
 		}
 
-
-
 		String FileContent = "";
-		while(file.available())
-			/// Forma la stringa carattere per carattere
-			FileContent += static_cast<char>(file.read());
+		size_t fileSize = file.size();
+		if(fileSize > 0)
+		{
+			uint8_t tmpBuffer[(int)(fileSize) + 1];
 
+			/// Forma la stringa
+			if(file.available())
+				file.read(tmpBuffer, fileSize);
+
+			/// Contenuto del file + terminatore di stringa
+			tmpBuffer[fileSize] = '\0';
+
+			FileContent = (const char*)(tmpBuffer);
+
+			#ifdef SD_LOG_ACTIVE
+				Serial.printf("\nSD Card Read\nFile readed successfully : %s\n", FilePath.c_str());
+			#endif
+		}
+		
 		file.close();
-
-		Serial.printf("\nSD Card Read\nFile readed successfully : %s\n", FilePath.c_str());
 
 		return FileContent;      
 	}
@@ -229,7 +273,9 @@ void SaveToFile::rmdir(const String FilePath)
 				FileContent = FileContent.substring(0, i);
 		}      
 
-		Serial.printf("\nSD Card read row\nRow readed successfully : %s\nContent of row : %s\n", FilePath.c_str(), FileContent.c_str());
+		#ifdef SD_LOG_ACTIVE
+			Serial.printf("\nSD Card read row\nRow readed successfully : %s\nContent of row : %s\n", FilePath.c_str(), FileContent.c_str());
+		#endif
 
 		return FileContent;
 	}
@@ -252,7 +298,10 @@ void SaveToFile::rmdir(const String FilePath)
 		/// Se il comment block esiste già non lo riscrive
 		if(FileContent.indexOf(comment) != -1)
 		{
-			Serial.printf("\nSD Card draw section block\nComment block existing yet. Leaving without changes");
+			#ifdef SD_LOG_ACTIVE
+				Serial.printf("\nSD Card draw section block\nComment block existing yet. Leaving without changes");
+			#endif
+			
 			return;
 		}
 
@@ -303,12 +352,14 @@ void SaveToFile::rmdir(const String FilePath)
 	/// Scrive TUTTO il contenuto di un file CANCELLANDO TUTTO quello vecchio
 	void SaveToFile::writeFile(const String FilePath, const String message)
 	{
-		/// Stringa per fare i log    
-		String Logs;
-
 		/// Salva se il file esiste o meno
 		const bool exists = fs.exists(FilePath);
-		Logs += exists ? "File already exists, proceed to overwrite it.\n" : "File doesn't exist, creating a new one.\n";
+
+		#ifdef SD_LOG_ACTIVE
+			/// Stringa per fare i log    
+			String Logs;
+			Logs += exists ? "File already exists, proceed to overwrite it.\n" : "File doesn't exist, creating a new one.\n";
+		#endif
 
 		/// Se il file non esiste lo crea e ci scrive dentro
 		File file = fs.open(FilePath, FILE_WRITE, !exists);
@@ -316,13 +367,18 @@ void SaveToFile::rmdir(const String FilePath)
 		/// Problema ad aprire il file
 		if(!file)
 		{
-			Serial.printf("\nSD Card Write\nProblem while opening the file.\nAborting the process and leaving...");
+			#ifdef SD_LOG_ACTIVE
+				Serial.printf("\nSD Card Write\nProblem while opening the file.\nAborting the process and leaving...");
+			#endif
+
 			return;
 		}
 
-		Logs += file.print(message) ? "File written succesfully" : "Write failed";
+		#ifdef SD_LOG_ACTIVE
+			Logs += file.print(message) ? "File written succesfully" : "Write failed";
 		
-		Serial.printf("\nSD Card Write\n%s", Logs.c_str());
+			Serial.printf("\nSD Card Write\n%s", Logs.c_str());
+		#endif
 
 		file.close();
 	}
@@ -330,24 +386,33 @@ void SaveToFile::rmdir(const String FilePath)
 	/// Scrive qualcosa alla fine di un file, utile per scrivere dati
 	void SaveToFile::appendFile(const String FilePath, const String message)
 	{
-		/// Stringa per fare i log    
-		String Logs;
-
 		/// Salva se il file esiste o meno
 		const bool exists = fs.exists(FilePath);
 		File file = exists ? fs.open(FilePath, FILE_APPEND) : fs.open(FilePath, FILE_APPEND, true);
-		Logs += exists ? "File already exists, proceed to overwrite it.\n" : "File doesn't exist, creating a new one.\n";
+		
+		/// Stringa per fare i log   
+		#ifdef SD_LOG_ACTIVE 
+			String Logs;
+			Logs += exists ? "File already exists, proceed to overwrite it.\n" : "File doesn't exist, creating a new one.\n";
+		#endif
 
 		/// Problema ad aprire il file
 		if(!file)
 		{
-			Serial.printf("\nSD Card Write\nProblem while opening the file.\nAborting the process and leaving...");
+			#ifdef SD_LOG_ACTIVE
+				Serial.printf("\nSD Card Write\nProblem while opening the file.\nAborting the process and leaving...");
+			#endif
+
 			return;
 		}
 
-		Logs += file.print(message) ? "Message appended succesfully" : "Append failed";
+		size_t printFile = file.print(message);
+		
+		#ifdef SD_LOG_ACTIVE
+			Logs += printFile ? "Message appended succesfully" : "Append failed";
 	
-		Serial.printf("\nSD Card Write\n%s", Logs.c_str());
+			Serial.printf("\nSD Card Write\n%s", Logs.c_str());
+		#endif
 	
 		file.close();
 	}
@@ -370,19 +435,25 @@ void SaveToFile::rmdir(const String FilePath)
 	/// Rinomina un file
 	void SaveToFile::renameFile(const String FilePath1, const String FilePath2)
 	{
-		if(fs.rename(FilePath1, FilePath2))
-			Serial.printf("\nSD Card Rename file\nRenaming file %s to %s.\nFile renamed successfully", FilePath1.c_str(), FilePath2.c_str());
-		else
-			Serial.printf("\nSD Card Rename file\nRenaming file %s to %s.\nRename failed", FilePath1.c_str(), FilePath2.c_str());
+		bool rename = fs.rename(FilePath1, FilePath2);
+		#ifdef SD_LOG_ACTIVE
+			if(rename)
+				Serial.printf("\nSD Card Rename file\nRenaming file %s to %s.\nFile renamed successfully", FilePath1.c_str(), FilePath2.c_str());
+			else
+				Serial.printf("\nSD Card Rename file\nRenaming file %s to %s.\nRename failed", FilePath1.c_str(), FilePath2.c_str());
+		#endif
 	}
 
 	/// Rimuove un file
 	void SaveToFile::rmfile(const String FilePath)
 	{
-		if(fs.remove(FilePath))
-			Serial.printf("\nSD Card Remove file\nDeleting file: %s.\nFile deleted successfully.", FilePath.c_str());
-		else
-			Serial.printf("\nSD Card Remove file\nDeleting file: %s.\nDelete failed.", FilePath.c_str());
+		bool remove = fs.remove(FilePath);
+		#ifdef SD_LOG_ACTIVE
+			if(remove)
+				Serial.printf("\nSD Card Remove file\nDeleting file: %s.\nFile deleted successfully.", FilePath.c_str());
+			else
+				Serial.printf("\nSD Card Remove file\nDeleting file: %s.\nDelete failed.", FilePath.c_str());
+		#endif
 	}
 	#pragma endregion RENAME / REMOVE FILE
 #pragma endregion FILES MANAGMENT
