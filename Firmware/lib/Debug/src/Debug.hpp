@@ -44,7 +44,7 @@ using namespace std;// Usato per le stringhe standard del c++
 /// @info: Commentando questa riga si disattivano i log in MQTT senza il bisogno di cancellarli nel programma
 //#define LOG_ACTIVE_MQTT
 /// @info: Commentando questa riga si disattivano i log in SD
-//#define LOG_COPY_TO_SD
+#define LOG_COPY_TO_SD
 /// @info: Commentando questa riga non vi saranno più log da parte del Programma Principale del decapsulator
 #define LOG_ACTIVE_MAIN_PRG
 /// @info: Commentando questa riga non vi saranno più log da parte della TaskTypedef class
@@ -54,7 +54,7 @@ using namespace std;// Usato per le stringhe standard del c++
 /// @info: Commentando questa riga si disattivano i LOG delle code di trasferimento tra main prg e HMI
 //#define LOG_ACTIVE_QUEUE_TRANSFER_MAIN_PRG_AND_HMI
 /// @info: Scommentando questa riga si disattiva il restart dell'esp in caso di fail del wifi e/o dell'MQTT
-//#define NO_ESP_RESTART_ON_CONNECTION_FAILURE
+#define NO_ESP_RESTART_ON_CONNECTION_FAILURE
 
 
 
@@ -85,7 +85,16 @@ struct log_msg_t
     #undef LOG_ACTIVE_MQTT
 #endif
 
-
+/// Disattiva tutti i log se LOG_ACTIVE non è definito
+#ifndef LOG_ACTIVE
+    #undef LOG_ACTIVE_SERIAL
+    #undef LOG_ACTIVE_MQTT
+    #undef LOG_COPY_TO_SD
+    #undef LOG_ACTIVE_MAIN_PRG
+    #undef LOG_ACTIVE_TASK
+    #undef LOG_ACTIVE_MOTION
+    #undef LOG_ACTIVE_QUEUE_TRANSFER_MAIN_PRG_AND_HMI
+#endif
 
 #define _LOG_SNPRINTF_FMT_COLORS_(buffer, size, msg)\
     snprintf(buffer, size, "\033[1;3%dm\n[### %s ###]\033[0m\033[0;3%dm\
