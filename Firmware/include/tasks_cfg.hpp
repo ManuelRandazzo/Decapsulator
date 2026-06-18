@@ -79,7 +79,7 @@ extern TaskHandle_t DateAndTimeHandler;
 enum taskHeapSize_t
 {
     OTA_heap         =  2048, //  2.0 kiB
-    HMI_heap         =  6656, //  6.5 kiB
+    HMI_heap         =  8192, //  8.0 kiB
     JogMotori_heap   =  4096, //  4.0 kiB 
     MainPrg_heap     =  6656, //  6.5 kiB
     Logger_heap      = 12288, // 12.0 kiB
