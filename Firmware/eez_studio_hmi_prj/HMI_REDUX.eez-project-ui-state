@@ -1,14 +1,13 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/0",
-    "selectedUserWidgetObject": "[HMI_REDUX.eez-project]:/userWidgets/0",
-    "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/13",
-    "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/45",
+    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/3",
+    "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/8",
+    "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/24",
     "selectedStyleObject": "[HMI_REDUX.eez-project]:/lvglStyles/styles/5",
     "selectedThemeObject": "[HMI_REDUX.eez-project]:/themes/0",
     "selectedBitmapObject": "[HMI_REDUX.eez-project]:/bitmaps/1",
     "subnavigationSelectedItems": {
-      "variables-tab/sub-navigation/selected-item": "Global"
+      "variables-tab/sub-navigation/selected-item": "Actions"
     }
   },
   "layoutModel": {
@@ -222,24 +221,13 @@
                 {
                   "type": "tab",
                   "id": "#21bd863d-561d-4974-bde1-ecd023aff247",
-                  "name": "Comando_Bottone_Ralla",
+                  "name": "Verify_WiFi",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[HMI_REDUX.eez-project]:/actions/13",
+                    "objectPath": "[HMI_REDUX.eez-project]:/actions/8",
                     "permanent": false
                   },
                   "icon": "material:code"
-                },
-                {
-                  "type": "tab",
-                  "id": "#1520a122-0abe-4b7f-b4bf-40e37e44f7c6",
-                  "name": "Dashboard_Principale",
-                  "component": "editor",
-                  "config": {
-                    "objectPath": "[HMI_REDUX.eez-project]:/userWidgets/0",
-                    "permanent": true
-                  },
-                  "icon": "svg:user_widget"
                 },
                 {
                   "type": "tab",
@@ -574,8 +562,8 @@
             {
               "type": "row",
               "id": "#98aaeffb-4bf2-4fcd-b458-213904caff9b",
-              "weight": 0.3255670726038858,
-              "width": 891,
+              "weight": 0.21339076363711482,
+              "width": 584,
               "children": [
                 {
                   "type": "tabset",
@@ -643,18 +631,17 @@
             {
               "type": "tabset",
               "id": "RUNTIME-EDITORS",
-              "weight": 0.30839350087281664,
-              "selected": 2,
+              "weight": 0.4205698098395876,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
                 {
                   "type": "tab",
                   "id": "#5cf0f9c9-0ab5-4b96-82b7-527468472a47",
-                  "name": "Schermata Diagnostica",
+                  "name": "Schermata Jogger",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[HMI_REDUX.eez-project]:/userPages/3",
+                    "objectPath": "[HMI_REDUX.eez-project]:/userPages/4",
                     "permanent": false
                   },
                   "icon": "svg:page"
@@ -1320,7 +1307,7 @@
           "x": -868.3758585970004,
           "y": -223.22969670690514
         },
-        "scale": 1.25
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1353,16 +1340,15 @@
         "1": {},
         "11": {},
         "12": {},
-        "25": {
-          "$selected": true
-        }
+        "24": {},
+        "25": {}
       },
       "transform": {
         "translate": {
-          "x": -855.6164141414138,
-          "y": -238.10366161616162
+          "x": -439.05533156727165,
+          "y": 50.861789537162736
         },
-        "scale": 1.25
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1390,7 +1376,7 @@
           "x": -332.8017836349071,
           "y": -105.883685877993
         },
-        "scale": 1.25
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1418,10 +1404,10 @@
       },
       "transform": {
         "translate": {
-          "x": -163.5321144470738,
-          "y": -83.17957376493212
+          "x": -421.50029626525577,
+          "y": -149.49927073462902
         },
-        "scale": 1.25
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1434,7 +1420,9 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
-          "1": {},
+          "1": {
+            "$selected": true
+          },
           "2": {
             "0": {
               "1": {},
@@ -1466,10 +1454,10 @@
       },
       "transform": {
         "translate": {
-          "x": -507.56446527495814,
-          "y": -511.3714946399469
+          "x": -339.7120763860686,
+          "y": -125.34516794011245
         },
-        "scale": 1.25
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1491,7 +1479,7 @@
           "x": -289.3452380952381,
           "y": -258.1972789115646
         },
-        "scale": 1.25
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1513,10 +1501,10 @@
       },
       "transform": {
         "translate": {
-          "x": -342.0081373705041,
-          "y": -137.59840650642644
+          "x": -544.0081373705041,
+          "y": -302.59840650642644
         },
-        "scale": 1.25
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1548,7 +1536,7 @@
           "x": -469.7500000000002,
           "y": -152.375
         },
-        "scale": 1.25
+        "scale": 1.1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1561,25 +1549,21 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
-          "0": {}
+          "0": {},
+          "1": {},
+          "5": {}
         },
         "2": {},
-        "3": {
-          "$selected": true
-        },
-        "4": {
-          "$selected": true
-        },
-        "5": {
-          "$selected": true
-        }
+        "3": {},
+        "4": {},
+        "5": {}
       },
       "transform": {
         "translate": {
-          "x": -304.4930701255663,
-          "y": 175.22523177762002
+          "x": -574.24,
+          "y": -219.92249999999996
         },
-        "scale": 1.25
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1592,18 +1576,22 @@
       "selectionFront": {},
       "selectionBack": {
         "1": {},
-        "2": {},
-        "3": {},
+        "2": {
+          "$selected": true
+        },
+        "3": {
+          "$selected": true
+        },
         "5": {
           "$selected": true
         }
       },
       "transform": {
         "translate": {
-          "x": -179.34696969696972,
-          "y": -264.2147727272726
+          "x": -492.3469696969697,
+          "y": -463.2147727272726
         },
-        "scale": 1.25
+        "scale": 1
       },
       "timeline": {
         "isEditorActive": false,
@@ -1786,11 +1774,12 @@
   "lvglExpandedPropertiesGroup": [
     "MISCELLANEOUS",
     "TEXT",
-    "BACKGROUND"
+    "BACKGROUND",
+    "POSITION AND SIZE"
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 1.25,
+  "flowZoom": 1,
   "implementationLanguage": "C++",
   "openDialogDefaultPath": "C:\\Users\\Tomma\\Downloads\\Image.png"
 }

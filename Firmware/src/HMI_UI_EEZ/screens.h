@@ -121,7 +121,11 @@ typedef struct _objects_t {
     lv_obj_t *annulla_config_wifi;
     lv_obj_t *annulla_config_wifi2;
     lv_obj_t *config_wifi;
-    lv_obj_t *messaggio_config_wi_fi;
+    lv_obj_t *tastiera_password_wi_fi;
+    lv_obj_t *nome_rete;
+    lv_obj_t *password_rete;
+    lv_obj_t *pop_up_messaggio_wi_fi;
+    lv_obj_t *messaggio_wiwi;
 } objects_t;
 
 extern objects_t objects;
@@ -152,9 +156,6 @@ void tick_screen_scheramta_config_wi_fi();
 
 void create_screen_schermata_calibrazione();
 void tick_screen_schermata_calibrazione();
-
-void create_user_widget_dashboard_principale(lv_obj_t *parent_obj, void *flowState, int startWidgetIndex);
-void tick_user_widget_dashboard_principale(void *flowState, int startWidgetIndex);
 
 void tick_screen_by_id(enum ScreensEnum screenId);
 void tick_screen(int screen_index);
