@@ -36,7 +36,7 @@ Prototipo a scopo didattico, non destinato alla vendita o all'uso continuativo. 
 
 ## Authors
 - ***Manuel Randazzo*** - Software Designer, Backend Software Developer, Integration Developer, Software Tester, Electrical Designer, Electrical tester, Mechanical Designer.
-- ***Alessio Pisan*** - Electrical Designer, Electrical Tester, Frontend Software Developer, Software Tester.
+- ***Alessio Pisan*** - Electrical Designer, Electrical Tester, Frontend Software Developer, Backend Software Developer, Software Tester.
 - ***Riccardo Pavanetto*** - Mechanical Designer, Mechanical Designer
 - ***Federico Dorigo*** - Scrum Master, Procurement Coordinator, Documentation Coordinator, Payroll Administrator
 - ***Christian Poletti*** - Documentation Contributor
