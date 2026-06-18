@@ -111,7 +111,6 @@ enum taskDelays_t
 {
     MainPrg_delay     =    5,
     JogMotori_delay   =    5,
-    HMI_delay         =  100,
     OTA_delay         =  200,
     Logger_delay      = 1000,
     Autokill_delay    =   10,
