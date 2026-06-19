@@ -30,10 +30,11 @@
 static const uint16_t screenWidth = 480;
 static const uint16_t screenHeight = 320;
 
-enum BoardConstants { LVGL_BUFFER_RATIO = 10 };
+enum BoardConstants { LVGL_BUFFER_RATIO = 1 };
 enum { SCREENBUFFER_SIZE_PIXELS = screenWidth * screenHeight / BoardConstants::LVGL_BUFFER_RATIO };
 
-static uint16_t buf[SCREENBUFFER_SIZE_PIXELS] __attribute__((aligned(4)));
+static uint16_t *buf1 = nullptr;
+static uint16_t *buf2 = nullptr;
 
 /* -------------------------------------------------------------------------- */
 /*  LVGL logging (ultra vital for mental health)                              */
@@ -94,9 +95,22 @@ void prgHMITask(void* pvParameters)
     lv_tick_set_cb(my_tick_get_cb);
     
     static lv_display_t *disp;
+    buf1 = (uint16_t*)heap_caps_aligned_alloc(LV_DRAW_BUF_ALIGN, SCREENBUFFER_SIZE_PIXELS * sizeof(uint16_t), MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM);
+    if(buf1 == nullptr)
+    {
+        Serial.println("ERRORE: impossibile allocare buffer 1 LVGL in PSRAM");
+        vTaskDelete(NULL);
+    }
+
+    buf2 = (uint16_t*)heap_caps_aligned_alloc(LV_DRAW_BUF_ALIGN, SCREENBUFFER_SIZE_PIXELS * sizeof(uint16_t), MALLOC_CAP_DMA | MALLOC_CAP_SPIRAM);
+    if(buf2 == nullptr)
+    {
+        Serial.println("ERRORE: impossibile allocare buffer 2 LVGL in PSRAM");
+        vTaskDelete(NULL);
+    }
     disp = lv_display_create(screenWidth, screenHeight);
     lv_display_set_color_format(disp, LV_COLOR_FORMAT_RGB565);
-    lv_display_set_buffers(disp, buf, NULL, sizeof(buf), LV_DISPLAY_RENDER_MODE_PARTIAL);
+    lv_display_set_buffers(disp, buf1, buf2, SCREENBUFFER_SIZE_PIXELS * sizeof(uint16_t), LV_DISPLAY_RENDER_MODE_PARTIAL);
     lv_display_set_flush_cb(disp, my_disp_flush);
 
     static lv_indev_t *indev;
