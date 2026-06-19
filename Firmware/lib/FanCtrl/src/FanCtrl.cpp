@@ -122,7 +122,7 @@ bool FanCtrl::setDuty(uint8_t duty_percentage)
         return true;
 
     /// Tenta di fare la scrittura della PWM (Write)
-    bool write_ok = ledcWrite(this->fan_pin, this->duty);
+    bool write_ok = ledcWrite(this->fan_pin, duty_percentage);
 
     /// Se la scrittura non è fallita assegna il nuovo duty-cycle
     if(write_ok)
