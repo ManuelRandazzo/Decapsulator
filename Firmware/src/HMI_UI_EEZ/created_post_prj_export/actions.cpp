@@ -98,7 +98,6 @@ void action_conf_wi_fi_page_init(lv_event_t * e)
 
 void action_conf_wi_fi_page_deinit(lv_event_t * e)
 {
-
 }
 
 
@@ -122,10 +121,12 @@ void action_verify_wi_fi(lv_event_t * e)
      *          2. Restituire un bool alla UI -> true=connesso, false=credenziali errate.
      *          3. se è true salva le credenziali in microSD
      */
+    
+    set_var_wi_fi_success(false);
 
     WiFi.mode(WIFI_STA); //per evitare conflitti con le risorse del bluetooth
 
-    String tmpSSID = ""; // Mettere get_var_nome_rete_inserito();
+    String tmpSSID = get_var_nome_rete_inserita();
     String tmpPASS = get_var_password_rete_inserita();
 
     WiFi.begin(tmpSSID, tmpPASS);
@@ -139,6 +140,8 @@ void action_verify_wi_fi(lv_event_t * e)
                 return;
         }
     }
+
+    set_var_wi_fi_success(true);
 
     /// Assegna le nuovi credenziali (se sono cambiate)
     if(tmpSSID != WIFI_SSID )
