@@ -40,7 +40,7 @@
  * - LV_STDLIB_RTTHREAD:    RT-Thread implementation
  * - LV_STDLIB_CUSTOM:      Implement the functions externally
  */
-#define LV_USE_STDLIB_MALLOC    LV_STDLIB_CLIB
+#define LV_USE_STDLIB_MALLOC    LV_STDLIB_CUSTOM
 
 /** Possible values
  * - LV_STDLIB_BUILTIN:     LVGL's built in implementation
@@ -67,9 +67,9 @@
 #define LV_LIMITS_INCLUDE       <limits.h>
 #define LV_STDARG_INCLUDE       <stdarg.h>
 
-#if LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN
+#if LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN || LV_USE_STDLIB_MALLOC == LV_STDLIB_CUSTOM
     /** Size of memory available for `lv_malloc()` in bytes (>= 2kB) */
-    #define LV_MEM_SIZE (64 * 1024U)          /**< [bytes] */
+    #define LV_MEM_SIZE (1024 * 1024U)          /**< [bytes] */
 
     /** Size of the memory expand for `lv_malloc()` in bytes */
     #define LV_MEM_POOL_EXPAND_SIZE 0
@@ -79,6 +79,7 @@
     /* Instead of an address give a memory allocator that will be called to get a memory pool for LVGL. E.g. my_malloc */
     #if LV_MEM_ADR == 0
         #undef LV_MEM_POOL_INCLUDE
+        #define LV_MEM_POOL_INCLUDE <esp_heap_caps.h>
         #undef LV_MEM_POOL_ALLOC
     #endif
 #endif  /*LV_USE_STDLIB_MALLOC == LV_STDLIB_BUILTIN*/
@@ -143,13 +144,13 @@
  * and can't be drawn in chunks. */
 
 /** The target buffer size for simple layer chunks. */
-#define LV_DRAW_LAYER_SIMPLE_BUF_SIZE    (64 * 1024)    /**< [bytes]*/
+#define LV_DRAW_LAYER_SIMPLE_BUF_SIZE    (32 * 1024)    /**< [bytes]*/
 
 /* Limit the max allocated memory for simple and transformed layers.
  * It should be at least `LV_DRAW_LAYER_SIMPLE_BUF_SIZE` sized but if transformed layers are also used
  * it should be enough to store the largest widget too (width x height x 4 area).
  * Set it to 0 to have no limit. */
-#define LV_DRAW_LAYER_MAX_MEMORY 0  /**< No limit by default [bytes]*/
+#define LV_DRAW_LAYER_MAX_MEMORY (32 * 1024)  /**< No limit by default [bytes]*/
 
 /** Stack size of drawing thread.
  * NOTE: If FreeType or ThorVG is enabled, it is recommended to set it to 32KB or more.
