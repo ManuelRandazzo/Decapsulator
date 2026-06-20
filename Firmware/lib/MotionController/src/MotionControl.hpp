@@ -76,6 +76,16 @@ typedef enum : uint8_t
 
 
 
+/// @enum per sapere il finecorsa che viene scelto
+typedef enum : int8_t
+{
+  HARD_NONE = -1,
+  HARD_MIN = 0,
+  HARD_MAX = 1,
+} HardLimit_t;
+
+
+
 /*-----------------------------------------------
   |                                             |
   |               CLASS DECLARATION             |          
@@ -129,7 +139,7 @@ class MOTION
 
     /// Inizializza il motore con l'Homing in modo che si sappia il punto di partenza
     /// @attention Prima dell'home bisogna chiamate setHardLimits o ritornerà senza fare homing
-    void home(double HomeVelocity_gradi_sec, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro, Direction_t searchDirection, double gradiDopoHome);
+    void home(double HomeVelocity_gradi_sec, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro, HardLimit_t HardLimitToReach, Direction_t searchDirection, double gradiDopoHome);
 
     /// @return se è finito(true) o no(false) l'homing
     bool isHomeDone();
@@ -187,16 +197,13 @@ class MOTION
     /// @return la posizione assoluta in steps
     int64_t getPositionInSteps();
 
-    DebPinHandler* HardMax = nullptr; /*!< Puntatore all'oggetto del driver per rilevare il limite massimo */
+    DebPinHandler HardMax; /*!< Oggetto del driver per rilevare il limite massimo */
     
-    DebPinHandler* HardMin = nullptr; /*!< Puntatore all'oggetto del driver per rilevare il limite minimo */
+    DebPinHandler HardMin; /*!< Oggetto del driver per rilevare il limite minimo */
   
   private : /// Dato che la libreria del driver fornisce come protected delle variabili la classe MOTION le eredita
     DRV8825 Motion; /*!< Oggetto del driver usato per il motore */
     
-    DebPinHandler* HardMaxCpy = nullptr; /*!< Copia del puntatore all'oggetto del driver per rilevare il limite massimo */
-    DebPinHandler* HardMinCpy = nullptr; /*!< Copia del puntatore all'oggetto del driver per rilevare il limite minimo */ 
-
     typedef enum : uint8_t { STAND_STILL, HOMING, MOVE_REL, MOVE_ABS, CONTINUOUS } SwitchMove_t;
     
     #ifdef LOG_ACTIVE_MOTION
@@ -215,30 +222,34 @@ class MOTION
     
     uint16_t __stepsMotore;                     /*!< Si salva quanti step/giro ha il motore (Es. 200 step/giro)  */
 
+    enum HomingState_t { HOMING_IDLE, HOMING_SEARCH, HOMING_BACKOFF };
     QueueHandle_t MoveQueueHandler;             /*!< E' l'Handler della coda usata per bufferizzare i comandi di movimento  */
     typedef struct xQueueMoveDataStruct
     {
       /// ID dello stato dell'azione chiamante
       SwitchMove_t __SwitchMove;                /*!< Variabile switch per il movimento del motore nella task  */
+      HomingState_t __homing_state;             /*!< Variabile switch per il movimento del motore durante l'homing  */
 
       /// Dati Homing
       uint64_t __home_steps_us;                 /*!< Velocità dell'homing in step/secondo  */
-      int64_t __home_acc_steps_s2;             /*!< Accelerazione dell'homing in step/secondo^2 */
-      int64_t __home_dec_steps_s2;             /*!< Decelerazione dell'homing in step/secondo^2 */ 
+      int64_t __home_acc_steps_s2;              /*!< Accelerazione dell'homing in step/secondo^2 */
+      int64_t __home_dec_steps_s2;              /*!< Decelerazione dell'homing in step/secondo^2 */ 
       Direction_t __backDir;                    /*!< Direzione di Backoff dopo l'homing */
       int64_t __PostHomeVal;                    /*!< è il valore di cui si deve rispostare in avanti in cui vi sarà la posizione 0 dopo l'homing  */
 
       /// Altri Dati
       uint64_t __speed_steps_us;                /*!< Velocità step/microsecondo  */
-      int64_t __acc_steps_s2;                  /*!< Accelerazione step/secondo^2  */
-      int64_t __dec_steps_s2;                  /*!< Decelerazione step/secondo^2  */ 
+      int64_t __acc_steps_s2;                   /*!< Accelerazione step/secondo^2  */
+      int64_t __dec_steps_s2;                   /*!< Decelerazione step/secondo^2  */ 
       int64_t __move_steps;                     /*!< Passi da eseguire scelti in runtime  */
       Direction_t __dir;                        /*!< Direzione che verrà impostata all'invio del comando  */  
     } MoveQueue_t;
 
+
     const MoveQueue_t defaultReceiverQueue =                      /*!< Struct che contiene i dati fa il reset (default values) degli attuali dati ricevuti  */
     {
       .__SwitchMove = STAND_STILL,       /*!< Variabile switch per il movimento del motore nella task  */
+      .__homing_state = HOMING_IDLE,     /*!< Variabile switch per il movimento del motore durante l'homing  */
 
       /// Dati Homing
       .__home_steps_us = 0,              /*!< Velocità dell'homing in step/secondo  */
@@ -280,11 +291,9 @@ class MOTION
 
     bool __isAttached = false;                /*!< Flag di motore stoppato o avviato modificato da Start() e Stop() e restituito da
                                                    isStopped e isStarted  */
-
     
-    enum HomingState_t { HOMING_IDLE, HOMING_SEARCH, HOMING_BACKOFF };
-    HomingState_t __homing_state = HOMING_IDLE;
 
     CalibSignal_t __calib_signal = UNKNOWN;
+    
     Direction_t __limit_direction = NO_DIR;
 };
