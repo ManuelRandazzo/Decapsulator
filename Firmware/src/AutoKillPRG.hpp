@@ -10,6 +10,7 @@
 #include "WiFi_Config.hpp"
 /// Include il file che contiene i percorsi delle directori (paths) della SD
 #include "filePathsSD.hpp"
+/// TODO: include qui l'header che definisce Sequence_t, se non già incluso sopra
 
 
 
@@ -20,7 +21,11 @@
 /// Struct dei dati da salvare
 struct DatasToSave
 {
-    uint32_t var;
+    Sequence_t lastSequenza;
+    uint8_t    nCicliRimanenti;
+    uint64_t   stepRimanentiRalla;
+    uint64_t   stepRimanentiPunzone;
+    uint16_t   capsuleTotali;
 };
 
 
@@ -30,4 +35,5 @@ struct DatasToSave
 /*║                      EXTERNS                       ║*/
 /*╚════════════════════════════════════════════════════╝*/
 extern void AutoKillTask(void* pvParameters);
-
+extern QueueHandle_t autokillQueueHandler;
+extern TaskHandle_t  MainPrgHandler;
