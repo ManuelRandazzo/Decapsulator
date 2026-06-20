@@ -79,11 +79,11 @@ extern TaskHandle_t DateAndTimeHandler;
 enum taskHeapSize_t
 {
     OTA_heap         =  2048, //  2.0 kiB
-    HMI_heap         =  8192, //  8.0 kiB
-    JogMotori_heap   =  4096, //  4.0 kiB 
+    HMI_heap         = 30720, // 30.0 kiB
+    JogMotori_heap   =  6656, //  6.5 kiB 
     MainPrg_heap     =  6656, //  6.5 kiB
     Logger_heap      = 12288, // 12.0 kiB
-    Autokill_heap    =  4096, //  4.0 KiB
+    Autokill_heap    =  6656, //  6.5 KiB
     DateAndTime_heap =  6656, //  6.5 kiB
 };
 
@@ -112,7 +112,7 @@ enum taskDelays_t
     MainPrg_delay     =    5,
     JogMotori_delay   =    5,
     OTA_delay         =  200,
-    Logger_delay      = 1000,
+    Logger_delay      =  250,
     Autokill_delay    =   10,
     DateAndTime_delay =  500, // Due volte la frequenza dei secondi
 };
