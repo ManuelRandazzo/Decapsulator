@@ -10,7 +10,8 @@
 #include "WiFi_Config.hpp"
 /// Include il file che contiene i percorsi delle directori (paths) della SD
 #include "filePathsSD.hpp"
-/// TODO: include qui l'header che definisce Sequence_t, se non già incluso sopra
+/// Include della definizione di Sequence_t
+#include "DecapsulatorPRG.hpp"
 
 
 
