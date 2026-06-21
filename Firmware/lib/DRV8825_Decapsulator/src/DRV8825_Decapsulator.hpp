@@ -182,17 +182,6 @@ class DRV8825
         std::atomic<bool> _rmtBusy{false};
 
         uint32_t _tmrStartOfRmtTransmit  = 0;
-        uint64_t _acc_end_steps = 0;
-        uint64_t _const_end_steps   = 0;
-
-
-        typedef enum __stati_moto__ : uint8_t
-        {
-            ACCELERATION,
-            CONSTANT,
-            DECELERATION,
-        } StatoMoto_t;
-        StatoMoto_t StatoMoto;
       
 
       
@@ -216,27 +205,7 @@ class DRV8825
         /// si conosce sin da subito la size di _stepPulse
         static constexpr size_t STEP_PULSE_SIZE = sizeof(_stepPulse);
 
-        inline void setAndEnableRMT(uint64_t period_us, const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2);
-
-        // V[steps/s] ^            
-        //            ​​║         
-        //       Vmax ​║ ¯ ¯ ¯/¯¯¯¯¯¯¯¯¯¯¯¯¯\     
-        //            ​║     /               \           
-        //     Vmedia ​║- - / - - - - - - - - \- - ┐  <-- Detta anche Vrichiesta         
-        //            ​║   /                   \   |      
-        //            ​║  /                     \  |      
-        //            ​║ /                       \ |      
-        //            ​║/                         \_____________    
-        //            ╚════════════════════════════════════════════> t [s]          
-        //            ╠══════╬═════════════╬══════╬═══════════╣
-        //              Tacc      Tcost      Tdec     Tstop
-        void calcRampSteps(const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2);
-
-        /// Periodo in us per ogni step in accelerazione e decelerazione pre calcolato
-        uint16_t* _duration_acc_dec = nullptr;
-        uint32_t duration_acc_dec_index = 0;
-        
-        void setAccDecDurations(uint32_t v_max_us, uint32_t n_acc_steps, double t_acc, uint32_t n_dec_steps, double t_dec);
+        inline void setAndEnableRMT(uint64_t period_us);
 
     private:
         /// Questo mutex garantisce che una sola task alla volta acceda alla risorsa condivisa o alle variabili
