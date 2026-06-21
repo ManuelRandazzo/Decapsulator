@@ -109,8 +109,8 @@ enum taskPriority_t
  */
 enum taskDelays_t
 {
-    MainPrg_delay     =    5,
-    JogMotori_delay   =    5,
+    MainPrg_delay     =   10,
+    JogMotori_delay   =   20,
     OTA_delay         =  200,
     Logger_delay      =  250,
     Autokill_delay    =   10,
