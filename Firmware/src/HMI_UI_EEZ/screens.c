@@ -724,7 +724,7 @@ void create_screen_schermata_principale() {
             objects.finestra_errore = obj;
             lv_obj_set_pos(obj, 92, 35);
             lv_obj_set_size(obj, 300, 200);
-            lv_obj_remove_flag(obj, LV_OBJ_FLAG_CLICKABLE|LV_OBJ_FLAG_SCROLLABLE);
+            lv_obj_remove_flag(obj, LV_OBJ_FLAG_SCROLLABLE);
             lv_obj_set_style_bg_opa(obj, 200, LV_PART_MAIN | LV_STATE_DEFAULT);
             lv_obj_set_style_text_font(obj, &lv_font_montserrat_22, LV_PART_MAIN | LV_STATE_DEFAULT);
             {
