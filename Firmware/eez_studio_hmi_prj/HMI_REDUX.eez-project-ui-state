@@ -1,7 +1,7 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/3",
-    "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/8",
+    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/4",
+    "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/12",
     "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/24",
     "selectedStyleObject": "[HMI_REDUX.eez-project]:/lvglStyles/styles/5",
     "selectedThemeObject": "[HMI_REDUX.eez-project]:/themes/0",
@@ -214,17 +214,17 @@
               "type": "tabset",
               "id": "EDITORS",
               "weight": 62.70412003290298,
-              "selected": 10,
+              "selected": 7,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
                 {
                   "type": "tab",
                   "id": "#21bd863d-561d-4974-bde1-ecd023aff247",
-                  "name": "Verify_WiFi",
+                  "name": "Comando_Bottone_Punzone",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[HMI_REDUX.eez-project]:/actions/8",
+                    "objectPath": "[HMI_REDUX.eez-project]:/actions/12",
                     "permanent": false
                   },
                   "icon": "material:code"
@@ -1307,7 +1307,7 @@
           "x": -868.3758585970004,
           "y": -223.22969670690514
         },
-        "scale": 1
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1348,7 +1348,7 @@
           "x": -439.05533156727165,
           "y": 50.861789537162736
         },
-        "scale": 1
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1376,7 +1376,7 @@
           "x": -332.8017836349071,
           "y": -105.883685877993
         },
-        "scale": 1
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1405,9 +1405,9 @@
       "transform": {
         "translate": {
           "x": -421.50029626525577,
-          "y": -149.49927073462902
+          "y": -89.49927073462902
         },
-        "scale": 1
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1420,9 +1420,7 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
-          "1": {
-            "$selected": true
-          },
+          "1": {},
           "2": {
             "0": {
               "1": {},
@@ -1450,14 +1448,17 @@
           "4": {}
         },
         "39": {},
-        "48": {}
+        "48": {},
+        "70": {
+          "$selected": true
+        }
       },
       "transform": {
         "translate": {
-          "x": -339.7120763860686,
-          "y": -125.34516794011245
+          "x": -749.8168604177927,
+          "y": -644.05664932323
         },
-        "scale": 1
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1479,7 +1480,7 @@
           "x": -289.3452380952381,
           "y": -258.1972789115646
         },
-        "scale": 1
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1504,7 +1505,7 @@
           "x": -544.0081373705041,
           "y": -302.59840650642644
         },
-        "scale": 1
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1563,7 +1564,7 @@
           "x": -574.24,
           "y": -219.92249999999996
         },
-        "scale": 1
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1591,7 +1592,7 @@
           "x": -492.3469696969697,
           "y": -463.2147727272726
         },
-        "scale": 1
+        "scale": 0.8
       },
       "timeline": {
         "isEditorActive": false,
@@ -1736,13 +1737,17 @@
       }
     },
     "[HMI_REDUX.eez-project]:/actions/12[flow-state]": {
-      "selection": {},
+      "selection": {
+        "10": {
+          "$selected": true
+        }
+      },
       "transform": {
         "translate": {
-          "x": 121.78888888888889,
-          "y": -6.0277777777777715
+          "x": -260.1767550505051,
+          "y": 55.37955447330447
         },
-        "scale": 0.8
+        "scale": 1.25
       }
     },
     "[HMI_REDUX.eez-project]:/actions/13[flow-state]": {
@@ -1779,7 +1784,7 @@
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 1,
+  "flowZoom": 0.8,
   "implementationLanguage": "C++",
   "openDialogDefaultPath": "C:\\Users\\Tomma\\Downloads\\Image.png"
 }

@@ -638,7 +638,7 @@
           "type": "SetVariableActionComponent",
           "left": 136.5,
           "top": -118,
-          "width": 239,
+          "width": 238,
           "height": 79,
           "customInputs": [],
           "customOutputs": [],
@@ -1600,8 +1600,8 @@
         {
           "objID": "2289ec24-7b49-48da-c884-ffe3f587fc18",
           "type": "SetVariableActionComponent",
-          "left": 22.5,
-          "top": 36.5,
+          "left": 271,
+          "top": 30,
           "width": 257,
           "height": 57,
           "customInputs": [],
@@ -1617,8 +1617,8 @@
         {
           "objID": "89789757-7e8b-49bb-8140-3063c3e1a9ee",
           "type": "SetVariableActionComponent",
-          "left": 22.5,
-          "top": -86.5,
+          "left": 511,
+          "top": -162,
           "width": 275,
           "height": 57,
           "customInputs": [],
@@ -1637,7 +1637,7 @@
           "left": -332.5,
           "top": -151.5,
           "width": 305,
-          "height": 130,
+          "height": 92,
           "customInputs": [],
           "customOutputs": [],
           "description": "Motore Punzone Abilitato",
@@ -1659,36 +1659,20 @@
               "disabledType": "literal"
             },
             {
-              "objID": "5f2e23c3-44f2-4aea-9c9e-a66bcce0c48c",
-              "action": "objAddFlag",
-              "object": "puls_jog_av_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
               "objID": "edf81103-c342-4842-f340-6539878469d2",
               "action": "objSetStateDisabled",
               "object": "puls_jog_ind_punz",
               "objectType": "literal",
               "disabled": false,
               "disabledType": "literal"
-            },
-            {
-              "objID": "0c4f7ce9-a611-48a0-9e5c-66dcd0feca8f",
-              "action": "objAddFlag",
-              "object": "puls_jog_ind_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
             }
           ]
         },
         {
           "objID": "483c5e60-def0-4477-d1ea-10479b7e93e8",
           "type": "SetVariableActionComponent",
-          "left": 356.5,
-          "top": -86.5,
+          "left": 819,
+          "top": -162,
           "width": 226,
           "height": 57,
           "customInputs": [],
@@ -1707,7 +1691,7 @@
           "left": -326.5,
           "top": 21.5,
           "width": 299,
-          "height": 130,
+          "height": 92,
           "customInputs": [],
           "customOutputs": [],
           "description": "Motore Punzone Disabilitato",
@@ -1729,36 +1713,20 @@
               "disabledType": "literal"
             },
             {
-              "objID": "8591f6a7-287e-4913-fc87-de165699f340",
-              "action": "objClearFlag",
-              "object": "puls_jog_av_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
-            },
-            {
               "objID": "91ef9bdb-00cb-4265-848d-02a4ddd55997",
               "action": "objSetStateDisabled",
               "object": "puls_jog_ind_punz",
               "objectType": "literal",
               "disabled": true,
               "disabledType": "literal"
-            },
-            {
-              "objID": "32223b4a-8b06-4205-cbff-b04e1f5cbcaf",
-              "action": "objClearFlag",
-              "object": "puls_jog_ind_punz",
-              "objectType": "literal",
-              "flag": "CLICKABLE",
-              "flagType": "literal"
             }
           ]
         },
         {
           "objID": "77833562-948f-4b6a-d316-421c6ad2ecd0",
           "type": "SetVariableActionComponent",
-          "left": 356.5,
-          "top": 36.5,
+          "left": 605,
+          "top": 30,
           "width": 232,
           "height": 57,
           "customInputs": [],
@@ -1807,28 +1775,76 @@
           "text": "<div><!--block-->ABILITAZIONE/DISABILITAZIONE MOTORE PUNZONE</div>",
           "collapsed": false,
           "expandedWidth": 435
+        },
+        {
+          "objID": "37df22fd-bdec-4020-8c10-f6a7be7ff0ba",
+          "type": "IsTrueActionComponent",
+          "left": 0,
+          "top": -186,
+          "width": 165,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Stato_Finecorsa_Min"
+        },
+        {
+          "objID": "b0b5f87d-896a-456a-bb0b-d00cfe6caf0a",
+          "type": "IsTrueActionComponent",
+          "left": 0,
+          "top": -116,
+          "width": 165,
+          "height": 70,
+          "customInputs": [],
+          "customOutputs": [],
+          "value": "Stato_Finecorsa_Max"
+        },
+        {
+          "objID": "7b2b10a7-a07c-436e-8925-7568ffae4ca7",
+          "type": "LVGLActionComponent",
+          "left": 184,
+          "top": -186,
+          "width": 280,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "51f0c380-01df-4272-f722-10c797088394",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_ind_punz",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "8121f141-0318-4126-e33a-4ff4fa8c3067",
+          "type": "LVGLActionComponent",
+          "left": 187,
+          "top": -116,
+          "width": 274,
+          "height": 54,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "3471c32f-61b9-4046-f202-22e67e078b36",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_av_punz",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            }
+          ]
         }
       ],
       "connectionLines": [
-        {
-          "objID": "f1cfeb72-741a-4979-b9a4-2c1e66bcb670",
-          "source": "b0b718f5-5d0a-42af-d78d-3c608479ca3a",
-          "output": "@seqout",
-          "target": "89789757-7e8b-49bb-8140-3063c3e1a9ee",
-          "input": "@seqin"
-        },
         {
           "objID": "aeed7503-46d0-4030-87d3-7aa9634c1b3d",
           "source": "89789757-7e8b-49bb-8140-3063c3e1a9ee",
           "output": "@seqout",
           "target": "483c5e60-def0-4477-d1ea-10479b7e93e8",
-          "input": "@seqin"
-        },
-        {
-          "objID": "9b91371f-cdf0-41d4-8ab1-d710228f0786",
-          "source": "16cb863f-13a9-418d-f932-2c10fd917b40",
-          "output": "@seqout",
-          "target": "2289ec24-7b49-48da-c884-ffe3f587fc18",
           "input": "@seqin"
         },
         {
@@ -1850,6 +1866,69 @@
           "source": "348acc4d-2fae-419a-f22f-77e3ca8b06fe",
           "output": "False",
           "target": "16cb863f-13a9-418d-f932-2c10fd917b40",
+          "input": "@seqin"
+        },
+        {
+          "objID": "45b0b13a-cb52-4f36-e356-00c75edc043f",
+          "source": "b0b718f5-5d0a-42af-d78d-3c608479ca3a",
+          "output": "@seqout",
+          "target": "37df22fd-bdec-4020-8c10-f6a7be7ff0ba",
+          "input": "@seqin"
+        },
+        {
+          "objID": "67ad31c6-baf0-491b-9d92-0af8f68ce474",
+          "source": "b0b718f5-5d0a-42af-d78d-3c608479ca3a",
+          "output": "@seqout",
+          "target": "b0b5f87d-896a-456a-bb0b-d00cfe6caf0a",
+          "input": "@seqin"
+        },
+        {
+          "objID": "7be60ce5-bcea-46d0-c954-cb06875290fb",
+          "source": "16cb863f-13a9-418d-f932-2c10fd917b40",
+          "output": "@seqout",
+          "target": "2289ec24-7b49-48da-c884-ffe3f587fc18",
+          "input": "@seqin"
+        },
+        {
+          "objID": "d8de53ac-9dcc-4ebb-923c-b742e2208b9d",
+          "source": "37df22fd-bdec-4020-8c10-f6a7be7ff0ba",
+          "output": "True",
+          "target": "7b2b10a7-a07c-436e-8925-7568ffae4ca7",
+          "input": "@seqin"
+        },
+        {
+          "objID": "25803126-8aab-4611-e9a0-f4ccb5fed738",
+          "source": "37df22fd-bdec-4020-8c10-f6a7be7ff0ba",
+          "output": "False",
+          "target": "89789757-7e8b-49bb-8140-3063c3e1a9ee",
+          "input": "@seqin"
+        },
+        {
+          "objID": "5d982acc-455a-4a89-d9d3-7e3424d3d74f",
+          "source": "b0b5f87d-896a-456a-bb0b-d00cfe6caf0a",
+          "output": "False",
+          "target": "89789757-7e8b-49bb-8140-3063c3e1a9ee",
+          "input": "@seqin"
+        },
+        {
+          "objID": "914d2ec3-ff22-488b-8b37-ccdf58a6f554",
+          "source": "7b2b10a7-a07c-436e-8925-7568ffae4ca7",
+          "output": "@seqout",
+          "target": "89789757-7e8b-49bb-8140-3063c3e1a9ee",
+          "input": "@seqin"
+        },
+        {
+          "objID": "a053de35-931e-4ed2-ee17-7450d90a4631",
+          "source": "b0b5f87d-896a-456a-bb0b-d00cfe6caf0a",
+          "output": "True",
+          "target": "8121f141-0318-4126-e33a-4ff4fa8c3067",
+          "input": "@seqin"
+        },
+        {
+          "objID": "5ed54281-6c9e-40d9-fcae-a24a7bd6bba4",
+          "source": "8121f141-0318-4126-e33a-4ff4fa8c3067",
+          "output": "@seqout",
+          "target": "89789757-7e8b-49bb-8140-3063c3e1a9ee",
           "input": "@seqin"
         }
       ],
@@ -7340,7 +7419,7 @@
                 {
                   "objID": "c6280791-6256-4fc8-bbe6-5f02ca3e1787",
                   "type": "LVGLContainerWidget",
-                  "left": -14,
+                  "left": 74,
                   "top": 160,
                   "width": 88,
                   "height": 53,
@@ -7486,7 +7565,7 @@
                 {
                   "objID": "b0e8b7c3-6cf9-4d31-b106-32a155be0001",
                   "type": "LVGLContainerWidget",
-                  "left": 74,
+                  "left": -14,
                   "top": 160,
                   "width": 88,
                   "height": 53,
@@ -8375,7 +8454,7 @@
           "type": "SetVariableActionComponent",
           "left": 327,
           "top": 498,
-          "width": 454,
+          "width": 453,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -8727,7 +8806,7 @@
           "type": "LVGLActionComponent",
           "left": 1229,
           "top": 1165,
-          "width": 293,
+          "width": 292,
           "height": 73,
           "customInputs": [],
           "customOutputs": [],
@@ -8905,7 +8984,7 @@
           "type": "LVGLActionComponent",
           "left": 584,
           "top": 158,
-          "width": 379,
+          "width": 378,
           "height": 54,
           "customInputs": [],
           "customOutputs": [],
@@ -9202,7 +9281,7 @@
           "type": "IsTrueActionComponent",
           "left": -384,
           "top": 563,
-          "width": 172,
+          "width": 171,
           "height": 70,
           "customInputs": [],
           "customOutputs": [],
@@ -9224,7 +9303,7 @@
           "type": "SetVariableActionComponent",
           "left": 751,
           "top": -471,
-          "width": 239,
+          "width": 238,
           "height": 101,
           "customInputs": [],
           "customOutputs": [],
@@ -9249,24 +9328,24 @@
         {
           "objID": "6a519e08-afa3-449a-a754-62c994e7ae85",
           "type": "IsTrueActionComponent",
-          "left": 980,
-          "top": 700,
-          "width": 165,
+          "left": 967,
+          "top": 715,
+          "width": 227,
           "height": 70,
           "customInputs": [],
           "customOutputs": [],
-          "value": "Stato_Finecorsa_Max"
+          "value": "Stato_Sensore_di_Calibrazione"
         },
         {
           "objID": "73e31c6d-d670-48a3-af46-603061893d8a",
           "type": "IsTrueActionComponent",
           "left": 922,
           "top": 887,
-          "width": 227,
+          "width": 165,
           "height": 70,
           "customInputs": [],
           "customOutputs": [],
-          "value": "Stato_Sensore_di_Calibrazione"
+          "value": "Stato_Finecorsa_Min"
         },
         {
           "objID": "cef0c29b-332b-4b57-86a5-d6ce332d4778",
@@ -9376,26 +9455,6 @@
           "value": "Comando_Bottone_Punzone"
         },
         {
-          "objID": "fe1eefff-20f4-4b26-fcf8-29f203ccec3a",
-          "type": "LVGLActionComponent",
-          "left": 1459,
-          "top": 1053,
-          "width": 280,
-          "height": 54,
-          "customInputs": [],
-          "customOutputs": [],
-          "actions": [
-            {
-              "objID": "1e370b3c-31d1-4f54-e175-b7ebe1b0f810",
-              "action": "objSetStateDisabled",
-              "object": "puls_jog_ind_punz",
-              "objectType": "literal",
-              "disabled": true,
-              "disabledType": "literal"
-            }
-          ]
-        },
-        {
           "objID": "fe5b6f84-aeb4-4fa5-ac13-7ef7ec6949d9",
           "type": "IsTrueActionComponent",
           "left": 1229,
@@ -9407,17 +9466,25 @@
           "value": "Comando_Bottone_Punzone"
         },
         {
-          "objID": "c0553845-8b0f-443b-f9ce-9b44b2f186e5",
+          "objID": "30fd3c31-cdd4-4905-fa55-ac8dbbdb24e0",
           "type": "LVGLActionComponent",
           "left": 1444,
           "top": 1335,
-          "width": 274,
-          "height": 54,
+          "width": 299,
+          "height": 73,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
             {
-              "objID": "94635bbb-063f-4b72-bfd6-563cd804b58d",
+              "objID": "742ef85b-1660-4e03-aa13-db80a0251dbd",
+              "action": "objClearState",
+              "object": "stato_finecorsa_max",
+              "objectType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "a10a5ff7-720b-4a27-f50f-ad114b0dad08",
               "action": "objSetStateDisabled",
               "object": "puls_jog_av_punz",
               "objectType": "literal",
@@ -9425,6 +9492,44 @@
               "disabledType": "literal"
             }
           ]
+        },
+        {
+          "objID": "83e9eac1-780a-4cb0-cacd-4cabe8331199",
+          "type": "LVGLActionComponent",
+          "left": 1459,
+          "top": 1041,
+          "width": 299,
+          "height": 73,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "eb939d2a-768d-45f1-d748-ed4c49388946",
+              "action": "objClearState",
+              "object": "stato_finecorsa_min",
+              "objectType": "literal",
+              "state": "CHECKED",
+              "stateType": "literal"
+            },
+            {
+              "objID": "d7021897-96fd-4250-8c4a-74da9302d6f2",
+              "action": "objSetStateDisabled",
+              "object": "puls_jog_ind_punz",
+              "objectType": "literal",
+              "disabled": true,
+              "disabledType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "6fe2892a-61d4-49eb-c462-47ae915cc74d",
+          "type": "StartActionComponent",
+          "left": -571,
+          "top": 515,
+          "width": 87,
+          "height": 24,
+          "customInputs": [],
+          "customOutputs": []
         }
       ],
       "connectionLines": [
@@ -9842,27 +9947,6 @@
           "input": "@seqin"
         },
         {
-          "objID": "41134a4e-98ae-4779-ed32-3731d849b9a6",
-          "source": "fe1eefff-20f4-4b26-fcf8-29f203ccec3a",
-          "output": "@seqout",
-          "target": "fc92a21e-da76-45d6-be62-e95c32c17613",
-          "input": "@seqin"
-        },
-        {
-          "objID": "47bb19c1-f7d6-4e34-b54a-83b205e15987",
-          "source": "026a3f80-b3b0-4ec2-e5da-fe4e4c23f5ae",
-          "output": "False",
-          "target": "fe1eefff-20f4-4b26-fcf8-29f203ccec3a",
-          "input": "@seqin"
-        },
-        {
-          "objID": "4cfd6404-56f1-4d1d-9938-94a7f5735681",
-          "source": "fe5b6f84-aeb4-4fa5-ac13-7ef7ec6949d9",
-          "output": "False",
-          "target": "c0553845-8b0f-443b-f9ce-9b44b2f186e5",
-          "input": "@seqin"
-        },
-        {
           "objID": "cb658953-deb9-425f-912a-7582251c1875",
           "source": "cef0c29b-332b-4b57-86a5-d6ce332d4778",
           "output": "False",
@@ -9877,10 +9961,45 @@
           "input": "@seqin"
         },
         {
-          "objID": "990b5f37-74f2-42fc-aae2-13d8ddd81462",
-          "source": "c0553845-8b0f-443b-f9ce-9b44b2f186e5",
+          "objID": "c91d0b12-fb8a-4cb6-9727-c4e31055ec30",
+          "source": "fe5b6f84-aeb4-4fa5-ac13-7ef7ec6949d9",
+          "output": "False",
+          "target": "30fd3c31-cdd4-4905-fa55-ac8dbbdb24e0",
+          "input": "@seqin"
+        },
+        {
+          "objID": "b04bcb6b-974a-495f-cce0-4259eac49200",
+          "source": "30fd3c31-cdd4-4905-fa55-ac8dbbdb24e0",
           "output": "@seqout",
           "target": "30505328-e528-476d-d592-4e473aa03ce5",
+          "input": "@seqin"
+        },
+        {
+          "objID": "fb6f9d15-aaf6-4574-ecca-42fe5ab25fca",
+          "source": "026a3f80-b3b0-4ec2-e5da-fe4e4c23f5ae",
+          "output": "False",
+          "target": "83e9eac1-780a-4cb0-cacd-4cabe8331199",
+          "input": "@seqin"
+        },
+        {
+          "objID": "52d18abc-fd4a-47a0-dda4-70bd05f011a2",
+          "source": "83e9eac1-780a-4cb0-cacd-4cabe8331199",
+          "output": "@seqout",
+          "target": "fc92a21e-da76-45d6-be62-e95c32c17613",
+          "input": "@seqin"
+        },
+        {
+          "objID": "1f43c478-f15d-4c05-f892-c91d9e412b41",
+          "source": "6fe2892a-61d4-49eb-c462-47ae915cc74d",
+          "output": "@seqout",
+          "target": "f519b226-d044-44dd-a55d-618ba239c5a4",
+          "input": "@seqin"
+        },
+        {
+          "objID": "16a85f97-2701-43ac-93e1-5e871c634e7a",
+          "source": "6fe2892a-61d4-49eb-c462-47ae915cc74d",
+          "output": "@seqout",
+          "target": "f207d756-8bd1-4261-f791-49e88afda8f4",
           "input": "@seqin"
         }
       ],

@@ -19,21 +19,17 @@ void prgJogMotoriTask(void *pvParameters)
     /// Sarà la task dell'HMI che deciderà se sospendere o attivare le task del programma main e di jog
     vTaskSuspend(NULL);
 
+    uint32_t tmr = 0;
+    
     while(1)
     {
         #pragma region (PUNZONE)
 
-        /// Legge il sensore di finecorsa MASSIMO del Punzone
-        if(PUNZ_INPUT_PULL == INPUT_PULLUP)
-            set_var_stato_finecorsa_max(!digitalReadFast(PUNZ_MAX_POS_PIN));
-        else
-            set_var_stato_finecorsa_max(digitalReadFast(PUNZ_MAX_POS_PIN));
-
         /// Legge il sensore di finecorsa MINIMO del Punzone
-        if(PUNZ_INPUT_PULL == INPUT_PULLUP)
-            set_var_stato_finecorsa_max(!digitalReadFast(PUNZ_MIN_POS_PIN));
-        else
-            set_var_stato_finecorsa_max(digitalReadFast(PUNZ_MIN_POS_PIN));
+        set_var_stato_finecorsa_min(MotPunzone.HardMin.rawRead() == (int8_t)(PUNZ_CAM_SIGNAL));
+
+        /// Legge il sensore di finecorsa MASSIMO del Punzone
+        set_var_stato_finecorsa_max(MotPunzone.HardMax.rawRead() == (int8_t)(PUNZ_CAM_SIGNAL));
         
         /// Converte le stringhe in numeri double positivi
         gradi_per_click_punz = abs(String(get_var_gradi_per_click_punz()).toDouble());
@@ -62,7 +58,7 @@ void prgJogMotoriTask(void *pvParameters)
         {
             int8_t punz_jog_dir = 0;
             if(xQueueReceive(queue_direzione_comando_punzone, &punz_jog_dir, 0) == pdTRUE)
-                MotPunzone.moveRel(punz_jog_dir * gradi_per_click_punz, speed_motore_punz);
+                MotPunzone.moveRel(punz_jog_dir * gradi_per_click_punz, speed_motore_punz, 110.0, 110.0);
         }
 
         set_var_stato_motore_punzone(!MotPunzone.isStepDone());
@@ -81,11 +77,8 @@ void prgJogMotoriTask(void *pvParameters)
         gradi_per_click_ralla = abs(String(get_var_gradi_per_click_ralla()).toDouble());
         speed_motore_ralla    = abs(String(get_var_speed_motore_ralla()).toDouble());
 
-        /// Legge il sensore di calibrazione della Ralla
-        if(RALLA_INPUT_PULL == INPUT_PULLUP)
-            set_var_stato_sensore_di_calibrazione(!digitalReadFast(RALLA_CALIB_PIN));
-        else
-            set_var_stato_sensore_di_calibrazione(digitalReadFast(RALLA_CALIB_PIN));
+        /// Legge il sensore di calibrazione della RALLA
+        set_var_stato_sensore_di_calibrazione(MotRalla.HardMax.rawRead() == (int8_t)(RALLA_CAM_SIGNAL));
                     
         /// Enable/Disable Motore Tamburo
         if(get_var_comando_motore_ralla() == true)
@@ -110,7 +103,7 @@ void prgJogMotoriTask(void *pvParameters)
         {
             int8_t ralla_jog_dir = 0;
             if(xQueueReceive(queue_direzione_comando_ralla, &ralla_jog_dir, 0) == pdTRUE)
-                MotRalla.moveRel(ralla_jog_dir * gradi_per_click_ralla, speed_motore_ralla);
+                MotRalla.moveRel(ralla_jog_dir * gradi_per_click_ralla, speed_motore_ralla, 110.0, 110.0);
         }
 
         set_var_stato_motore_ralla(!MotRalla.isStepDone());
@@ -137,7 +130,7 @@ void prgJogMotoriTask(void *pvParameters)
             break;
 
             case 1 : /// HOMING CMD PUNZONE
-                MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_ACC, PUNZ_HOME_DEC, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
+                MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_ACC, PUNZ_HOME_DEC, HARD_MAX, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
                 StateHoming++;
             break;
 
@@ -148,7 +141,7 @@ void prgJogMotoriTask(void *pvParameters)
 
             case 3 : /// HOMING CMD RALLA
                 MotRalla.reattachHardLimits();
-                MotRalla.home(RALLA_HOME_SPEED, RALLA_HOME_ACC, RALLA_HOME_DEC, RALLA_HOME_DIR, RALLA_POST_HOME_POS);
+                MotRalla.home(RALLA_HOME_SPEED, RALLA_HOME_ACC, RALLA_HOME_DEC, HARD_MAX, RALLA_HOME_DIR, RALLA_POST_HOME_POS);
                 StateHoming++;
             break;
 

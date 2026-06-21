@@ -1590,7 +1590,7 @@ void create_screen_schermata_jogger() {
                     // Finecorsa Max
                     lv_obj_t *obj = lv_obj_create(parent_obj);
                     objects.finecorsa_max = obj;
-                    lv_obj_set_pos(obj, -14, 160);
+                    lv_obj_set_pos(obj, 74, 160);
                     lv_obj_set_size(obj, 88, 53);
                     lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -1630,7 +1630,7 @@ void create_screen_schermata_jogger() {
                     // Finecorsa Min
                     lv_obj_t *obj = lv_obj_create(parent_obj);
                     objects.finecorsa_min = obj;
-                    lv_obj_set_pos(obj, 74, 160);
+                    lv_obj_set_pos(obj, -14, 160);
                     lv_obj_set_size(obj, 88, 53);
                     lv_obj_set_style_pad_left(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
                     lv_obj_set_style_pad_top(obj, 0, LV_PART_MAIN | LV_STATE_DEFAULT);
