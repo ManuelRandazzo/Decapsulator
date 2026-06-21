@@ -179,6 +179,14 @@ drv_err_t DRV8825::update()
     if(localStepsLeft == 0)
     {
         this->_isStepDone.store(true, std::memory_order_release);
+
+        if(!this->_isContinuousMove && xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdTRUE)
+        {
+            this->_absStepCounter += this->_direction * this->_stepsRequestedThisMove.load(std::memory_order_acquire);
+            xSemaphoreGive(this->_mutex);
+        }
+
+        this->_period_us = 0;
         this->_tmrStartOfRmtTransmit = 0;
         StatoMoto = ACCELERATION;
         return DRV_OK;
@@ -215,7 +223,7 @@ drv_err_t DRV8825::update()
 
         case CONSTANT :
         {
-            this->_stepPulse[0].duration1 = (uint16_t)(this->_period_us);
+            this->_stepPulse[0].duration1 = (uint16_t)(this->_period_us / DRV8825_RMT_PULSE_US) - DRV8825_RMT_DURATION_0;
 
             uint32_t remaining_const = localStepsLeft - this->_const_end_steps;
             next_tx_steps = std::min<uint32_t>(remaining_const, DRV8825_RMT_MAX_LOOP_COUNT);
@@ -322,17 +330,25 @@ int64_t DRV8825::getAbsPosition()
 {
     if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
         return DRV_FAIL;
- 
-    if(this->_period_us > 0)
-    {
-        /// Salva il tempo
-        uint32_t tmrEndSteps = micros();
-        int64_t stepsFatti = (tmrEndSteps - this->_tmrStartOfRmtTransmit) / this->_period_us;
-        this->_absStepCounter += this->_direction * stepsFatti;
-    }
-    int64_t absolute_position = this->_absStepCounter;
 
+    int64_t absolute_position = this->_absStepCounter;
     xSemaphoreGive(this->_mutex);
+
+    if(!this->_isStepDone.load(std::memory_order_acquire))
+    {
+        if(!this->_isContinuousMove)
+        {
+            int64_t requested = this->_stepsRequestedThisMove.load(std::memory_order_acquire);
+            uint64_t stepsLeftNow = this->_stepsLeft.load(std::memory_order_acquire);
+            absolute_position += this->_direction * (requested - (int64_t)stepsLeftNow);
+        }
+        else if(this->_period_us > 0)
+        {
+            uint32_t tmrEndSteps = micros();
+            int64_t stepsFatti = (tmrEndSteps - this->_tmrStartOfRmtTransmit) / this->_period_us;
+            absolute_position += this->_direction * stepsFatti;
+        }
+    }
 
     return absolute_position;
 }
@@ -347,6 +363,8 @@ drv_err_t DRV8825::step(uint64_t numberOfStepsToDo, uint64_t period_us, uint64_t
     /// Se il numero di step è più alto di 32767 (max di loop_count)
     /// deve essere fatto ripartire più volte
     this->_stepsLeft.store(numberOfStepsToDo, std::memory_order_release);
+    this->_stepsRequestedThisMove.store((int64_t)numberOfStepsToDo, std::memory_order_release);
+    this->_isContinuousMove = false;
 
     if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
         return DRV_ERR_MUX_TAKE_TIMEOUT;
@@ -393,27 +411,34 @@ uint64_t DRV8825::abortCurrentMovement()
     /// Setta a false _rmtBusy in modo atomico. release = protegge atomicamente in scrittura
     this->_rmtBusy.store(false, std::memory_order_release);
 
-    if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
-        return passiRimanenti;
-
-    if(this->_period_us > 0)
+    if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdPASS)
     {
-        int64_t stepsFatti = (tmrEndSteps - this->_tmrStartOfRmtTransmit) / this->_period_us;
-        this->_absStepCounter += this->_direction * stepsFatti;
+        if(this->_isContinuousMove)
+        {
+            if(this->_period_us > 0)
+            {
+                int64_t stepsFatti = (tmrEndSteps - this->_tmrStartOfRmtTransmit) / this->_period_us;
+                this->_absStepCounter += this->_direction * stepsFatti;
+            }
+        }
+        else
+        {
+            int64_t requested = this->_stepsRequestedThisMove.load(std::memory_order_acquire);
+            this->_absStepCounter += this->_direction * (requested - (int64_t)passiRimanenti);
+        }
+
+        this->_period_us = 0;
+        this->_tmrStartOfRmtTransmit = 0;
+        xSemaphoreGive(this->_mutex);
     }
-
-    this->_period_us = 0;
-
-    this->_tmrStartOfRmtTransmit = 0;
-
-
-    xSemaphoreGive(this->_mutex);
 
     return passiRimanenti;
 }
 
 drv_err_t DRV8825::stepContinuous(uint64_t period_us)
 {
+    this->_isContinuousMove = true;
+
     if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
         return DRV_ERR_MUX_TAKE_TIMEOUT;
 
@@ -607,7 +632,7 @@ void DRV8825::calcRampSteps(const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEP
     /// Adatta il periodo in base alla nuova velocità massima trovata
     double vel_media = spazio_tot / t_tot;
     uint64_t v_max_us = (uint64_t)(this->_period_us * (vel_media / vel_max));
-    this->_period_us = (uint16_t)(v_max_us / DRV8825_RMT_PULSE_US) - DRV8825_RMT_DURATION_0;
+    this->_period_us = v_max_us;
     setAccDecDurations(v_max_us, steps_acc, t_acc, steps_dec, t_dec);
     this->StatoMoto = ACCELERATION;
 }

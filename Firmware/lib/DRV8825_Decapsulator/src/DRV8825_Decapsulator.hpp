@@ -1,4 +1,3 @@
-#include <cmath>
 #pragma once
 //
 //          FILE: DRV8825_Decapsulator.hpp
@@ -27,7 +26,7 @@
 #include "Arduino.h"
 #include "driver/rmt_tx.h"
 #include "hal/gpio_ll.h"
-
+#include <cmath>
 /// è stato scelto di usare atomic per avere un accesso veramente atomico 
 /// quando viene condiviso tra ISR e tasks e ridurre jitter in update
 #include <atomic>
@@ -174,6 +173,8 @@ class DRV8825
         uint64_t  _period_us     = 0;
         std::atomic<uint64_t> _stepsLeft{0};
         std::atomic<bool> _isStepDone{false};
+        std::atomic<int64_t> _stepsRequestedThisMove{0};
+        bool _isContinuousMove = false;
         int64_t  _absStepCounter = 0;
         uint16_t _stepsPerRevolution;
         rmt_channel_handle_t _rmtChannel = nullptr;
@@ -215,7 +216,7 @@ class DRV8825
         /// si conosce sin da subito la size di _stepPulse
         static constexpr size_t STEP_PULSE_SIZE = sizeof(_stepPulse);
 
-        inline void setAndEnableRMT(const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2, uint64_t period_us);
+        inline void setAndEnableRMT(uint64_t period_us, const uint64_t ACC_STEPS_S2, const uint64_t DEC_STEPS_S2);
 
         // V[steps/s] ^            
         //            ​​║         
