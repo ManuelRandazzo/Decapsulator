@@ -82,6 +82,7 @@ void AutoKillTask(void* pvParameters)
 
             /// Spegne il MOSFET della batteria
             digitalWriteFast(AUTOKILL_SHUTDOWN_PIN, LOW);
+            ESP.restart(); // Forza il reset perchè non possiamo garantire la posizione dei motori (es. calo in cui lo stepper perde passi)
         }
 
         xTaskDelayUntil(&getLastTick, Autokill_delay);
