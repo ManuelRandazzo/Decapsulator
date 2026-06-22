@@ -5,6 +5,7 @@
 #include "tasks_cfg.hpp"
 #include "filePathsSD.hpp"
 #include "WiFi_Config.hpp"
+#include "DateAndTimePRG.hpp"
 #include "Debug.hpp"
 
 void action_calibrazione_touch(lv_event_t *e)
@@ -63,8 +64,11 @@ void action_jogger_page_init(lv_event_t * e)
     vTaskSuspend(MainPrgHandler);
     vTaskResume(JogMotoriPrgHandler);
 
+    ServoParatia.write(SERVO_CLOSED_POS); /// Chiude il servo
+    ServoParatia.detach(); // Disattiva il servomotore cosicchè non scaldi
+
     /// Inizializza lo spazio percorso e la velocità dei motori di default
-    set_var_gradi_per_click_ralla("360.0");
+    set_var_gradi_per_click_ralla("270.0");
     set_var_speed_motore_ralla("90.0");
     set_var_gradi_per_click_punz("360.0");
     set_var_speed_motore_punz("90.0");
@@ -81,6 +85,7 @@ void action_jogger_page_deinit(lv_event_t * e)
     /// Sospende la task del jogger e attiva quella del programma principale
     vTaskSuspend(JogMotoriPrgHandler);
     vTaskResume(MainPrgHandler);
+    ServoParatia.attach(SERVO_PIN); // Riattiva il servomotore
 
     /// Si assicura che sia spenta la ventola
     Ventola.off();
@@ -148,7 +153,10 @@ void action_verify_wi_fi(lv_event_t * e)
                 return;
         }
     }
-
+    
+    /// Richiesta di update dell'orologio una volta cambiate le credenziali WiFi
+    xTaskNotify(DateAndTimeHandler, DATE_TIME_FORCE_UPDATE, eNoAction);
+    
     set_var_wi_fi_success(true);
 
     /// Assegna le nuovi credenziali (se sono cambiate)

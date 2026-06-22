@@ -21,8 +21,11 @@ void DateAndTimePRG(void* pvParameters)
         set_var_presenza_wi_fi(WiFi.isConnected());
         
         const uint32_t MILLIS = millis();
-        if(MILLIS - tmrUpdateRTC >= UPDATE_RTC_MS)
+        uint32_t ulNotifiedValue = 0;
+        BaseType_t xHasBeenNotified = xTaskNotifyWait(0, ULONG_MAX, &ulNotifiedValue, 0);
+        if(MILLIS - tmrUpdateRTC >= UPDATE_RTC_MS || (xHasBeenNotified == pdPASS && ulNotifiedValue == DATE_TIME_FORCE_UPDATE))
         {
+            LogDebug("UPDATE RTC from NTP Server", "Trying to update RTC");
             if(WiFi.isConnected())
             {
                 configTzTime("CET-1CEST,M3.5.0,M10.5.0/3", "time.inrim.it", "pool.ntp.org");
