@@ -112,6 +112,14 @@ void action_refresh_logs(lv_event_t * e)
 
 
 
+void action_clean_logs(lv_event_t * e)
+{
+    
+}
+
+
+
+
 void action_verify_wi_fi(lv_event_t * e)
 {
     /// Salva in SD il nuovo SSID e la nuova Password

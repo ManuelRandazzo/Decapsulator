@@ -118,6 +118,7 @@ typedef struct _objects_t {
     lv_obj_t *annulla_diag_1;
     lv_obj_t *obj6;
     lv_obj_t *obj7;
+    lv_obj_t *obj8;
     lv_obj_t *annulla_config_wifi;
     lv_obj_t *annulla_config_wifi2;
     lv_obj_t *config_wifi;
