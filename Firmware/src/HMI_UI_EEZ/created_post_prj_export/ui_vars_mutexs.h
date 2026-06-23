@@ -6,7 +6,7 @@
 
 
 /// Tempo massimo in cui i mutex bloccano se non hanno risposta
-#define MAX_MUTEX_BLOCK_TIME_TICKS pdMS_TO_TICKS(100)
+#define MAX_MUTEX_BLOCK_TIME_TICKS pdMS_TO_TICKS(1000)
 #define HMI_JOG_DIRECTION_QUEUE_LEN 5
 
 
