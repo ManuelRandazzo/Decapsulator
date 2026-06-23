@@ -2,7 +2,7 @@
 
 DebPinHandler::DebPinHandler()
     : mutex(nullptr), level(0), pin(255), 
-      debounce_ms(30), isInterrupt(INTR), isAttached(false), inputMode(INPUT), flag(0), 
+      debounce_ms(30), isInterrupt(INTR), isAttach(false), inputMode(INPUT), flag(0), 
       precPinLevel(0), lastTime(0), debState(0), TRIGGER(CHANGE), changeOccurred(false)
 {
 
@@ -34,7 +34,6 @@ void DebPinHandler::begin(bool IntrOrPoll, uint8_t pinNumber, const char* pinNam
     /// Inizializza l'input pin con la modalità voluta
     if(pinNumber == 255)
     {
-        //LogError("initDebPin", "Errore pin non fornito del pin \"%s\"", this->name);
         xSemaphoreGive(this->mutex);
         return;
     }
@@ -63,7 +62,7 @@ void DebPinHandler::begin(bool IntrOrPoll, uint8_t pinNumber, const char* pinNam
         /// Associa la relativa Interrupt Service Routine se esiste
         attachInterruptArg(digitalPinToInterrupt(this->pin), &this->__ISR, this, this->TRIGGER);
 
-    this->isAttached = true;
+    this->isAttach = true;
 
     xSemaphoreGive(this->mutex);
 }
@@ -73,8 +72,28 @@ void DebPinHandler::begin(bool IntrOrPoll, uint8_t pinNumber, const char* pinNam
  */
 DebPinHandler::~DebPinHandler()
 {
-    if(this->isInterrupt == INTR)
-        detachInterrupt(digitalPinToInterrupt(this->pin));
+    if(this->mutex != nullptr)
+    {
+        xSemaphoreTake(this->mutex, portMAX_DELAY);
+
+        if(this->isInterrupt && this->isAttach && this->pin != 255)
+            detachInterrupt(digitalPinToInterrupt(this->pin));
+        
+        vSemaphoreDelete(this->mutex);
+    }
+}
+
+/// @brief Restituisce se il pin è connesso 
+bool DebPinHandler::isAttached()
+{
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
+        return false;
+
+    bool isAttached = this->isAttach;
+
+    xSemaphoreGive(this->mutex);
+
+    return isAttached;
 }
 
 /**
@@ -85,16 +104,16 @@ void DebPinHandler::reattach()
     if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return;
 
-    if(this->isAttached)
+    if(this->isAttach)
     {
         xSemaphoreGive(this->mutex);
         return;
     }
 
-    if(this->isInterrupt == INTR)
+    if(this->isInterrupt && this->pin != 255)
         attachInterruptArg(digitalPinToInterrupt(this->pin), &this->__ISR, this, this->TRIGGER);
 
-    this->isAttached = true;
+    this->isAttach = true;
 
     xSemaphoreGive(this->mutex);
 }
@@ -107,16 +126,16 @@ void DebPinHandler::detach()
     if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return;
 
-    if(!this->isAttached)
+    if(!this->isAttach)
     {
         xSemaphoreGive(this->mutex);
         return;
     }
 
-    if(this->isInterrupt == INTR)
+    if(this->isInterrupt && this->pin != 255)
         detachInterrupt(this->pin);
 
-    this->isAttached = false;
+    this->isAttach = false;
 
     xSemaphoreGive(this->mutex);
 }
@@ -132,13 +151,31 @@ bool DebPinHandler::event()
     if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return false;
 
-    if(this->isAttached)
+    if(this->isAttach)
         flagHasOccured = this->changeOccurred;
 
     xSemaphoreGive(this->mutex);
 
     return flagHasOccured;
     
+}
+
+
+/**
+ * @brief  Aggiorna l'istanza e fa il debounce in INTERRUPT o POLLING
+ * @return Se è avvenuto o no un cambio di stato del pin
+ * @attention E' sia per INTERRUPT: che per POLLING:
+ */
+bool DebPinHandler::update()
+{
+    if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
+        return false;
+
+    bool isInterruptUpdate = this->isInterrupt;
+
+    xSemaphoreGive(this->mutex);
+
+    return isInterruptUpdate ? this->intrUpdate() : this->pollUpdate();
 }
 
 
@@ -154,7 +191,7 @@ bool DebPinHandler::intrUpdate()
 
     this->changeOccurred = false;
 
-    if(!this->isAttached)
+    if(!this->isAttach)
     {
         xSemaphoreGive(this->mutex);
         return false;
@@ -232,7 +269,7 @@ bool DebPinHandler::pollUpdate(uint8_t trigger)
         return false;
     }
 
-    if(!this->isAttached)
+    if(!this->isAttach)
     {
         xSemaphoreGive(this->mutex);
         return false;
@@ -317,12 +354,36 @@ int8_t DebPinHandler::rawRead()
     if(xSemaphoreTake(this->mutex, MUTEX_TICKS) == pdFAIL)
         return -1;
 
-    int8_t pinToRead = this->pin;
+    uint8_t pinToRead = this->pin;
 
     xSemaphoreGive(this->mutex);
 
+    if(pinToRead == 255)
+        return -1;
+
     /// legge il pin e restituisce il livello
     return digitalReadFast(pinToRead);
+}
+
+
+/**
+ * @brief Restituisce se l'evento è verificato senza debounce
+ * 
+ * @return 1 (true) se si è verificato, 0 (false) se non lo è 
+ * 
+ * @return -1 in caso di ERRORE di Semaforo non ottenuto
+ *         oppure TriggerMode = CHANGE
+ */
+int8_t DebPinHandler::rawEvent()
+{
+    int8_t rawReadLvl = this->rawRead();
+    int8_t levelTrig = this->getLevelTrig();
+
+    /// E' stato impossibile prendere il mutex in tempo, pin non valido oppure levelTrig = CHANGE (3)
+    if(rawReadLvl == -1 || levelTrig == -1 || levelTrig == 3)
+        return -1;
+
+    return rawReadLvl == levelTrig;
 }
 
 

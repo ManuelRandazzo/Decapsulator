@@ -19,7 +19,7 @@
 #define INTR (bool)(true)
 #define POLL (bool)(false)
 
-#define TIME_BLOCKING_MUTEX_MS 100
+#define TIME_BLOCKING_MUTEX_MS 1000
 constexpr TickType_t MUTEX_TICKS = pdMS_TO_TICKS(TIME_BLOCKING_MUTEX_MS);
 
 
@@ -45,6 +45,8 @@ class DebPinHandler
         void begin(bool IntrOrPoll, uint8_t pinNumber, const char* pinName = "No Pin Name",
                    uint32_t debounce_ms = 30, uint8_t level_trigger = CHANGE, uint8_t input_mode = INPUT);
 
+        /// @brief Restituisce se il pin è connesso 
+        bool isAttached();
 
         /// @brief Dopo aver fatto il detach permette di ricollegare il pin con i dati impostati
         void reattach();
@@ -57,6 +59,13 @@ class DebPinHandler
          *         false se negativo
          */
         bool event();
+        
+        /**
+         * @brief  Aggiorna l'istanza e fa il debounce in INTERRUPT o POLLING
+         * @return Se è avvenuto o no un cambio di stato del pin
+         * @attention E' sia per INTERRUPT: che per POLLING:
+         */
+        bool update();
 
         /**
          * @brief  Aggiorna l'istanza e fa il debounce in INTERRUPT
@@ -81,6 +90,16 @@ class DebPinHandler
          * @return -1 in caso di ERRORE di Semaforo non ottenuto
          */
         int8_t rawRead();
+
+        /**
+         * @brief Restituisce se l'evento è verificato senza debounce
+         * 
+         * @return 1 (true) se si è verificato, 0 (false) se non lo è 
+         * 
+         * @return -1 in caso di ERRORE di Semaforo non ottenuto
+         *         oppure TriggerMode = CHANGE
+         */
+        int8_t rawEvent();
 
         /**
          * @brief restituisce se il pin è polling
@@ -162,7 +181,7 @@ class DebPinHandler
         unsigned level : 1;         /*!< Stato reale del pin dopo il debounce */
         uint8_t pin;                /*!< Pin in cui viene fatto il debounce */
         bool isInterrupt;           /*!< Flag che indica se è interrupt o polling */
-        bool isAttached;            /*!< Flag che indica se il pin è attached o no */
+        bool isAttach;              /*!< Flag che indica se il pin è attached o no */
         uint32_t debounce_ms;       /*!< Tempo di debounce in millisecondi (default = 30ms) */
         uint8_t inputMode;          /*!< Modalità di ingresso del pin ex. INPUT, INPUT_PULLUP, INPUT_PULLDOWN */
         uint8_t levelTriggered;     /*!< Livello per il quale viene considerato triggerato il pin */
