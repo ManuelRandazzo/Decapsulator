@@ -1,13 +1,13 @@
 {
   "navigation": {
     "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/4",
-    "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/12",
+    "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/13",
     "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/24",
     "selectedStyleObject": "[HMI_REDUX.eez-project]:/lvglStyles/styles/5",
     "selectedThemeObject": "[HMI_REDUX.eez-project]:/themes/0",
     "selectedBitmapObject": "[HMI_REDUX.eez-project]:/bitmaps/1",
     "subnavigationSelectedItems": {
-      "variables-tab/sub-navigation/selected-item": "Actions"
+      "variables-tab/sub-navigation/selected-item": "Widgets"
     }
   },
   "layoutModel": {
@@ -148,6 +148,7 @@
                   "type": "tabset",
                   "id": "#8df4d6da-916c-4f74-874e-86f5c2f5f622",
                   "weight": 1,
+                  "selected": 2,
                   "enableClose": false,
                   "children": [
                     {
@@ -214,17 +215,29 @@
               "type": "tabset",
               "id": "EDITORS",
               "weight": 62.70412003290298,
-              "selected": 7,
+              "selected": 1,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
                 {
                   "type": "tab",
-                  "id": "#21bd863d-561d-4974-bde1-ecd023aff247",
+                  "id": "#8e119707-4a6c-4a18-938b-9f5cc2d3945a",
+                  "name": "Settings",
+                  "component": "editor",
+                  "config": {
+                    "objectPath": "[HMI_REDUX.eez-project]:/settings",
+                    "subObjectPath": "[HMI_REDUX.eez-project]:/settings",
+                    "permanent": false
+                  },
+                  "icon": "material:settings"
+                },
+                {
+                  "type": "tab",
+                  "id": "#5a77ae0a-5310-4bbd-9b4b-ce9730c1bf93",
                   "name": "Comando_Bottone_Punzone",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[HMI_REDUX.eez-project]:/actions/12",
+                    "objectPath": "[HMI_REDUX.eez-project]:/actions/13",
                     "permanent": false
                   },
                   "icon": "material:code"
@@ -632,9 +645,21 @@
               "type": "tabset",
               "id": "RUNTIME-EDITORS",
               "weight": 0.4205698098395876,
+              "selected": 4,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
+                {
+                  "type": "tab",
+                  "id": "#2582fee2-426c-4bec-8966-50dff4c05424",
+                  "name": "Comando_Macchina",
+                  "component": "editor",
+                  "config": {
+                    "objectPath": "[HMI_REDUX.eez-project]:/actions/10",
+                    "permanent": false
+                  },
+                  "icon": "material:code"
+                },
                 {
                   "type": "tab",
                   "id": "#5cf0f9c9-0ab5-4b96-82b7-527468472a47",
@@ -1294,20 +1319,20 @@
         "0": {
           "0": {},
           "1": {},
-          "2": {}
+          "2": {
+            "$selected": true
+          }
         },
         "1": {},
         "6": {},
-        "7": {
-          "$selected": true
-        }
+        "7": {}
       },
       "transform": {
         "translate": {
-          "x": -868.3758585970004,
-          "y": -223.22969670690514
+          "x": -156.86327273730035,
+          "y": -186.73172703621458
         },
-        "scale": 0.8
+        "scale": 0.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1329,12 +1354,19 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
-          "2": {},
-          "4": {
-            "0": {},
-            "1": {}
+          "1": {
+            "1": {},
+            "2": {}
           },
-          "5": {},
+          "2": {},
+          "3": {},
+          "4": {},
+          "5": {
+            "0": {},
+            "1": {
+              "$selected": true
+            }
+          },
           "7": {}
         },
         "1": {},
@@ -1345,10 +1377,10 @@
       },
       "transform": {
         "translate": {
-          "x": -439.05533156727165,
-          "y": 50.861789537162736
+          "x": -498.1101237682519,
+          "y": -231.49850586608136
         },
-        "scale": 0.8
+        "scale": 0.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1361,22 +1393,22 @@
       "selectionFront": {},
       "selectionBack": {
         "0": {
-          "0": {},
+          "0": {
+            "$selected": true
+          },
           "1": {},
           "2": {},
           "3": {}
         },
         "3": {},
-        "5": {
-          "$selected": true
-        }
+        "5": {}
       },
       "transform": {
         "translate": {
-          "x": -332.8017836349071,
-          "y": -105.883685877993
+          "x": -726.8017836349072,
+          "y": -216.883685877993
         },
-        "scale": 0.8
+        "scale": 0.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1390,7 +1422,11 @@
       "selectionBack": {
         "0": {
           "0": {},
-          "1": {},
+          "1": {
+            "0": {
+              "$selected": true
+            }
+          },
           "2": {},
           "3": {
             "0": {}
@@ -1404,10 +1440,10 @@
       },
       "transform": {
         "translate": {
-          "x": -421.50029626525577,
-          "y": -89.49927073462902
+          "x": -565.5005184641975,
+          "y": -160.31122378560082
         },
-        "scale": 0.8
+        "scale": 0.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1447,18 +1483,19 @@
           },
           "4": {}
         },
+        "19": {
+          "$selected": true
+        },
         "39": {},
         "48": {},
-        "70": {
-          "$selected": true
-        }
+        "70": {}
       },
       "transform": {
         "translate": {
-          "x": -749.8168604177927,
-          "y": -644.05664932323
+          "x": -292.85172660407204,
+          "y": 36.69486464037061
         },
-        "scale": 0.8
+        "scale": 0.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1480,7 +1517,7 @@
           "x": -289.3452380952381,
           "y": -258.1972789115646
         },
-        "scale": 0.8
+        "scale": 0.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1494,18 +1531,21 @@
       "selectionBack": {
         "0": {
           "0": {},
-          "1": {},
-          "2": {}
+          "1": {
+            "$selected": true
+          },
+          "2": {},
+          "3": {}
         },
         "1": {},
         "2": {}
       },
       "transform": {
         "translate": {
-          "x": -544.0081373705041,
-          "y": -302.59840650642644
+          "x": -919.5421384065802,
+          "y": -210.87206318993117
         },
-        "scale": 0.8
+        "scale": 0.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1561,10 +1601,10 @@
       },
       "transform": {
         "translate": {
-          "x": -574.24,
-          "y": -219.92249999999996
+          "x": -667.1078246753241,
+          "y": -389.17853219696974
         },
-        "scale": 0.8
+        "scale": 0.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1589,10 +1629,10 @@
       },
       "transform": {
         "translate": {
-          "x": -492.3469696969697,
-          "y": -463.2147727272726
+          "x": -413.10701298701304,
+          "y": -331.7461688311687
         },
-        "scale": 0.8
+        "scale": 0.75
       },
       "timeline": {
         "isEditorActive": false,
@@ -1685,8 +1725,8 @@
       "selection": {},
       "transform": {
         "translate": {
-          "x": 48,
-          "y": -82
+          "x": 567,
+          "y": 371
         },
         "scale": 1
       }
@@ -1695,45 +1735,20 @@
       "selection": {},
       "transform": {
         "translate": {
+          "x": 48,
+          "y": -82
+        },
+        "scale": 1
+      }
+    },
+    "[HMI_REDUX.eez-project]:/actions/11[flow-state]": {
+      "selection": {},
+      "transform": {
+        "translate": {
           "x": -595.4467718227044,
           "y": 10.318634102216151
         },
         "scale": 1.25
-      }
-    },
-    "[HMI_REDUX.eez-project]:/actions/11[flow-state]": {
-      "selection": {
-        "0": {
-          "$selected": true
-        },
-        "1": {
-          "$selected": true
-        },
-        "2": {
-          "$selected": true
-        },
-        "3": {
-          "$selected": true
-        },
-        "4": {
-          "$selected": true
-        },
-        "5": {
-          "$selected": true
-        },
-        "6": {
-          "$selected": true
-        },
-        "7": {
-          "$selected": true
-        }
-      },
-      "transform": {
-        "translate": {
-          "x": 38.69999999999996,
-          "y": -70.39527363184081
-        },
-        "scale": 0.8
       }
     },
     "[HMI_REDUX.eez-project]:/actions/12[flow-state]": {
@@ -1754,10 +1769,20 @@
       "selection": {},
       "transform": {
         "translate": {
-          "x": -725.5836111111112,
-          "y": -518.8175
+          "x": -605.4418561952144,
+          "y": -824.6194562899784
         },
-        "scale": 0.67
+        "scale": 1.1
+      }
+    },
+    "[HMI_REDUX.eez-project]:/actions/14[flow-state]": {
+      "selection": {},
+      "transform": {
+        "translate": {
+          "x": -451.96212121212125,
+          "y": -343.24116161616166
+        },
+        "scale": 0.5
       }
     }
   },
@@ -1767,7 +1792,7 @@
   "searchMatchWholeWord": false,
   "replaceEnabled": false,
   "replaceText": "",
-  "pageRuntimeFrontFace": false,
+  "pageRuntimeFrontFace": true,
   "breakpoints": {},
   "watchExpressions": [],
   "showComponentDescriptions": true,
@@ -1777,14 +1802,11 @@
   "lvglPart": "MAIN",
   "lvglState": "DEFAULT",
   "lvglExpandedPropertiesGroup": [
-    "MISCELLANEOUS",
-    "TEXT",
-    "BACKGROUND",
-    "POSITION AND SIZE"
+    "TEXT"
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 0.8,
+  "flowZoom": 0.75,
   "implementationLanguage": "C++",
   "openDialogDefaultPath": "C:\\Users\\Tomma\\Downloads\\Image.png"
 }

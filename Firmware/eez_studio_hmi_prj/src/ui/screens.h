@@ -45,12 +45,12 @@ typedef struct _objects_t {
     lv_obj_t *impostazioni;
     lv_obj_t *puls_start_stop;
     lv_obj_t *start_stop;
+    lv_obj_t *obj0;
+    lv_obj_t *obj1;
     lv_obj_t *finestra_errore;
     lv_obj_t *puls_ok;
     lv_obj_t *ok;
     lv_obj_t *titolo_errore;
-    lv_obj_t *obj0;
-    lv_obj_t *obj1;
     lv_obj_t *qr_sito;
     lv_obj_t *obj2;
     lv_obj_t *wi_fi;
