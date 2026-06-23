@@ -1,7 +1,7 @@
 {
   "navigation": {
-    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/4",
-    "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/13",
+    "selectedUserPageObject": "[HMI_REDUX.eez-project]:/userPages/8",
+    "selectedActionObject": "[HMI_REDUX.eez-project]:/actions/0",
     "selectedGlobalVariableObject": "[HMI_REDUX.eez-project]:/variables/globalVariables/24",
     "selectedStyleObject": "[HMI_REDUX.eez-project]:/lvglStyles/styles/5",
     "selectedThemeObject": "[HMI_REDUX.eez-project]:/themes/0",
@@ -180,7 +180,7 @@
                 {
                   "type": "tabset",
                   "id": "#c562fd54-3cdb-4bd1-9a0a-ea8cefc03a3f",
-                  "weight": 1,
+                  "weight": 0.575107296137339,
                   "enableClose": false,
                   "children": [
                     {
@@ -196,7 +196,7 @@
                 {
                   "type": "tabset",
                   "id": "#a147510a-6468-4b73-818c-51df46b6cddb",
-                  "weight": 1,
+                  "weight": 1.4248927038626609,
                   "enableClose": false,
                   "children": [
                     {
@@ -215,7 +215,7 @@
               "type": "tabset",
               "id": "EDITORS",
               "weight": 62.70412003290298,
-              "selected": 1,
+              "selected": 2,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
@@ -234,10 +234,10 @@
                 {
                   "type": "tab",
                   "id": "#5a77ae0a-5310-4bbd-9b4b-ce9730c1bf93",
-                  "name": "Comando_Bottone_Punzone",
+                  "name": "Calibrazione_Touch",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[HMI_REDUX.eez-project]:/actions/13",
+                    "objectPath": "[HMI_REDUX.eez-project]:/actions/0",
                     "permanent": false
                   },
                   "icon": "material:code"
@@ -645,7 +645,7 @@
               "type": "tabset",
               "id": "RUNTIME-EDITORS",
               "weight": 0.4205698098395876,
-              "selected": 4,
+              "selected": 1,
               "enableDeleteWhenEmpty": false,
               "enableClose": false,
               "children": [
@@ -663,10 +663,10 @@
                 {
                   "type": "tab",
                   "id": "#5cf0f9c9-0ab5-4b96-82b7-527468472a47",
-                  "name": "Schermata Jogger",
+                  "name": "Schermata Calibrazione",
                   "component": "editor",
                   "config": {
-                    "objectPath": "[HMI_REDUX.eez-project]:/userPages/4",
+                    "objectPath": "[HMI_REDUX.eez-project]:/userPages/8",
                     "permanent": false
                   },
                   "icon": "svg:page"
@@ -1332,7 +1332,7 @@
           "x": -156.86327273730035,
           "y": -186.73172703621458
         },
-        "scale": 0.75
+        "scale": 1.25
       },
       "timeline": {
         "isEditorActive": false,
@@ -1380,7 +1380,7 @@
           "x": -498.1101237682519,
           "y": -231.49850586608136
         },
-        "scale": 0.75
+        "scale": 1.25
       },
       "timeline": {
         "isEditorActive": false,
@@ -1408,7 +1408,7 @@
           "x": -726.8017836349072,
           "y": -216.883685877993
         },
-        "scale": 0.75
+        "scale": 1.25
       },
       "timeline": {
         "isEditorActive": false,
@@ -1443,7 +1443,7 @@
           "x": -565.5005184641975,
           "y": -160.31122378560082
         },
-        "scale": 0.75
+        "scale": 1.25
       },
       "timeline": {
         "isEditorActive": false,
@@ -1495,7 +1495,7 @@
           "x": -292.85172660407204,
           "y": 36.69486464037061
         },
-        "scale": 0.75
+        "scale": 1.25
       },
       "timeline": {
         "isEditorActive": false,
@@ -1517,7 +1517,7 @@
           "x": -289.3452380952381,
           "y": -258.1972789115646
         },
-        "scale": 0.75
+        "scale": 1.25
       },
       "timeline": {
         "isEditorActive": false,
@@ -1545,7 +1545,7 @@
           "x": -919.5421384065802,
           "y": -210.87206318993117
         },
-        "scale": 0.75
+        "scale": 1.25
       },
       "timeline": {
         "isEditorActive": false,
@@ -1558,10 +1558,10 @@
       "selection": {},
       "transform": {
         "translate": {
-          "x": -44.041666666666664,
-          "y": 124.66666666666664
+          "x": 147.6797222222222,
+          "y": -156.02055555555557
         },
-        "scale": 0.75
+        "scale": 0.005
       }
     },
     "[HMI_REDUX.eez-project]:/userWidgets/0[flow-state]": {
@@ -1604,7 +1604,7 @@
           "x": -667.1078246753241,
           "y": -389.17853219696974
         },
-        "scale": 0.75
+        "scale": 1.25
       },
       "timeline": {
         "isEditorActive": false,
@@ -1616,23 +1616,18 @@
     "[HMI_REDUX.eez-project]:/userPages/8[flow-state]": {
       "selectionFront": {},
       "selectionBack": {
+        "0": {},
         "1": {},
-        "2": {
-          "$selected": true
-        },
-        "3": {
-          "$selected": true
-        },
-        "5": {
-          "$selected": true
-        }
+        "2": {},
+        "3": {},
+        "5": {}
       },
       "transform": {
         "translate": {
-          "x": -413.10701298701304,
-          "y": -331.7461688311687
+          "x": -275.61774891774894,
+          "y": -210.71331168831148
         },
-        "scale": 0.75
+        "scale": 1.25
       },
       "timeline": {
         "isEditorActive": false,
@@ -1766,11 +1761,15 @@
       }
     },
     "[HMI_REDUX.eez-project]:/actions/13[flow-state]": {
-      "selection": {},
+      "selection": {
+        "56": {
+          "$selected": true
+        }
+      },
       "transform": {
         "translate": {
-          "x": -605.4418561952144,
-          "y": -824.6194562899784
+          "x": 126.55814380478569,
+          "y": -584.6194562899784
         },
         "scale": 1.1
       }
@@ -1792,7 +1791,7 @@
   "searchMatchWholeWord": false,
   "replaceEnabled": false,
   "replaceText": "",
-  "pageRuntimeFrontFace": true,
+  "pageRuntimeFrontFace": false,
   "breakpoints": {},
   "watchExpressions": [],
   "showComponentDescriptions": true,
@@ -1806,7 +1805,7 @@
   ],
   "showInactiveFlowsInDebugger": true,
   "globalFlowZoom": true,
-  "flowZoom": 0.75,
+  "flowZoom": 1.25,
   "implementationLanguage": "C++",
   "openDialogDefaultPath": "C:\\Users\\Tomma\\Downloads\\Image.png"
 }

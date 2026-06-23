@@ -127,6 +127,7 @@ typedef struct _objects_t {
     lv_obj_t *password_rete;
     lv_obj_t *pop_up_messaggio_wi_fi;
     lv_obj_t *messaggio_wiwi;
+    lv_obj_t *touch_calibration_instructions_text;
 } objects_t;
 
 extern objects_t objects;
