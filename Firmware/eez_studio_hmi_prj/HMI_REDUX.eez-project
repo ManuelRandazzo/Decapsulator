@@ -2249,13 +2249,6 @@
           "input": "@seqin"
         },
         {
-          "objID": "a6fa885e-2522-4d49-e72d-571fbf4c4d10",
-          "source": "43c1b721-5248-40a8-ae4d-9431a1c49b1d",
-          "output": "True",
-          "target": "85ce6fee-33ec-4bf0-f498-082c917c91f9",
-          "input": "@seqin"
-        },
-        {
           "objID": "caae0235-c8da-4c84-8a8e-b11271b59df0",
           "source": "4789186d-dffc-44a6-c340-f1e54e15a93e",
           "output": "False",
@@ -2302,6 +2295,13 @@
           "source": "0ada7165-1dcc-491b-e4cc-a46a97d39b4e",
           "output": "@seqout",
           "target": "e1a75472-1e62-4e6f-c703-b27a10a4995b",
+          "input": "@seqin"
+        },
+        {
+          "objID": "ed412e1c-797d-4274-e99f-8cee5a0738a7",
+          "source": "43c1b721-5248-40a8-ae4d-9431a1c49b1d",
+          "output": "True",
+          "target": "437ea2e8-a1d6-4a34-c043-eb7428f1b88f",
           "input": "@seqin"
         }
       ],
@@ -2674,7 +2674,7 @@
               "type": "LVGLLabelWidget",
               "left": 189,
               "top": 279,
-              "width": 145,
+              "width": 0,
               "height": 24,
               "customInputs": [],
               "customOutputs": [],
