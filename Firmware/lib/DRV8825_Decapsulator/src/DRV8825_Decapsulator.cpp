@@ -10,8 +10,7 @@
 #include "DRV8825_Decapsulator.hpp"
 #include "esp_timer.h"
 
-#define __MUTEX_TIMEOUT_TICKS__ pdMS_TO_TICKS(1000)
-#define __TIMEOUT_WAIT_ALL_DONE_RMT_TX_MS__ 10    /// NON E' BLOCCANTE, MA TENERLO BREVE COMUNQUE
+#define __MUTEX_TIMEOUT_TICKS__ pdMS_TO_TICKS(5000)
 
 
 bool IRAM_ATTR drv8825_rmt_tx_done_cb(
@@ -165,70 +164,6 @@ drv_err_t DRV8825::begin(uint8_t DIR, uint8_t STEP, uint8_t EN, uint8_t RST, uin
 
   return DRV_OK;
 }
-
-/*
-drv_err_t DRV8825::update()
-{
-  //uint32_t startTime = micros();
-  if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
-      return DRV_ERR_MUX_TAKE_TIMEOUT;
-
-  if(this->_isStepDone)
-  {
-    xSemaphoreGive(this->_mutex);
-    return DRV_OK;
-  }
-
-  if(!this->_rmtBusy)
-  {
-    if(this->_stepsLeft == 0)
-    {
-      this->_isStepDone = true;
-      xSemaphoreGive(this->_mutex);
-      return DRV_OK;
-    }
-
-    /// Quanti step dovrà fare nella prossima trasmissione
-    uint16_t next_tx_steps = std::min<uint32_t>(this->_stepsLeft, DRV8825_RMT_MAX_LOOP_COUNT);
-
-    this->transmit_cfg.loop_count = next_tx_steps;    
-    
-    esp_err_t errTx = rmt_transmit(this->_rmtChannel, this->step_encoder, &this->_stepPulse, this->STEP_PULSE_SIZE, &this->transmit_cfg);
-
-    if(errTx != ESP_OK)
-    {
-      rmt_disable(this->_rmtChannel);
-      xSemaphoreGive(this->_mutex);
-      return DRV_ERR_RMT_TRANSMIT_CMD;
-    }
-
-    this->_tmrStartOfRmtTransmit = millis();
-    this->_stepsLeft -= next_tx_steps;
-    this->_rmtBusy = true;
-
-    xSemaphoreGive(this->_mutex);
-    return DRV_WAITING_RMT_TX_TO_FINISH;
-  }
-
-  if(rmt_tx_wait_all_done(this->_rmtChannel, 0) == ESP_OK)
-  {
-    this->_rmtBusy = false;
-
-    if(this->_stepsLeft == 0)
-    {
-      this->_isStepDone = true;
-      xSemaphoreGive(this->_mutex);
-      return DRV_OK;
-    }
-  }
-
-  xSemaphoreGive(this->_mutex);
-
-  //uint32_t stopTime = micros();
-  //Serial.printf("Tempo di esecuzione update : %d\n\n", stopTime - startTime);
-  
-  return DRV_WAITING_RMT_TX_TO_FINISH;
-}*/
 
 drv_err_t DRV8825::update()
 {
@@ -393,7 +328,7 @@ drv_err_t DRV8825::step(uint64_t numberOfStepsToDo, uint64_t period_us, int64_t 
 
 drv_err_t DRV8825::abortCurrentMovement()
 {
-  const uint32_t tmrEndSteps = millis();
+  const uint32_t tmrEndSteps = micros();
   rmt_channel_handle_t rmtCh;
 
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
@@ -432,7 +367,7 @@ drv_err_t DRV8825::stepContinuous(uint64_t period_us)
   /// Imposta l'RMT per andare all'infinito (fino a quando non si chiama abortCurrentCommand())
   this->setRMT(period_us);
   this->transmit_cfg.loop_count = -1;
-  this->_tmrStartOfRmtTransmit = millis();
+  this->_tmrStartOfRmtTransmit = micros();
   rmt_transmit(this->_rmtChannel, this->step_encoder, &this->_stepPulse, this->STEP_PULSE_SIZE, &this->transmit_cfg);
   this->_isStepDone = false;
   
