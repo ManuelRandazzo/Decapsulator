@@ -6,6 +6,7 @@
 #include "HMI_UI_EEZ/vars.h"
 #include "Debug.hpp"
 #include "DateAndTimePRG.hpp"
+#include "R_TRIG.hpp"
 
 void DateAndTimePRG(void* pvParameters)
 {
@@ -16,14 +17,18 @@ void DateAndTimePRG(void* pvParameters)
     /// Forza il caricamento iniziale della data e ora
     uint32_t tmrUpdateRTC = millis() - UPDATE_RTC_MS;
 
+    R_TRIG WiFiJustConnected;
+
     while(1)
     {
-        set_var_presenza_wi_fi(WiFi.isConnected());
+        bool WiFiConnected = WiFi.isConnected();
+        WiFiJustConnected.CLK(WiFiConnected);
+        set_var_presenza_wi_fi(WiFiConnected);
         
         const uint32_t MILLIS = millis();
         uint32_t ulNotifiedValue = 0;
         BaseType_t xHasBeenNotified = xTaskNotifyWait(0, ULONG_MAX, &ulNotifiedValue, 0);
-        if(MILLIS - tmrUpdateRTC >= UPDATE_RTC_MS || (xHasBeenNotified == pdPASS && ulNotifiedValue == DATE_TIME_FORCE_UPDATE))
+        if(WiFiJustConnected.Q() || MILLIS - tmrUpdateRTC >= UPDATE_RTC_MS || (xHasBeenNotified == pdPASS && ulNotifiedValue == DATE_TIME_FORCE_UPDATE))
         {
             LogDebug("UPDATE RTC from NTP Server", "Trying to update RTC");
             if(WiFi.isConnected())
