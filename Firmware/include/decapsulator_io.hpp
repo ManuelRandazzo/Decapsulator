@@ -60,7 +60,7 @@ extern void MainPrgStopAllMotors(double* ptrStepsLeftTamburo = nullptr, double* 
 #pragma region (CAPSULA PROPERTIES)
 
 #define MAX_CAPSULE_CONTAINER 5    // Ogni X Capsule deve essere svuotato
-#define MAX_COFFEE_CONTAINER 15    // Ogni X Capsule deve essere svuotato
+#define MAX_COFFEE_CONTAINER 10    // Ogni X Capsule deve essere svuotato
 #define MAX_STABLE_MOTOR_SPEED 900 // Gradi/secondo [°/s]
 #define DIAMETRO_CAPSULA_MM 54     //millimetri [mm]
 #define ALTEZZA_CAPSULA_MM  37     //millimetri [mm]
@@ -136,33 +136,30 @@ extern void MainPrgStopAllMotors(double* ptrStepsLeftTamburo = nullptr, double* 
  *  TAMBURO: defines per i dati dell'oggetto del MotionControl del tamburo
  * 
  */
-#define RALLA_MOTOR_STEPS     200
-#define RALLA_TASK_PRIORITY     2           /** @attention: è importante che sia <= della priorità della task */
-#define RALLA_MICROSTEP       STEP_1_TO_32//FULL_STEP //STEP_1_TO_16
-#define RALLA_SPEED           MAX_STABLE_MOTOR_SPEED / (double)(RALLA_MICROSTEP)  // Velocità di esecuzione relativo al tamburo in gradi al secondo [°/s]
-#define RALLA_ACC            2000.0   /* Gradi al secondo quadrato */
-#define RALLA_DEC            2000.0   /* Gradi al secondo quadrato */
-#define GEAR_RATIO_RALLA        3           // Imposta un gear ratio 1/3 per la ralla
+#define RALLA_MOTOR_STEPS     (200)
+#define RALLA_TASK_PRIORITY     (9)           /** @attention: è importante che sia <= della priorità della task */
+#define RALLA_MICROSTEP       FULL_STEP//STEP_1_TO_16
+#define RALLA_SPEED           (450.0)  // Velocità di esecuzione relativo al tamburo in gradi al secondo [°/s]
+#define GEAR_RATIO_RALLA        (3)           // Imposta un gear ratio 1/3 per la ralla
 
 /// Driver DRV8825 pins
-#define RALLA_DIRECTION_PIN    39
-#define RALLA_STEP_PIN         38
-#define RALLA_ENABLE_PIN       48
-#define RALLA_RESET_PIN       255
-#define RALLA_SLEEP_PIN       255
-#define RALLA_FAULT_PIN        40
+#define RALLA_DIRECTION_PIN    (39)
+#define RALLA_STEP_PIN         (38)
+#define RALLA_ENABLE_PIN       (48)
+#define RALLA_RESET_PIN       (255)
+#define RALLA_SLEEP_PIN       (255)
+#define RALLA_FAULT_PIN        (40)
 
 
 /// Parametri HOMING Ralla
-#define RALLA_CALIB_INTR_OR_POLL INTR
-#define RALLA_CALIB_PIN         9
-#define RALLA_INPUT_PULL      INPUT_PULLUP /// Input pullup desidera che l'uscita del sensore sia dritta per funzionare in falling
-#define RALLA_HOME_SPEED      720.0   /* Gradi al secondo */
-#define RALLA_HOME_ACC        500.0   /* Gradi al secondo quadrato */
-#define RALLA_HOME_DEC        500.0   /* Gradi al secondo quadrato */
-#define RALLA_CAM_SIGNAL      ACTIVE_LOW
-#define RALLA_HOME_DIR        DIR_NEGATIVE
-#define RALLA_POST_HOME_POS   (-39.6) /*Gradi*//** @attention  Ancora da definire*/
+#define RALLA_CALIB_INTR_OR_POLL (INTR)
+#define RALLA_CALIB_PIN         (9)
+#define RALLA_INPUT_PULL      (INPUT_PULLUP) /// Input pullup desidera che l'uscita del sensore sia dritta per funzionare in falling
+#define RALLA_HOME_CONT_SPEED (600.0)   /* Gradi al secondo */
+#define RALLA_HOME_SPEED      (250.0)   /* Gradi al secondo */
+#define RALLA_CAM_SIGNAL      (ACTIVE_LOW)
+#define RALLA_HOME_DIR        (DIR_POSITIVE)
+#define RALLA_POST_HOME_POS   (90.0) /*Gradi*//** @attention  Ancora da definire*/
 
 #pragma endregion (TAMBURO_SETTINGS)
 
@@ -177,36 +174,31 @@ extern void MainPrgStopAllMotors(double* ptrStepsLeftTamburo = nullptr, double* 
  * 
  */
 
-#define PUNZ_MOTOR_STEPS      200  
-#define PUNZ_TASK_PRIORITY      2 /** @attention: è importante che sia <= della priorità della task */
-#define PUNZ_MICROSTEP        FULL_STEP //STEP_1_TO_16
-#define PUNZ_FAST_SPEED       MAX_STABLE_MOTOR_SPEED / (double)(PUNZ_MICROSTEP) // Velocità di esecuzione relativo al punzone in gradi al secondo [°/s]
-#define PUNZ_SLOW_SPEED       500.0  /** @attention  Ancora da definire*/
-#define PUNZ_ACC             2000.0  /* Gradi al secondo quadrato */
-#define PUNZ_DEC             2000.0  /* Gradi al secondo quadrato */
-#define PUNZ_ROTATIONS_TOT     15.8
-#define PUNZ_SLOW_ROTATIONS    15.0 /** Altezza della capsula + 1mm *//** @attention  Ancora da definire*/
-#define PUNZ_FAST_ROTATIONS   (PUNZ_ROTATIONS_TOT - PUNZ_SLOW_ROTATIONS)
+#define PUNZ_MOTOR_STEPS      (200)
+#define PUNZ_TASK_PRIORITY      (9) /** @attention: è importante che sia <= della priorità della task */
+#define PUNZ_MICROSTEP        (FULL_STEP) //STEP_1_TO_16
+#define PUNZ_SPEED            (750.0) // Velocità di esecuzione relativo al punzone in gradi al secondo [°/s]
+#define PUNZ_ROTATIONS_TOT     (15.0)
+#define PUNZ_POST_HOME_ROTATE   (1.0) /* Torna indietro di una rotazione (2mm lineari)*/
+#define PUNZ_MOVE_ROTATIONS    (14.8 - PUNZ_POST_HOME_ROTATE)
 
 /// Driver DRV8825 pins
-#define PUNZ_DIRECTION_PIN     47
-#define PUNZ_STEP_PIN          21
-#define PUNZ_ENABLE_PIN        14
-#define PUNZ_RESET_PIN        255
-#define PUNZ_SLEEP_PIN        255
-#define PUNZ_FAULT_PIN         13
+#define PUNZ_DIRECTION_PIN     (47)
+#define PUNZ_STEP_PIN          (21)
+#define PUNZ_ENABLE_PIN        (14)
+#define PUNZ_RESET_PIN        (255)
+#define PUNZ_SLEEP_PIN        (255)
+#define PUNZ_FAULT_PIN         (13)
 
 /// Parametri HOMING Punzone
-#define PUNZ_HARD_LIM_INTR_OR_POLL INTR
-#define PUNZ_MAX_POS_PIN       18
-#define PUNZ_MIN_POS_PIN        8
-#define PUNZ_INPUT_PULL       INPUT_PULLUP /// Input pullup desidera che l'uscita del sensore sia dritta per funzionare in falling
-#define PUNZ_HOME_SPEED       360.0   /* Gradi al secondo */  /** @attention  Ancora da definire*/
-#define PUNZ_HOME_ACC         500.0   /* Gradi al secondo quadrato */
-#define PUNZ_HOME_DEC         500.0   /* Gradi al secondo quadrato */
-#define PUNZ_CAM_SIGNAL       ACTIVE_LOW
-#define PUNZ_HOME_DIR         DIR_POSITIVE
-#define PUNZ_POST_HOME_POS    (1.5 * 360.0) /*Gradi*/  /// Torna indietro di 1.5 giri
+#define PUNZ_HARD_LIM_INTR_OR_POLL (INTR)
+#define PUNZ_MAX_POS_PIN       (18)
+#define PUNZ_MIN_POS_PIN        (8)
+#define PUNZ_INPUT_PULL       (INPUT_PULLUP) /// Input pullup desidera che l'uscita del sensore sia dritta per funzionare in falling
+#define PUNZ_HOME_SPEED       (900.0)   /* Gradi al secondo */  /** @attention  Ancora da definire*/
+#define PUNZ_CAM_SIGNAL       (ACTIVE_LOW)
+#define PUNZ_HOME_DIR         (DIR_POSITIVE)
+#define PUNZ_POST_HOME_POS    (PUNZ_POST_HOME_ROTATE * 360.0) /*Gradi*/
 
 #pragma endregion (PUNZONE_SETTINGS)
 
