@@ -95,13 +95,13 @@ enum taskHeapSize_t
  */
 enum taskPriority_t
 {
-    OTA_priority          = 10,
-    HMI_priority          =  5,
-    JogMotori_priority    =  7,
-    MainPrg_priority      =  7,
-    Logger_priority       =  3,
+    OTA_priority          = 20,
+    HMI_priority          = 15,
+    JogMotori_priority    = 17,
+    MainPrg_priority      = 17,
+    Logger_priority       =  5,
     Autokill_priority     = 10,
-    DateAndTime_priority  =  2,
+    DateAndTime_priority  =  7,
 };
 
 /**
