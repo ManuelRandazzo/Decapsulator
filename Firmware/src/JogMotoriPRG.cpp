@@ -26,10 +26,12 @@ void prgJogMotoriTask(void *pvParameters)
         #pragma region (PUNZONE)
 
         /// Legge il sensore di finecorsa MINIMO del Punzone
-        set_var_stato_finecorsa_min(MotPunzone.HardMin.rawRead() == (int8_t)(PUNZ_CAM_SIGNAL));
+        if(MotPunzone.HardMin.event())
+            set_var_stato_finecorsa_min(MotPunzone.HardMin.rawRead() == (int8_t)(PUNZ_CAM_SIGNAL));
 
         /// Legge il sensore di finecorsa MASSIMO del Punzone
-        set_var_stato_finecorsa_max(MotPunzone.HardMax.rawRead() == (int8_t)(PUNZ_CAM_SIGNAL));
+        if(MotPunzone.HardMax.event())
+            set_var_stato_finecorsa_max(MotPunzone.HardMax.rawRead() == (int8_t)(PUNZ_CAM_SIGNAL));
         
         /// Converte le stringhe in numeri double positivi
         gradi_per_click_punz = abs(String(get_var_gradi_per_click_punz()).toDouble());
@@ -49,6 +51,7 @@ void prgJogMotoriTask(void *pvParameters)
             if(MotPunzone.isAttached())
             {
                 MotPunzone.abortCurrentCommand();
+                xQueueReset(queue_direzione_comando_punzone);
                 MotPunzone.Stop(RELEASE);
                 MotPunzone.detach();
             }
@@ -58,10 +61,11 @@ void prgJogMotoriTask(void *pvParameters)
         {
             int8_t punz_jog_dir = 0;
             if(xQueueReceive(queue_direzione_comando_punzone, &punz_jog_dir, 0) == pdTRUE)
-                MotPunzone.moveRel(punz_jog_dir * gradi_per_click_punz, speed_motore_punz, 110.0, 110.0);
+                MotPunzone.moveRel(punz_jog_dir * gradi_per_click_punz, speed_motore_punz);
         }
 
-        set_var_stato_motore_punzone(!MotPunzone.isStepDone());
+        
+        set_var_stato_motore_punzone(StateHoming == 0 ? !MotPunzone.isStepDone() : !MotPunzone.isHomeDone());
 
         #pragma endregion (PUNZONE)
         
@@ -94,6 +98,7 @@ void prgJogMotoriTask(void *pvParameters)
             if(MotRalla.isAttached())
             {
                 MotRalla.abortCurrentCommand();
+                xQueueReset(queue_direzione_comando_ralla);
                 MotRalla.Stop(RELEASE);
                 MotRalla.detach();
             }
@@ -103,10 +108,10 @@ void prgJogMotoriTask(void *pvParameters)
         {
             int8_t ralla_jog_dir = 0;
             if(xQueueReceive(queue_direzione_comando_ralla, &ralla_jog_dir, 0) == pdTRUE)
-                MotRalla.moveRel(ralla_jog_dir * gradi_per_click_ralla, speed_motore_ralla, 110.0, 110.0);
+                MotRalla.moveRel(ralla_jog_dir * gradi_per_click_ralla, speed_motore_ralla);
         }
 
-        set_var_stato_motore_ralla(!MotRalla.isStepDone());
+        set_var_stato_motore_ralla(StateHoming == 0 ? !MotRalla.isStepDone() : !MotRalla.isHomeDone());
             
         #pragma endregion (RALLA)
         
@@ -119,30 +124,64 @@ void prgJogMotoriTask(void *pvParameters)
         {
             MotPunzone.abortCurrentCommand();
             MotRalla.abortCurrentCommand();
+            MotRalla.removeHardLimits();
             StateHoming = 0;
         }
 
         switch(StateHoming)
         {
             case 0 : /// NO HOMING IN CORSO
-                if(get_var_homing() == true)
+                if(get_var_homing() == true)                
+                {
+                    MotPunzone.abortCurrentCommand();
+                    MotRalla.abortCurrentCommand();
+                    MotRalla.removeHardLimits();
+                    xQueueReset(queue_direzione_comando_punzone);
+                    xQueueReset(queue_direzione_comando_ralla);
                     StateHoming++;
+                }
             break;
 
             case 1 : /// HOMING CMD PUNZONE
-                MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_ACC, PUNZ_HOME_DEC, HARD_MAX, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
+                MotPunzone.home(PUNZ_HOME_SPEED, HARD_MAX, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
                 StateHoming++;
             break;
 
             case 2 : /// HOMING WAIT DONE PUNZONE
                 if(MotPunzone.isHomeDone())
+                {
+                    MotRalla.reattachHardLimits();
                     StateHoming++;
+                }
             break;
 
             case 3 : /// HOMING CMD RALLA
-                MotRalla.reattachHardLimits();
-                MotRalla.home(RALLA_HOME_SPEED, RALLA_HOME_ACC, RALLA_HOME_DEC, HARD_MAX, RALLA_HOME_DIR, RALLA_POST_HOME_POS);
-                StateHoming++;
+
+
+                int8_t RallaHardMaxStatus = MotRalla.HardMax.rawRead();
+                
+                if(RallaHardMaxStatus != -1)
+                {
+                    if(RallaHardMaxStatus == RALLA_CAM_SIGNAL)
+                    {
+                        if(MotRalla.isStepDone())
+                            MotRalla.moveRel(-RALLA_HOME_DIR * 360.0 * GEAR_RATIO_RALLA, RALLA_HOME_CONT_SPEED);
+                    }
+                    else
+                    {
+                        double gradi_post_home = 0.0;
+                        if(!MotRalla.isStepDone())
+                        {
+                            MotRalla.abortCurrentCommand();
+                            gradi_post_home = -3.3 * GEAR_RATIO_RALLA;
+                        }
+                        else
+                            gradi_post_home = RALLA_POST_HOME_POS * GEAR_RATIO_RALLA;
+
+                        MotRalla.home(RALLA_HOME_SPEED, HARD_MAX, RALLA_HOME_DIR, gradi_post_home);
+                        StateHoming++;
+                    }
+                }
             break;
 
             case 4 : /// HOMING WAIT DONE RALLA
@@ -151,13 +190,13 @@ void prgJogMotoriTask(void *pvParameters)
                     MotRalla.removeHardLimits();
                     StateHoming = 0;
                     set_var_homing(false);
+                    /// @todo notificare che bisogna skippare un'apertura del ServoParatia
                 }
             break;
         }
 
         #pragma endregion (HOMING)
-
-        
+                
 
         xTaskDelayUntil(&getLastTick, JogMotori_delay);
     }
