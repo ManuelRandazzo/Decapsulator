@@ -101,9 +101,9 @@ void MOTION::MoveHandler(void *pvParameters)
 
       if(THIS->__limit_direction != NO_DIR)
       {
-        THIS->abortCurrentCommand();
         if(THIS->receiverQueue.__dir == THIS->__limit_direction)
         {
+          THIS->abortCurrentCommand();
           #ifdef LOG_ACTIVE_MOTION
             LogWarning(THIS->TAG("Handler Motion"), "Hard Limit active, aborting command in dir: %s",
               THIS->receiverQueue.__dir == DIR_NEGATIVE ? "DIR_NEGATIVE" : "DIR_POSITIVE");
@@ -140,7 +140,7 @@ void MOTION::MoveHandler(void *pvParameters)
         break;
         case MOVE_REL :
         case MOVE_ABS :
-          THIS->Motion.step(THIS->receiverQueue.__move_steps, THIS->receiverQueue.__speed_steps_us, THIS->receiverQueue.__acc_steps_s2, THIS->receiverQueue.__dec_steps_s2);
+          THIS->Motion.step(THIS->receiverQueue.__move_steps, THIS->receiverQueue.__speed_steps_us);
         break;
         case CONTINUOUS :
           THIS->Motion.stepContinuous(THIS->receiverQueue.__speed_steps_us);
@@ -153,18 +153,6 @@ void MOTION::MoveHandler(void *pvParameters)
     }
 
     vTaskDelayUntil(&getLastTick, pdMS_TO_TICKS(10));
-
-    if(millis() - tmrDebug >= 1000)
-    {
-      tmrDebug = millis();
-    LogWarning("TASK",
-    "core=%d homing=%d state=%d selector=%d",
-    xPortGetCoreID(),
-    THIS->__isHomingActive,
-    THIS->__homing_state,
-    THIS->selettore
-    );
-    }
   }
 
   vTaskDelete(NULL);
@@ -281,7 +269,7 @@ void MOTION::HomingHandlerTask(void *pvParameters)
           if(HomingQueue.__PostHomeVal != 0)
           {
             THIS->Motion.setDirection(HomingQueue.__backDir);
-            THIS->Motion.step(HomingQueue.__PostHomeVal, uint64_t(HomingQueue.__home_steps_us*2), HomingQueue.__home_acc_steps_s2, HomingQueue.__home_dec_steps_s2);
+            THIS->Motion.step(HomingQueue.__PostHomeVal, uint64_t(HomingQueue.__home_steps_us*2));
             THIS->__homing_state = HOMING_BACKOFF;
           }
           else
@@ -311,7 +299,7 @@ void MOTION::HomingHandlerTask(void *pvParameters)
         ptrHardLimit->update();
         ptrOtherLimit->update();
 
-        if(ptrHardLimit->event() && ptrHardLimit->rawRead() == (uint8_t)HomingQueue.__calib_signal)
+        if(ptrHardLimit->rawRead() == (uint8_t)HomingQueue.__calib_signal)
         {
           #ifdef LOG_ACTIVE_MOTION
             LogWarning(THIS->TAG("Homing Task"), "Finecorsa trovato, avvio backoff di %lld steps", (long long)HomingQueue.__PostHomeVal);
@@ -322,7 +310,7 @@ void MOTION::HomingHandlerTask(void *pvParameters)
           if(HomingQueue.__PostHomeVal != 0)
           {
             THIS->Motion.setDirection(HomingQueue.__backDir);
-            THIS->Motion.step(HomingQueue.__PostHomeVal, uint64_t(HomingQueue.__home_steps_us*2), HomingQueue.__home_acc_steps_s2, HomingQueue.__home_dec_steps_s2);
+            THIS->Motion.step(HomingQueue.__PostHomeVal, uint64_t(HomingQueue.__home_steps_us*2));
             THIS->__homing_state = HOMING_BACKOFF;
           }
           else
@@ -384,18 +372,6 @@ void MOTION::HomingHandlerTask(void *pvParameters)
         vTaskDelayUntil(&getLastTick, pdMS_TO_TICKS(10));
         break;
       }
-    }
-
-    if(millis() - tmrDebug >= 1000)
-    {
-      tmrDebug = millis();
-    LogWarning("TASK",
-    "core=%d homing=%d state=%d selector=%d",
-    xPortGetCoreID(),
-    THIS->__isHomingActive,
-    THIS->__homing_state,
-    THIS->selettore
-    );
     }
   }
 
@@ -581,8 +557,6 @@ bool MOTION::isDetached()
  *  @brief Inizializza il motore con l'Homing in modo che si sappia il punto di partenza.
  * 
  *  @param HomeVelocity_gradi_sec      : Velocità con cui verrà eseguito l'homing
- *  @param acc_gradi_al_secondo_quadro : accelerazione dei movimenti di Homing
- *  @param dec_gradi_al_secondo_quadro : decelerazione dei movimenti di Homing
  *  @param HardLimitToReach            : Finecorsa a cui arrivare HARD_MAX o HARD_MIN
  *  @param searchDirection             : Direzione in cui il motore cerca il finecorsa --> DIR_NEGATIVE (default) = clockWise DIR_POSITIVE = counterClockWise
  *  @param gradiDopoHome               : Valore di posizione dopo aver fatto l'homing
@@ -590,7 +564,7 @@ bool MOTION::isDetached()
  *  @warning QUESTA FUNZIONE ESCE SUBITO ED ESEGUE L'HOMING IN MODO ASINCRONO CON TASK INTERNA.
  *           Solo quando la funzione @see isHomeDone() restituisce true allora sarà effettivamente finito l'home 
  */
-void MOTION::home(double HomeVelocity_gradi_sec, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro, HardLimit_t HardLimitToReach, Direction_t searchDirection, double gradiDopoHome)
+void MOTION::home(double HomeVelocity_gradi_sec, HardLimit_t HardLimitToReach, Direction_t searchDirection, double gradiDopoHome)
 {
   if(this->__isHomingActive)
   {
@@ -646,8 +620,6 @@ void MOTION::home(double HomeVelocity_gradi_sec, double acc_gradi_al_secondo_qua
   HomingQueueDatas.__backDir           = backDir;
   HomingQueueDatas.__calib_signal      = this->__calib_signal;
   HomingQueueDatas.__home_steps_us     = getPeriodDelay(HomeVelocity_gradi_sec);
-  HomingQueueDatas.__home_acc_steps_s2 = gradiToSteps(abs(acc_gradi_al_secondo_quadro));
-  HomingQueueDatas.__home_dec_steps_s2 = gradiToSteps(abs(dec_gradi_al_secondo_quadro));
   HomingQueueDatas.__PostHomeVal       = gradiToSteps(gradiDopoHome);
   HomingQueueDatas.__search_dir        = searchDirection;
 
@@ -777,7 +749,7 @@ uint64_t MOTION::abortCurrentCommand()
  *  @param gradi il segno determina la direzione e sono i gradi di cui si sposta
  *  @param speed_gradi_al_secondo è la velocità a cui si muove il motore
  */
-void MOTION::moveRel(double gradi, double speed_gradi_al_secondo, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro)
+void MOTION::moveRel(double gradi, double speed_gradi_al_secondo)
 {
   /// Struttura temporanea da inviare in coda
   MoveQueue_t QueueDatasToSend = defaultReceiverQueue;
@@ -789,30 +761,10 @@ void MOTION::moveRel(double gradi, double speed_gradi_al_secondo, double acc_gra
   QueueDatasToSend.__move_steps = gradiToSteps(abs(gradi)); //rimuove il segno se c'è e lo associa direttamente a __move_steps
 
   QueueDatasToSend.__speed_steps_us = getPeriodDelay(abs(speed_gradi_al_secondo));
-  QueueDatasToSend.__acc_steps_s2   = gradiToSteps(abs(acc_gradi_al_secondo_quadro));
-  QueueDatasToSend.__dec_steps_s2   = gradiToSteps(abs(dec_gradi_al_secondo_quadro));
 
   /// Setta il selettore dello switch case 
   QueueDatasToSend.__SwitchMove = MOVE_REL;
-  
-  LogInfo("moveRel",
-    "QueueDatasToSend :\n"
-    "__dir : %d\n"
-    "__move_steps : %" PRId64 "\n"
-    "__speed_steps_us : %" PRIu64 "\n"
-    "__acc_steps_s2 : %" PRId64 "\n"
-    "__dec_steps_s2 : %" PRId64 "\n",
-    QueueDatasToSend.__dir,
-    QueueDatasToSend.__move_steps,
-    QueueDatasToSend.__speed_steps_us,
-    QueueDatasToSend.__acc_steps_s2,
-    QueueDatasToSend.__dec_steps_s2
-  );
-  
-  LogInfo("TASK CHECK",
-        "MoveTask=%s UpdateTask=%s",
-        eTaskGetState(__MoveHandlerTask) == eSuspended ? "SUSPENDED" : "RUNNING",
-        eTaskGetState(__UpdateMoveHandlerTask) == eSuspended ? "SUSPENDED" : "RUNNING");
+
   /// Invia i dati alla coda
   MoveSendToQueue(QueueDatasToSend);
 }
@@ -829,7 +781,7 @@ void MOTION::moveRel(double gradi, double speed_gradi_al_secondo, double acc_gra
  *                   poiché non teneva conto di quanti step doveva fare e in che direzione per arrivare
  *                   nel voluto punto assoluto
  */
-void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro)
+void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
 {
   /// In base all'attuale posizione riconosce la direzione
   int64_t tmpSteps = gradiToSteps(gradi);
@@ -844,8 +796,6 @@ void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo, double acc_gra
   QueueDatasToSend.__move_steps = absoluteStepCounter - gradiToSteps(abs(gradi)); 
 
   QueueDatasToSend.__speed_steps_us = getPeriodDelay(abs(speed_gradi_al_secondo));
-  QueueDatasToSend.__acc_steps_s2 = gradiToSteps(abs(acc_gradi_al_secondo_quadro));
-  QueueDatasToSend.__dec_steps_s2 = gradiToSteps(abs(dec_gradi_al_secondo_quadro));
 
   /// Setta il selettore dello switch case 
   QueueDatasToSend.__SwitchMove = MOVE_ABS;

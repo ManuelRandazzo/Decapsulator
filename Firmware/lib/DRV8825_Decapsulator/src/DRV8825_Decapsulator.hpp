@@ -130,7 +130,7 @@ class DRV8825
     int64_t       getAbsPosition();
 
     //       STEPS
-    drv_err_t     step(uint64_t numberOfStepsToDo, uint64_t period_us, int64_t acc, int64_t dec);
+    drv_err_t     step(uint64_t numberOfStepsToDo, uint64_t period_us);
     drv_err_t     abortCurrentMovement();
     drv_err_t     stepContinuous(uint64_t period_us);
     drv_err_t     isStepDone();

@@ -141,7 +141,7 @@ class MOTION
 
     /// Inizializza il motore con l'Homing in modo che si sappia il punto di partenza
     /// @attention Prima dell'home bisogna chiamate setHardLimits o ritornerà senza fare homing
-    void home(double HomeVelocity_gradi_sec, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro, HardLimit_t HardLimitToReach, Direction_t searchDirection, double gradiDopoHome);
+    void home(double HomeVelocity_gradi_sec, HardLimit_t HardLimitToReach, Direction_t searchDirection, double gradiDopoHome);
 
     /// @return se è finito(true) o no(false) l'homing
     bool isHomeDone();
@@ -168,11 +168,13 @@ class MOTION
     /// @returns Numero di step rimanenti del comando abortito
     uint64_t abortCurrentCommand();
 
+    void forceStandStill() { this->selettore == STAND_STILL; }
+
     /// Muove il motore in una direzione e alla velocità specificata in modo RELATIVO
-    void moveRel(double gradi, double speed_gradi_al_secondo = 0.0, double acc_gradi_al_secondo_quadro = 0.0, double dec_gradi_al_secondo_quadro = 0.0);
+    void moveRel(double gradi, double speed_gradi_al_secondo = 0.0);
 
     /// Muove il motore in una direzione e alla velocità specificata in modo ASSOLUTO rispetto all'accensione
-    void moveAbs(double gradi, double speed_gradi_al_secondo = 0.0, double acc_gradi_al_secondo_quadro = 0.0, double dec_gradi_al_secondo_quadro = 0.0);
+    void moveAbs(double gradi, double speed_gradi_al_secondo = 0.0);
 
     /// Muove il motore all'infinito verso la direzione specificata
     void moveContinuous(Direction_t direzione, double speed_gradi_al_secondo = 0.0);
@@ -241,8 +243,6 @@ class MOTION
     {
       SwitchMove_t __SwitchMove;     /*!< Variabile switch per il movimento del motore nella task  */
       uint64_t __speed_steps_us;     /*!< Velocità step/microsecondo  */
-      int64_t __acc_steps_s2;        /*!< Accelerazione step/secondo^2  */
-      int64_t __dec_steps_s2;        /*!< Decelerazione step/secondo^2  */ 
       int64_t __move_steps;          /*!< Passi da eseguire scelti in runtime  */
       Direction_t __dir;             /*!< Direzione che verrà impostata all'invio del comando  */
     } MoveQueue_t;
@@ -251,8 +251,6 @@ class MOTION
     {
       .__SwitchMove = STAND_STILL,
       .__speed_steps_us = 10,
-      .__acc_steps_s2 = 0,
-      .__dec_steps_s2 = 0,
       .__move_steps = 0,
       .__dir = DIR_NEGATIVE,
     };
@@ -278,9 +276,7 @@ class MOTION
 		  HardLimit_t __hardLimit;
       Direction_t __backDir;                    /*!< Direzione di Backoff dopo l'homing */
 		  CalibSignal_t __calib_signal;             /*!< Valore considerato come sensore triggerato */
-		  uint64_t __home_steps_us;                 /*!< Velocità dell'homing in step/secondo  */
-      int64_t __home_acc_steps_s2;              /*!< Accelerazione dell'homing in step/secondo^2 */
-      int64_t __home_dec_steps_s2;              /*!< Decelerazione dell'homing in step/secondo^2 */ 
+		  uint64_t __home_steps_us;                 /*!< Velocità dell'homing in step/secondo */
       int64_t __PostHomeVal;                    /*!< è il valore di cui si deve rispostare in avanti in cui vi sarà la posizione 0 dopo l'homing  */
 		  Direction_t __search_dir;
     };
@@ -290,8 +286,6 @@ class MOTION
       .__backDir = NO_DIR,               /*!< Direzione di Backoff dopo l'homing */
       .__calib_signal = UNKNOWN,
       .__home_steps_us = 0,
-      .__home_acc_steps_s2 = 0,
-      .__home_dec_steps_s2 = 0,
       .__PostHomeVal = 0,
       .__search_dir = NO_DIR,
     };
