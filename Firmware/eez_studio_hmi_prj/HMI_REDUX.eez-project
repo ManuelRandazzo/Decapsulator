@@ -1993,11 +1993,7 @@
           "left": -104,
           "top": 595,
           "width": 292,
-<<<<<<< HEAD
           "height": 53,
-=======
-          "height": 54,
->>>>>>> 7dc3a87 (add(touch calibration text string) : aggiunta la stringa delle istruzioni per la calibrazione del touch.)
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -2034,11 +2030,7 @@
           "left": -104,
           "top": 649,
           "width": 292,
-<<<<<<< HEAD
           "height": 53,
-=======
-          "height": 54,
->>>>>>> 7dc3a87 (add(touch calibration text string) : aggiunta la stringa delle istruzioni per la calibrazione del touch.)
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -2306,7 +2298,7 @@
           "input": "@seqin"
         },
         {
-          "objID": "dd1e5a50-337e-452b-eaa2-d4b93841718a",
+          "objID": "ed412e1c-797d-4274-e99f-8cee5a0738a7",
           "source": "43c1b721-5248-40a8-ae4d-9431a1c49b1d",
           "output": "True",
           "target": "437ea2e8-a1d6-4a34-c043-eb7428f1b88f",
@@ -2856,11 +2848,7 @@
           "left": 819,
           "top": 344,
           "width": 171,
-<<<<<<< HEAD
           "height": 71,
-=======
-          "height": 70,
->>>>>>> 7dc3a87 (add(touch calibration text string) : aggiunta la stringa delle istruzioni per la calibrazione del touch.)
           "customInputs": [],
           "customOutputs": [],
           "value": "Stato_Avvio_Macchina"
@@ -4175,11 +4163,7 @@
           "left": 626,
           "top": -129,
           "width": 292,
-<<<<<<< HEAD
           "height": 70,
-=======
-          "height": 73,
->>>>>>> 7dc3a87 (add(touch calibration text string) : aggiunta la stringa delle istruzioni per la calibrazione del touch.)
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -4417,11 +4401,7 @@
           "left": -386,
           "top": 97,
           "width": 206,
-<<<<<<< HEAD
           "height": 53,
-=======
-          "height": 54,
->>>>>>> 7dc3a87 (add(touch calibration text string) : aggiunta la stringa delle istruzioni per la calibrazione del touch.)
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -4467,11 +4447,7 @@
           "left": 886,
           "top": 151,
           "width": 128,
-<<<<<<< HEAD
           "height": 71,
-=======
-          "height": 70,
->>>>>>> 7dc3a87 (add(touch calibration text string) : aggiunta la stringa delle istruzioni per la calibrazione del touch.)
           "customInputs": [],
           "customOutputs": [],
           "value": "Presenza_WiFi"
@@ -11779,59 +11755,7 @@
           "topUnit": "px",
           "widthUnit": "px",
           "heightUnit": "px",
-          "children": [
-            {
-              "objID": "c0207d66-e458-4b2b-9599-68b4ada73d3e",
-              "type": "LVGLLabelWidget",
-              "left": 11,
-              "top": 106,
-              "width": 459,
-              "height": 87,
-              "customInputs": [],
-              "customOutputs": [],
-              "style": {
-                "objID": "dd11d076-82fc-44b1-c71f-dc378b47a784",
-                "useStyle": "default",
-                "conditionalStyles": [],
-                "childStyles": []
-              },
-              "timeline": [],
-              "eventHandlers": [],
-              "identifier": "touch_calibration_instructions_text",
-              "leftUnit": "px",
-              "topUnit": "px",
-              "widthUnit": "content",
-              "heightUnit": "content",
-              "children": [],
-              "widgetFlags": "",
-              "hiddenFlagType": "literal",
-              "clickableFlagType": "literal",
-              "flagScrollbarMode": "",
-              "flagScrollDirection": "",
-              "scrollSnapX": "",
-              "scrollSnapY": "",
-              "checkedStateType": "literal",
-              "disabledStateType": "literal",
-              "states": "",
-              "localStyles": {
-                "objID": "91b57267-8c28-4009-c5d2-74c0bc61b995",
-                "definition": {
-                  "MAIN": {
-                    "DEFAULT": {
-                      "text_font": "MONTSERRAT_26",
-                      "text_color": "#FFFFFF"
-                    }
-                  }
-                }
-              },
-              "group": "",
-              "groupIndex": 0,
-              "text": "Premere l'angolino indicato \ndalla freccia, preferibilmente \ncon il pennino fornito in dotazione",
-              "textType": "literal",
-              "longMode": "WRAP",
-              "recolor": false
-            }
-          ],
+          "children": [],
           "widgetFlags": "CLICKABLE|PRESS_LOCK|CLICK_FOCUSABLE|GESTURE_BUBBLE|SNAPPABLE|SCROLLABLE|SCROLL_ELASTIC|SCROLL_MOMENTUM|SCROLL_CHAIN_HOR|SCROLL_CHAIN_VER",
           "hiddenFlagType": "literal",
           "clickableFlag": true,
@@ -11894,7 +11818,7 @@
           "type": "LVGLActionComponent",
           "left": 638,
           "top": 372,
-          "width": 372,
+          "width": 373,
           "height": 54,
           "customInputs": [],
           "customOutputs": [],

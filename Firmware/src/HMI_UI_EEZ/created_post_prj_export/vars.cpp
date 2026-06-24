@@ -762,20 +762,20 @@ extern "C" void set_var_pulsante_errore(bool value)
 
 
 
-bool wi_fi_success = false;
-extern "C" bool get_var_wi_fi_success()
+int32_t wi_fi_success = false;
+extern "C" int32_t get_var_wi_fi_success()
 {
     if(xSemaphoreTake(mutex_wi_fi_success, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
         return false;
 
-    bool get = wi_fi_success;
+    int32_t get = wi_fi_success;
 
     xSemaphoreGive(mutex_wi_fi_success);
 
     return get;
 }
 
-extern "C" void set_var_wi_fi_success(bool value)
+extern "C" void set_var_wi_fi_success(int32_t value)
 {
     if(xSemaphoreTake(mutex_wi_fi_success, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
         return;
