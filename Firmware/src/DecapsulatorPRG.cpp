@@ -68,6 +68,9 @@ void prgDecapsulatorTask(void *pvParameters)
     int nCicliRimanenti = SD_Card.getValueByKey<int>(DECAPSULATOR_GLOBAL_STATUS_PATH_SD, "nCicliRimanenti"); // prende il numero dalla SD Card
         
 
+    uint8_t idxTasca = 0; // indice della tasca attualmente alla fase di carico
+    bool xCapsuleCaricate[4] = { false, false, false, false };
+
     /// TIMEOUTS: TIMERS:
     uint32_t tmoPunzHome = 0;
     uint32_t tmoRallaHome = 0;
@@ -108,11 +111,19 @@ void prgDecapsulatorTask(void *pvParameters)
             /// il servo paratia perchè deve richiudersi e muovere il tamburo alla
             /// prossima posizione oppure il macchinario non partirà (se il servo non viene chiuso)
             /// oppure si incastrerà la capsula (se il tamburo non viene spostata alla posizione successiva)
-            case PUNCHER_FIRST_DOWN_STATE ... PUNCHER_SECOND_UP_STATE :
+            case SERVO_LOADER_OPEN_STATE ... PUNCHER_SECOND_UP_STATE :
                 if(get_var_comando_macchina() == false)
                 {
+                    MotRalla.abortCurrentCommand();
+                    MotRalla.Stop(RELEASE);
+                    MotPunzone.abortCurrentCommand();
+                    MotPunzone.Stop(RELEASE);
                     ServoParatia.write(SERVO_CLOSED_POS);
-                    sequenza = QUIETE_STATE;
+                    skipOneLoadingPhase = true;
+                    sequenza = MACHINE_STARTUP_STATE;
+                    set_var_nome_errore("è richiesta la conferma per poter continuare");
+                    while(!get_var_pulsante_errore())
+                        vTaskDelay(100);
                 }
             break;
         }
@@ -133,9 +144,9 @@ void prgDecapsulatorTask(void *pvParameters)
                 /// @todo
                 set_var_comando_macchina(false);
                 set_var_nome_errore("EMERGENZA : Il macchinario necessità di restart, consultare manuale di uso e manutenzione prima di ogni azione");
+                ServoParatia.write(SERVO_CLOSED_POS);
                 MainPrgStopAllMotors();
                 Ventola.on();
-                ServoParatia.write(SERVO_CLOSED_POS);
                 LogError("EMERGENCY", "Si è entrati in uno stato di EMERGENZA");
             }
             break;
@@ -186,8 +197,8 @@ void prgDecapsulatorTask(void *pvParameters)
                 }
                 else
                 {
-                    /// Se rileva che è stato premuto OK vuol dire che sono stati svuotati i contenitori (il pulsante ha logica negata)
-                    if(!get_var_pulsante_errore())
+                    /// Se rileva che è stato premuto OK vuol dire che sono stati svuotati i contenitori
+                    if(get_var_pulsante_errore())
                     {
                         sequenza = QUIETE_STATE;
                         cmd_exec = false;
@@ -223,7 +234,7 @@ void prgDecapsulatorTask(void *pvParameters)
                     Ventola.on(); // Si assicura che la ventola sia accesa
                     MotPunzone.attach();
                     MotPunzone.Start();
-                    MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_ACC, PUNZ_HOME_DEC, HARD_MAX, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
+                    MotPunzone.home(PUNZ_HOME_SPEED, HARD_MAX, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
                     tmoPunzHome = MILLIS;
                     cmd_exec = true;
                 }
@@ -274,14 +285,14 @@ void prgDecapsulatorTask(void *pvParameters)
                             if(!MotRalla.isStepDone())
                             {
                                 MotRalla.abortCurrentCommand();
-                                gradi_post_home = 0.0 * GEAR_RATIO_RALLA;
+                                gradi_post_home = -3.3 * GEAR_RATIO_RALLA;
                             }
                             else
                                 gradi_post_home = RALLA_POST_HOME_POS * GEAR_RATIO_RALLA;
 
                             LogDebug("TAMBURO_STARTUP_STATE", "MotRalla.home -> gradi_post_home : %f", gradi_post_home);
                             
-                            MotRalla.home(RALLA_HOME_SPEED, RALLA_HOME_ACC, RALLA_HOME_DEC, HARD_MAX, RALLA_HOME_DIR, gradi_post_home);
+                            MotRalla.home(RALLA_HOME_SPEED, HARD_MAX, RALLA_HOME_DIR, gradi_post_home);
 
                             if(nCicliRimanenti != 0)
                                 skipOneLoadingPhase = true;
@@ -387,6 +398,20 @@ void prgDecapsulatorTask(void *pvParameters)
                         {
                             nCicliRimanenti--;
                             LogDebug("nCicliRimanenti", "Continuo a fare il resto del ciclo");
+   
+                            /// Indica nel buffer che non carica la capsula
+                            if(xCapsuleCaricate[idxTasca])
+                            {
+                                cntContainerCapsuleFull++;
+                                cntContainerCoffeeFull++;
+
+                                local_caps_ses++;
+                                local_caps_tot++;
+                                set_var_contatore_caps_ses(local_caps_ses);
+                                set_var_contatore_caps_totali(local_caps_tot);
+                            }
+                            xCapsuleCaricate[idxTasca] = false;
+
                             cmd_exec = false;
                             sequenza = REACH_NEXT_STATION_STATE;
                         }
@@ -418,11 +443,24 @@ void prgDecapsulatorTask(void *pvParameters)
                     /// Cambio di stato dovuto dall'Interrupt della Fotocellula conferma capsula nel tamburo
                     if(cadutaCaps.event() == true)
                     {
+                        /// Indica nel buffer che carica la capsula
+                        if(xCapsuleCaricate[idxTasca])
+                        {
+                            cntContainerCapsuleFull++;
+                            cntContainerCoffeeFull++;
+
+                            local_caps_ses++;
+                            local_caps_tot++;
+                            set_var_contatore_caps_ses(local_caps_ses);
+                            set_var_contatore_caps_totali(local_caps_tot);
+                        }
+                        xCapsuleCaricate[idxTasca] = true;
+
                         nCicliRimanenti = 3;
                         /// Se il pezzo è passato, i tot ms di debounce sono passati e non si è intasato
                         ServoParatia.write(SERVO_CLOSED_POS);
                         sequenza = REACH_NEXT_STATION_STATE;
-                        vTaskDelay(200 + (uint32_t)(TEMPO_CADUTA_CAPSULA_MS));
+                        vTaskDelay(1500 + (uint32_t)(TEMPO_CADUTA_CAPSULA_MS));
                         cmd_exec = false;
                     }
                 }
@@ -447,6 +485,7 @@ void prgDecapsulatorTask(void *pvParameters)
                 }
                 else if(RallaStepDone.Q() == true) // Aspetta la fine del comando
                 {
+                    idxTasca = (idxTasca + 1) % 4;
                     sequenza = PUNCHER_FIRST_DOWN_STATE;
                     vTaskDelay(500);
                     cmd_exec = false;
@@ -515,15 +554,6 @@ void prgDecapsulatorTask(void *pvParameters)
                 }
                 else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
                 {
-                    cntContainerCapsuleFull++;
-                    cntContainerCoffeeFull++;
-
-                    /// Incrementa i contatori della UI
-                    local_caps_ses++;
-                    local_caps_tot++;
-                    set_var_contatore_caps_ses(local_caps_ses);
-                    set_var_contatore_caps_totali(local_caps_tot);
-
                     sequenza = SERVO_LOADER_OPEN_STATE; // Ricomincia il ciclo
                     cmd_exec = false;
                 }
