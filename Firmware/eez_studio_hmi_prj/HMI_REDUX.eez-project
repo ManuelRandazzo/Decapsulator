@@ -483,8 +483,8 @@
       {
         "objID": "5f44b79e-5e88-476f-ded7-aada552daabe",
         "name": "WiFi_Success",
-        "type": "boolean",
-        "defaultValue": "false",
+        "type": "integer",
+        "defaultValue": "-1",
         "persistent": false,
         "native": true
       },
@@ -795,8 +795,8 @@
           "type": "CompareActionComponent",
           "left": 452,
           "top": -75,
-          "width": 285,
-          "height": 70,
+          "width": 284,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "A": "Password_Corretta",
@@ -809,7 +809,7 @@
           "left": 1664,
           "top": -89,
           "width": 409,
-          "height": 111,
+          "height": 106,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -876,7 +876,7 @@
           "left": 1542,
           "top": -56,
           "width": 87,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "milliseconds": "1500"
@@ -886,7 +886,7 @@
           "type": "SetVariableActionComponent",
           "left": 1209,
           "top": 157,
-          "width": 294,
+          "width": 293,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -904,7 +904,7 @@
           "left": 1541,
           "top": 130,
           "width": 87,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "milliseconds": "1500"
@@ -931,8 +931,8 @@
           "type": "LVGLActionComponent",
           "left": 789,
           "top": -58,
-          "width": 354,
-          "height": 111,
+          "width": 353,
+          "height": 106,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -981,8 +981,8 @@
           "type": "LVGLActionComponent",
           "left": 789,
           "top": 141,
-          "width": 354,
-          "height": 111,
+          "width": 353,
+          "height": 106,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -1032,7 +1032,7 @@
           "left": 1663,
           "top": 138,
           "width": 280,
-          "height": 92,
+          "height": 88,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -1625,7 +1625,7 @@
           "type": "SetVariableActionComponent",
           "left": 532,
           "top": 753,
-          "width": 257,
+          "width": 256,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -1693,8 +1693,8 @@
           "type": "IsTrueActionComponent",
           "left": -649,
           "top": 484,
-          "width": 190,
-          "height": 70,
+          "width": 189,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Comando_Bottone_Punzone"
@@ -1718,7 +1718,7 @@
           "left": -418,
           "top": 349,
           "width": 165,
-          "height": 70,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Stato_Finecorsa_Min"
@@ -1729,7 +1729,7 @@
           "left": -418,
           "top": 449,
           "width": 165,
-          "height": 70,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Stato_Finecorsa_Max"
@@ -1740,7 +1740,7 @@
           "left": -105,
           "top": 245,
           "width": 280,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -1760,7 +1760,7 @@
           "left": -105,
           "top": 353,
           "width": 274,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -1779,8 +1779,8 @@
           "type": "LVGLActionComponent",
           "left": 276,
           "top": 321,
-          "width": 268,
-          "height": 54,
+          "width": 267,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -1817,7 +1817,7 @@
           "left": -418,
           "top": 561,
           "width": 165,
-          "height": 70,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Stato_Finecorsa_Min"
@@ -1828,7 +1828,7 @@
           "left": -418,
           "top": 661,
           "width": 165,
-          "height": 70,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Stato_Finecorsa_Max"
@@ -1839,7 +1839,7 @@
           "left": -101,
           "top": 726,
           "width": 280,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -1859,7 +1859,7 @@
           "left": -101,
           "top": 780,
           "width": 274,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -1879,7 +1879,7 @@
           "left": -105,
           "top": 407,
           "width": 280,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -1899,7 +1899,7 @@
           "left": -105,
           "top": 299,
           "width": 286,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -1919,7 +1919,7 @@
           "left": -105,
           "top": 484,
           "width": 286,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -1956,7 +1956,7 @@
           "left": -104,
           "top": 538,
           "width": 286,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -1975,7 +1975,7 @@
           "type": "SetVariableActionComponent",
           "left": 234,
           "top": 595,
-          "width": 288,
+          "width": 287,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -1992,8 +1992,8 @@
           "type": "LVGLActionComponent",
           "left": -104,
           "top": 595,
-          "width": 293,
-          "height": 54,
+          "width": 292,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -2012,7 +2012,7 @@
           "type": "SetVariableActionComponent",
           "left": 234,
           "top": 649,
-          "width": 288,
+          "width": 287,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -2029,8 +2029,8 @@
           "type": "LVGLActionComponent",
           "left": -104,
           "top": 649,
-          "width": 293,
-          "height": 54,
+          "width": 292,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -2050,7 +2050,7 @@
           "left": 225,
           "top": 753,
           "width": 274,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -2674,7 +2674,7 @@
               "type": "LVGLLabelWidget",
               "left": 189,
               "top": 279,
-              "width": 0,
+              "width": 197,
               "height": 24,
               "customInputs": [],
               "customOutputs": [],
@@ -2748,8 +2748,8 @@
           "type": "LVGLActionComponent",
           "left": 1565,
           "top": 307,
-          "width": 385,
-          "height": 54,
+          "width": 384,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -2775,7 +2775,7 @@
           "left": 1424,
           "top": 307,
           "width": 87,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "milliseconds": "1500"
@@ -2785,7 +2785,7 @@
           "type": "SetVariableActionComponent",
           "left": 1064,
           "top": 307,
-          "width": 245,
+          "width": 244,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -2819,8 +2819,8 @@
           "type": "WatchVariableActionComponent",
           "left": 540,
           "top": 334,
-          "width": 197,
-          "height": 54,
+          "width": 196,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Stato_Avvio_Macchina"
@@ -2830,7 +2830,7 @@
           "type": "SetVariableActionComponent",
           "left": 638,
           "top": 149,
-          "width": 214,
+          "width": 213,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -2847,8 +2847,8 @@
           "type": "IsTrueActionComponent",
           "left": 819,
           "top": 344,
-          "width": 172,
-          "height": 70,
+          "width": 171,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Stato_Avvio_Macchina"
@@ -4069,7 +4069,7 @@
           "type": "SetVariableActionComponent",
           "left": 417,
           "top": 361,
-          "width": 196,
+          "width": 195,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -4087,7 +4087,7 @@
           "left": -32,
           "top": 475,
           "width": 172,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Comando_Macchina"
@@ -4097,8 +4097,8 @@
           "type": "LVGLActionComponent",
           "left": 166,
           "top": -121,
-          "width": 385,
-          "height": 54,
+          "width": 384,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -4124,7 +4124,7 @@
           "left": -279,
           "top": -285,
           "width": 166,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Presenza_Errore"
@@ -4135,7 +4135,7 @@
           "left": 626,
           "top": -208,
           "width": 286,
-          "height": 73,
+          "height": 70,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -4162,8 +4162,8 @@
           "type": "LVGLActionComponent",
           "left": 626,
           "top": -129,
-          "width": 293,
-          "height": 73,
+          "width": 292,
+          "height": 70,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -4225,7 +4225,7 @@
           "left": -76,
           "top": -200,
           "width": 166,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Pulsante_Errore"
@@ -4252,8 +4252,8 @@
           "type": "LVGLActionComponent",
           "left": 391,
           "top": -394,
-          "width": 262,
-          "height": 73,
+          "width": 261,
+          "height": 70,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -4280,8 +4280,8 @@
           "type": "LVGLActionComponent",
           "left": 391,
           "top": -321,
-          "width": 256,
-          "height": 73,
+          "width": 255,
+          "height": 70,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -4308,8 +4308,8 @@
           "type": "IsTrueActionComponent",
           "left": 170,
           "top": -258,
-          "width": 141,
-          "height": 70,
+          "width": 140,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Presenza_Errore"
@@ -4319,8 +4319,8 @@
           "type": "IsTrueActionComponent",
           "left": 426,
           "top": -231,
-          "width": 141,
-          "height": 70,
+          "width": 140,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Pulsante_Errore"
@@ -4330,8 +4330,8 @@
           "type": "IsTrueActionComponent",
           "left": 192,
           "top": 361,
-          "width": 147,
-          "height": 70,
+          "width": 146,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Comando_Macchina"
@@ -4341,8 +4341,8 @@
           "type": "IsTrueActionComponent",
           "left": -32,
           "top": 348,
-          "width": 141,
-          "height": 70,
+          "width": 140,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Presenza_Errore"
@@ -4352,7 +4352,7 @@
           "type": "SetVariableActionComponent",
           "left": -795,
           "top": 106,
-          "width": 196,
+          "width": 195,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -4370,7 +4370,7 @@
           "left": -533,
           "top": 106,
           "width": 110,
-          "height": 70,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "qr_visible"
@@ -4381,7 +4381,7 @@
           "left": -386,
           "top": 163,
           "width": 200,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -4400,8 +4400,8 @@
           "type": "LVGLActionComponent",
           "left": -386,
           "top": 97,
-          "width": 207,
-          "height": 54,
+          "width": 206,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -4435,8 +4435,8 @@
           "type": "WatchVariableActionComponent",
           "left": 672,
           "top": 163,
-          "width": 154,
-          "height": 54,
+          "width": 153,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Presenza_WiFi"
@@ -4446,8 +4446,8 @@
           "type": "IsTrueActionComponent",
           "left": 886,
           "top": 151,
-          "width": 129,
-          "height": 70,
+          "width": 128,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Presenza_WiFi"
@@ -4457,8 +4457,8 @@
           "type": "LVGLActionComponent",
           "left": 1092,
           "top": 151,
-          "width": 311,
-          "height": 73,
+          "width": 310,
+          "height": 70,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -4491,8 +4491,8 @@
           "type": "LVGLActionComponent",
           "left": 1092,
           "top": 224,
-          "width": 311,
-          "height": 73,
+          "width": 310,
+          "height": 70,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -4517,6 +4517,46 @@
               "partType": "literal",
               "state": "DEFAULT",
               "stateType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "1055a577-4b7a-403a-e8f9-5a1c8fced902",
+          "type": "LVGLActionComponent",
+          "left": -1013,
+          "top": -3,
+          "width": 660,
+          "height": 53,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "beffd114-ed2e-442f-cd45-a8a5c1f68ecc",
+              "action": "qrCodeUpdate",
+              "object": "qr_sito",
+              "objectType": "literal",
+              "text": "https://drive.google.com/file/d/1xPDuxTwcVuRsys9E01vexCSuRFnILeS_/view?usp=sharing",
+              "textType": "literal"
+            }
+          ]
+        },
+        {
+          "objID": "7c8fa4ed-ee98-4d9f-e891-d24d850afdeb",
+          "type": "LVGLActionComponent",
+          "left": -774,
+          "top": -68,
+          "width": 415,
+          "height": 53,
+          "customInputs": [],
+          "customOutputs": [],
+          "actions": [
+            {
+              "objID": "d38ba450-d953-4754-c318-47f15e18b1b8",
+              "action": "qrCodeUpdate",
+              "object": "qr_sito",
+              "objectType": "literal",
+              "text": "https://www.youtube.com/shorts/Ay8lynMZ4mE",
+              "textType": "literal"
             }
           ]
         }
@@ -4695,6 +4735,20 @@
           "source": "0815ed8c-6ec3-4c63-971d-cc6a567956ed",
           "output": "False",
           "target": "5f03009b-9563-4ea0-bf73-e72444691646",
+          "input": "@seqin"
+        },
+        {
+          "objID": "1eebfc76-acd4-46fe-ea57-2003f4a0ab67",
+          "source": "3f589feb-b7dc-46a1-9e8c-8c5c4e73d1ea",
+          "output": "PRESSED",
+          "target": "1055a577-4b7a-403a-e8f9-5a1c8fced902",
+          "input": "@seqin"
+        },
+        {
+          "objID": "531249f1-3c44-486a-9e12-8796aafe6b53",
+          "source": "60581008-5674-4afd-d149-b2f94b3023d6",
+          "output": "PRESSED",
+          "target": "7c8fa4ed-ee98-4d9f-e891-d24d850afdeb",
           "input": "@seqin"
         }
       ],
@@ -8764,8 +8818,8 @@
           "type": "LVGLActionComponent",
           "left": -288,
           "top": -196,
-          "width": 391,
-          "height": 54,
+          "width": 390,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -8790,7 +8844,7 @@
           "type": "SetVariableActionComponent",
           "left": 354,
           "top": -184,
-          "width": 331,
+          "width": 330,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -8824,7 +8878,7 @@
           "type": "SetVariableActionComponent",
           "left": 327,
           "top": 384,
-          "width": 429,
+          "width": 428,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -8841,7 +8895,7 @@
           "type": "SetVariableActionComponent",
           "left": 327,
           "top": 498,
-          "width": 454,
+          "width": 453,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -8875,7 +8929,7 @@
           "type": "SetVariableActionComponent",
           "left": 354,
           "top": -127,
-          "width": 429,
+          "width": 428,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -8893,7 +8947,7 @@
           "left": 199,
           "top": 829,
           "width": 203,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Comando_Bottone_Ralla"
@@ -8917,7 +8971,7 @@
           "left": 181,
           "top": 1019,
           "width": 215,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Comando_Bottone_Punzone"
@@ -8940,8 +8994,8 @@
           "type": "WatchVariableActionComponent",
           "left": -681,
           "top": 452,
-          "width": 185,
-          "height": 54,
+          "width": 184,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Stato_Motore_Ralla"
@@ -8951,7 +9005,7 @@
           "type": "SetVariableActionComponent",
           "left": -150,
           "top": 398,
-          "width": 208,
+          "width": 207,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -8968,8 +9022,8 @@
           "type": "WatchVariableActionComponent",
           "left": -681,
           "top": 536,
-          "width": 197,
-          "height": 54,
+          "width": 196,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Stato_Motore_Punzone"
@@ -8997,7 +9051,7 @@
           "left": 682,
           "top": 708,
           "width": 252,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Stato_Sensore_di_Calibrazione"
@@ -9008,7 +9062,7 @@
           "left": 1226,
           "top": 708,
           "width": 329,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -9044,8 +9098,8 @@
           "type": "LVGLActionComponent",
           "left": 1226,
           "top": 784,
-          "width": 342,
-          "height": 54,
+          "width": 341,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -9064,7 +9118,7 @@
           "type": "SetVariableActionComponent",
           "left": 1615,
           "top": 784,
-          "width": 331,
+          "width": 330,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -9081,8 +9135,8 @@
           "type": "LVGLActionComponent",
           "left": 1038,
           "top": 185,
-          "width": 311,
-          "height": 73,
+          "width": 310,
+          "height": 70,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -9110,7 +9164,7 @@
           "left": 584,
           "top": 212,
           "width": 372,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -9129,8 +9183,8 @@
           "type": "LVGLActionComponent",
           "left": 584,
           "top": 266,
-          "width": 391,
-          "height": 54,
+          "width": 390,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -9149,8 +9203,8 @@
           "type": "LVGLActionComponent",
           "left": 585,
           "top": 106,
-          "width": 397,
-          "height": 54,
+          "width": 396,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -9169,8 +9223,8 @@
           "type": "LVGLActionComponent",
           "left": 584,
           "top": 158,
-          "width": 379,
-          "height": 54,
+          "width": 378,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -9189,8 +9243,8 @@
           "type": "LVGLActionComponent",
           "left": -352,
           "top": 122,
-          "width": 305,
-          "height": 73,
+          "width": 304,
+          "height": 70,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -9235,7 +9289,7 @@
           "left": 956,
           "top": -295,
           "width": 111,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Homing"
@@ -9246,7 +9300,7 @@
           "left": -688,
           "top": 920,
           "width": 346,
-          "height": 70,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "A": "Comando_Motore_Punzone",
@@ -9258,8 +9312,8 @@
           "type": "WatchVariableActionComponent",
           "left": -935,
           "top": 870,
-          "width": 197,
-          "height": 54,
+          "width": 196,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Comando_Motore_Ralla"
@@ -9270,7 +9324,7 @@
           "left": -947,
           "top": 946,
           "width": 209,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Comando_Motore_Punzone"
@@ -9280,8 +9334,8 @@
           "type": "LVGLActionComponent",
           "left": -219,
           "top": 929,
-          "width": 219,
-          "height": 54,
+          "width": 218,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -9300,8 +9354,8 @@
           "type": "LVGLActionComponent",
           "left": -219,
           "top": 990,
-          "width": 213,
-          "height": 54,
+          "width": 212,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -9347,7 +9401,7 @@
           "type": "SetVariableActionComponent",
           "left": -150,
           "top": 470,
-          "width": 214,
+          "width": 213,
           "height": 57,
           "customInputs": [],
           "customOutputs": [],
@@ -9403,7 +9457,7 @@
           "left": -102,
           "top": -476,
           "width": 166,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Presenza_Errore"
@@ -9413,8 +9467,8 @@
           "type": "IsTrueActionComponent",
           "left": 104,
           "top": -476,
-          "width": 141,
-          "height": 70,
+          "width": 140,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Presenza_Errore"
@@ -9425,7 +9479,7 @@
           "left": 279,
           "top": -476,
           "width": 403,
-          "height": 92,
+          "height": 88,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -9466,8 +9520,8 @@
           "type": "IsTrueActionComponent",
           "left": -384,
           "top": 563,
-          "width": 172,
-          "height": 70,
+          "width": 171,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Stato_Motore_Punzone"
@@ -9478,7 +9532,7 @@
           "left": -384,
           "top": 452,
           "width": 159,
-          "height": 70,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Stato_Motore_Ralla"
@@ -9488,8 +9542,8 @@
           "type": "SetVariableActionComponent",
           "left": 751,
           "top": -471,
-          "width": 239,
-          "height": 101,
+          "width": 238,
+          "height": 100,
           "customInputs": [],
           "customOutputs": [],
           "entries": [
@@ -9515,8 +9569,8 @@
           "type": "IsTrueActionComponent",
           "left": 967,
           "top": 715,
-          "width": 227,
-          "height": 70,
+          "width": 226,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Stato_Sensore_di_Calibrazione"
@@ -9601,8 +9655,8 @@
           "type": "WatchVariableActionComponent",
           "left": 206,
           "top": 1148,
-          "width": 191,
-          "height": 54,
+          "width": 190,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Stato_Finecorsa_Min"
@@ -9612,8 +9666,8 @@
           "type": "WatchVariableActionComponent",
           "left": 205,
           "top": 1094,
-          "width": 191,
-          "height": 54,
+          "width": 190,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Stato_Finecorsa_Max"
@@ -11208,8 +11262,8 @@
           "type": "LVGLActionComponent",
           "left": -127,
           "top": -127,
-          "width": 391,
-          "height": 54,
+          "width": 390,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -11250,7 +11304,7 @@
           "left": -127,
           "top": -253,
           "width": 166,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "Presenza_Errore"
@@ -11260,8 +11314,8 @@
           "type": "IsTrueActionComponent",
           "left": 118,
           "top": -249,
-          "width": 141,
-          "height": 70,
+          "width": 140,
+          "height": 71,
           "customInputs": [],
           "customOutputs": [],
           "value": "Presenza_Errore"
@@ -11271,8 +11325,8 @@
           "type": "LVGLActionComponent",
           "left": 296,
           "top": -263,
-          "width": 385,
-          "height": 54,
+          "width": 384,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -11297,8 +11351,8 @@
           "type": "LVGLActionComponent",
           "left": 543,
           "top": 111,
-          "width": 379,
-          "height": 54,
+          "width": 378,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -11317,8 +11371,8 @@
           "type": "LVGLActionComponent",
           "left": 543,
           "top": 42,
-          "width": 354,
-          "height": 54,
+          "width": 353,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -11350,32 +11404,21 @@
         {
           "objID": "6cb11d48-4074-4952-c376-915163a44405",
           "type": "WatchVariableActionComponent",
-          "left": 810,
-          "top": 249,
-          "width": 148,
-          "height": 54,
+          "left": 801,
+          "top": 193,
+          "width": 147,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "variable": "WiFi_Success"
-        },
-        {
-          "objID": "7ba2feae-b03f-4319-ca59-2e3039b4fe47",
-          "type": "IsTrueActionComponent",
-          "left": 1017,
-          "top": 251,
-          "width": 122,
-          "height": 70,
-          "customInputs": [],
-          "customOutputs": [],
-          "value": "WiFi_Success"
         },
         {
           "objID": "13a5f7db-cbf8-485d-f696-5c891eb31fac",
           "type": "SetVariableActionComponent",
           "left": 1669,
           "top": 219,
-          "width": 288,
-          "height": 101,
+          "width": 287,
+          "height": 100,
           "customInputs": [],
           "customOutputs": [],
           "entries": [
@@ -11401,8 +11444,8 @@
           "type": "LVGLActionComponent",
           "left": 1229,
           "top": 219,
-          "width": 403,
-          "height": 73,
+          "width": 402,
+          "height": 70,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -11436,7 +11479,7 @@
           "left": 2012,
           "top": 219,
           "width": 87,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "milliseconds": "1000"
@@ -11446,8 +11489,8 @@
           "type": "LVGLActionComponent",
           "left": 2150,
           "top": 219,
-          "width": 293,
-          "height": 54,
+          "width": 292,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -11467,7 +11510,7 @@
           "left": 1669,
           "top": 321,
           "width": 355,
-          "height": 79,
+          "height": 78,
           "customInputs": [],
           "customOutputs": [],
           "entries": [
@@ -11488,8 +11531,8 @@
           "type": "LVGLActionComponent",
           "left": 1229,
           "top": 321,
-          "width": 403,
-          "height": 73,
+          "width": 402,
+          "height": 70,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -11523,7 +11566,7 @@
           "left": 2056,
           "top": 321,
           "width": 87,
-          "height": 54,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "milliseconds": "1000"
@@ -11533,8 +11576,8 @@
           "type": "LVGLActionComponent",
           "left": 2194,
           "top": 321,
-          "width": 293,
-          "height": 54,
+          "width": 292,
+          "height": 53,
           "customInputs": [],
           "customOutputs": [],
           "actions": [
@@ -11547,6 +11590,19 @@
               "hiddenType": "literal"
             }
           ]
+        },
+        {
+          "objID": "32fd4e8b-71e5-43a3-d35d-86476b06c143",
+          "type": "CompareActionComponent",
+          "left": 1015,
+          "top": 234,
+          "width": 155,
+          "height": 71,
+          "customInputs": [],
+          "customOutputs": [],
+          "A": "WiFi_Success",
+          "B": "1",
+          "operator": "="
         }
       ],
       "connectionLines": [
@@ -11600,20 +11656,6 @@
           "input": "@seqin"
         },
         {
-          "objID": "44b1ce30-b605-45fc-e9b0-80ae1e2123d0",
-          "source": "6cb11d48-4074-4952-c376-915163a44405",
-          "output": "variable",
-          "target": "7ba2feae-b03f-4319-ca59-2e3039b4fe47",
-          "input": "@seqin"
-        },
-        {
-          "objID": "071df5e2-adb4-4faf-9788-933b33db4651",
-          "source": "7ba2feae-b03f-4319-ca59-2e3039b4fe47",
-          "output": "True",
-          "target": "e81df220-ed2a-4329-87d3-77457cd5967e",
-          "input": "@seqin"
-        },
-        {
           "objID": "c5ce8cf2-6159-406e-b61f-a61e926644bd",
           "source": "e81df220-ed2a-4329-87d3-77457cd5967e",
           "output": "@seqout",
@@ -11656,10 +11698,24 @@
           "input": "@seqin"
         },
         {
-          "objID": "1193a401-8e10-4ff5-9f3b-315d5a9bebe5",
-          "source": "7ba2feae-b03f-4319-ca59-2e3039b4fe47",
+          "objID": "a83f99c9-62da-4d4c-f661-9d520fa4326c",
+          "source": "32fd4e8b-71e5-43a3-d35d-86476b06c143",
+          "output": "True",
+          "target": "e81df220-ed2a-4329-87d3-77457cd5967e",
+          "input": "@seqin"
+        },
+        {
+          "objID": "64beb955-365c-4fa4-f5a7-118c4339b138",
+          "source": "32fd4e8b-71e5-43a3-d35d-86476b06c143",
           "output": "False",
           "target": "adebf939-29ed-47f4-8967-27b2ec9d80b9",
+          "input": "@seqin"
+        },
+        {
+          "objID": "a3465718-4226-4680-9828-5d73145e9207",
+          "source": "6cb11d48-4074-4952-c376-915163a44405",
+          "output": "variable",
+          "target": "32fd4e8b-71e5-43a3-d35d-86476b06c143",
           "input": "@seqin"
         }
       ],
