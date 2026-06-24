@@ -108,7 +108,7 @@ BaseType_t decapsulator_io_begin(void)
 	ServoParatia.setPeriodHertz(50);    // standard 50 hz servo
 
     cadutaCaps.begin(INTR, PIECE_PASSED_PIN   , "Caduta Capsule Pin"    , 10/* ms */, FALLING , INPUT);
-    presenzaCaps.begin(INTR, PIECE_PRESENCE_PIN , "Presenza Capsule Pin"  , 30/* ms */, FALLING, INPUT); 
+    presenzaCaps.begin(POLL, PIECE_PRESENCE_PIN , "Presenza Capsule Pin"  , 30/* ms */, FALLING, INPUT); 
 
     /*if(cadutaCaps.event())
     {
