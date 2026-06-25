@@ -131,6 +131,7 @@ void prgJogMotoriTask(void *pvParameters)
         switch(StateHoming)
         {
             case 0 : /// NO HOMING IN CORSO
+            {
                 if(get_var_homing() == true)                
                 {
                     MotPunzone.abortCurrentCommand();
@@ -140,24 +141,28 @@ void prgJogMotoriTask(void *pvParameters)
                     xQueueReset(queue_direzione_comando_ralla);
                     StateHoming++;
                 }
+            }
             break;
 
             case 1 : /// HOMING CMD PUNZONE
+            {
                 MotPunzone.home(PUNZ_HOME_SPEED, HARD_MAX, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
                 StateHoming++;
+            }
             break;
 
             case 2 : /// HOMING WAIT DONE PUNZONE
+            {
                 if(MotPunzone.isHomeDone())
                 {
                     MotRalla.reattachHardLimits();
                     StateHoming++;
                 }
+            }
             break;
 
             case 3 : /// HOMING CMD RALLA
-
-
+            {
                 int8_t RallaHardMaxStatus = MotRalla.HardMax.rawRead();
                 
                 if(RallaHardMaxStatus != -1)
@@ -182,9 +187,11 @@ void prgJogMotoriTask(void *pvParameters)
                         StateHoming++;
                     }
                 }
+            }
             break;
 
             case 4 : /// HOMING WAIT DONE RALLA
+            {
                 if(MotRalla.isHomeDone())
                 {
                     MotRalla.removeHardLimits();
@@ -192,6 +199,7 @@ void prgJogMotoriTask(void *pvParameters)
                     set_var_homing(false);
                     /// @todo notificare che bisogna skippare un'apertura del ServoParatia
                 }
+            }
             break;
         }
 
