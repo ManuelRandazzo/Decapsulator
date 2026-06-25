@@ -616,12 +616,15 @@ void MOTION::home(double HomeVelocity_gradi_sec, HardLimit_t HardLimitToReach, D
     backDir = (searchDirection == DIR_POSITIVE ? DIR_NEGATIVE : DIR_POSITIVE);
 
   HomingQueue_t HomingQueueDatas = defaultHomingQueue;
-  HomingQueueDatas.__hardLimit         = HardLimitToReach;
-  HomingQueueDatas.__backDir           = backDir;
-  HomingQueueDatas.__calib_signal      = this->__calib_signal;
-  HomingQueueDatas.__home_steps_us     = getPeriodDelay(HomeVelocity_gradi_sec);
-  HomingQueueDatas.__PostHomeVal       = gradiToSteps(gradiDopoHome);
-  HomingQueueDatas.__search_dir        = searchDirection;
+  HomingQueueDatas = 
+  {
+    .__hardLimit     = HardLimitToReach,
+    .__backDir       = backDir,
+    .__calib_signal  = this->__calib_signal,
+    .__home_steps_us = getPeriodDelay(HomeVelocity_gradi_sec),
+    .__PostHomeVal   = gradiToSteps(gradiDopoHome),
+    .__search_dir    = searchDirection,
+  };
 
   if(xQueueSend(this->HomingQueueHandler, &HomingQueueDatas, pdMS_TO_TICKS(1000)) != pdTRUE)
   {
@@ -631,10 +634,9 @@ void MOTION::home(double HomeVelocity_gradi_sec, HardLimit_t HardLimitToReach, D
     return;
   }
 
-  /// Settato qui, lato chiamante, e non dentro la task: chiude la finestra di
-  /// race in cui MoveHandler potrebbe ancora pescare dalla coda movimenti
-  /// prima che HomingHandlerTask si svegli e inizi a processare la richiesta
   this->__isHomingActive = true;
+  this->__isHomeFinished = false;
+  this->__isHomeFailed = false;
 }
 
 
