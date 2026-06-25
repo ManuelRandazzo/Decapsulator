@@ -76,7 +76,7 @@ void AutoKillTask(void* pvParameters)
             {
                 /// Salva i dati ricevuti dal MainPrg sulla SD
                 SD_Card.setValueByKey(DECAPSULATOR_GLOBAL_STATUS_PATH_SD, "LastSequenza", (uint8_t)received.lastSequenza, "Ultima sequenza eseguita");
-                SD_Card.setValueByKey(DECAPSULATOR_GLOBAL_STATUS_PATH_SD, "nCicliRimanenti", received.nCicliRimanenti, "Cicli rimanenti della sequenza");
+                SD_Card.setValueByKey(DECAPSULATOR_GLOBAL_STATUS_PATH_SD, "shiftRegisterCapsuleCaricate", received.shiftRegisterCapsuleCaricate, "shift register delle capsule caricate rimanenti all'interno del tamburo della sequenza");
                 SD_Card.setValueByKey(DECAPSULATOR_GLOBAL_STATUS_PATH_SD, "StepRallaRimanenti", received.stepRimanentiRalla, "Step rimanenti del motore Tamburo");
                 SD_Card.setValueByKey(DECAPSULATOR_GLOBAL_STATUS_PATH_SD, "StepPunzoneRimanenti", received.stepRimanentiPunzone, "Step rimanenti del motore Punzone");
                 SD_Card.setValueByKey(DECAPSULATOR_GLOBAL_STATUS_PATH_SD, "CapsuleTotali", received.capsuleTotali, "Capsule totali prodotte");

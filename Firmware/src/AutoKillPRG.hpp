@@ -16,7 +16,7 @@
 struct DatasToSave
 {
     Sequence_t lastSequenza;
-    uint8_t    nCicliRimanenti;
+    uint8_t    shiftRegisterCapsuleCaricate;
     uint64_t   stepRimanentiRalla;
     uint64_t   stepRimanentiPunzone;
     uint16_t   capsuleTotali;
