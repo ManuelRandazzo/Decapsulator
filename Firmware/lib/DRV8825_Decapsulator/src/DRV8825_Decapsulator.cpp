@@ -305,7 +305,7 @@ drv_err_t DRV8825::isStepDone()
   return tmpIsStepDone;
 }
 
-drv_err_t DRV8825::step(uint64_t numberOfStepsToDo, uint64_t period_us, int64_t acc, int64_t dec)
+drv_err_t DRV8825::step(uint64_t numberOfStepsToDo, uint64_t period_us)
 {
   if(xSemaphoreTake(this->_mutex, __MUTEX_TIMEOUT_TICKS__) == pdFAIL)
     return DRV_ERR_MUX_TAKE_TIMEOUT;
