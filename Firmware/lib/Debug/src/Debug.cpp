@@ -3,7 +3,8 @@
 #include "SavingFilesSD.hpp"       /// Include la libreria per la gestione della SD Card
 #include "WiFi_Config.hpp"         /// File contenente ssid e la password dell'Utente
 #include "tasks_cfg.hpp"           /// File contenente i settaggi della task del logger
-#include "filePathsSD.hpp" /// Include il file che contiene i percorsi delle directori (paths) della SD
+#include "filePathsSD.hpp"         /// Include il file che contiene i percorsi delle directori (paths) della SD
+#include "HMI_UI_EEZ/vars.h"       /// Include il file per la stringa del logger
 #include "Debug.hpp"
 
 MessageBufferHandle_t LoggerMessageHandler = nullptr;
@@ -168,7 +169,7 @@ const uint32_t LogBegin(uint32_t timeout_for_each_initialization_ms)
         /// Delay per aspettare che la seriale sia inizializzata
         const uint32_t timeOfSerialBegin = millis();
 
-        LoggerMessageHandler = xMessageBufferCreate(LOGGER_MESSAGE_BUFF_LEN * sizeof(log_msg_t));
+        LoggerMessageHandler = xMessageBufferCreate(LOGGER_MESSAGE_BUFF_LEN * (LOGGER_MAX_MESSAGE_SIZE + sizeof(log_msg_t)));
         
         if(LoggerMessageHandler == NULL)
             restartESP32("Errore nella creazione dello Message Buffer del logger");
@@ -296,80 +297,96 @@ void LoggerTask(void* pvParameters)
             constexpr uint8_t SD_BUFFER_LEN = 25;
             String bufferToSD[SD_BUFFER_LEN];
             uint8_t buffIndexSD = 0;
-            uint32_t lastTimeWriteSD = 0;
-            constexpr uint32_t LOG_DELAY_SD_MS = 10000;
+            TickType_t lastTimeWriteSD = pdMS_TO_TICKS(0);
+            constexpr TickType_t LOG_DELAY_SD_MS = pdMS_TO_TICKS(10000);
             SD_Card.rmfile(LOG_PATH_SD); /// Ad ogni accensione viene rimosso il file di log dalla SD
         #endif
 
         while(1)
         {
-            /// Attende all'infinito che qualcuno invii un log
-            xMessageBufferReceive(LoggerMessageHandler, &to_log, sizeof(to_log), portMAX_DELAY);
+            const TickType_t TICK = xTaskGetTickCount();
 
-
-            if(to_log.message != "")
+            if(TICK - getLastTick >= pdMS_TO_TICKS(Logger_delay))
             {
-                #ifdef LOG_ACTIVE_SERIAL
-                    _LOG_SNPRINTF_FMT_COLORS_(log_cpy, sizeof(log_cpy), to_log);
-                    /// Printa il messaggio
-                    log_printf(log_cpy);
-                #endif
-
-                #if defined(LOG_ACTIVE_MQTT) || defined(LOG_COPY_TO_SD)
-                    /// Formatta il messaggio senza colori
-                    _LOG_SNPRINTF_FMT_NO_COLORS_(log_cpy, sizeof(log_cpy), to_log);
-                #endif
-
-                /// Invia il messaggio in MQTT
-                #ifdef LOG_ACTIVE_MQTT
-                    _LOG_SNPRINTF_TOPIC_MQTT_(to_log);
-                    string message = log_cpy;
-                    if(mqttClient.isConnected())
-                        mqttClient.publish(to_log.mqttTopic, message);
-                #endif
-
-                /// Copia il messaggio in SD
-                #ifdef LOG_COPY_TO_SD
-                    const uint32_t MILLIS = millis();
-                    if(MILLIS - lastTimeWriteSD >= LOG_DELAY_SD_MS || buffIndexSD == SD_BUFFER_LEN)
+                /// Attende all'infinito che qualcuno invii un log
+                if(xMessageBufferReceive(LoggerMessageHandler, &to_log, sizeof(to_log), 0) != 0)
+                {
+                    if(to_log.message != "")
                     {
-                        /// Salva il nuovo tempo
-                        lastTimeWriteSD = MILLIS;
+                        #ifdef LOG_ACTIVE_SERIAL
+                            _LOG_SNPRINTF_FMT_COLORS_(log_cpy, sizeof(log_cpy), to_log);
+                            /// Printa il messaggio
+                            log_printf(log_cpy);
+                        #endif
 
-                        /// Salva tutti i log nel buffer alla fine del file di log e pulisce il buffer man mano
-                        for(uint8_t i = 0; i < buffIndexSD; i++)
-                        {
-                            SD_Card.appendFile(LOG_PATH_SD, bufferToSD[i]);
-                            bufferToSD[i] = ""; /// Pulisce il buffer di stringhe
-                        }
+                        #if defined(LOG_ACTIVE_MQTT) || defined(LOG_COPY_TO_SD)
+                            /// Formatta il messaggio senza colori
+                            _LOG_SNPRINTF_FMT_NO_COLORS_(log_cpy, sizeof(log_cpy), to_log);
+                        #endif
 
-                        /// Resetta la testa del buffer
-                        buffIndexSD = 0;
+                        /// Invia il messaggio in MQTT
+                        #ifdef LOG_ACTIVE_MQTT
+                            _LOG_SNPRINTF_TOPIC_MQTT_(to_log);
+                            string message = log_cpy;
+                            if(mqttClient.isConnected())
+                                mqttClient.publish(to_log.mqttTopic, message);
+                        #endif
+
+                        #ifdef LOG_COPY_TO_SD
+                            bufferToSD[buffIndexSD++] = log_cpy;
+                        #endif
+
+                        getLastTick = TICK;
                     }
-                    else
-                        bufferToSD[buffIndexSD++] = log_cpy;
-
-                #endif
-
-                /**
-                * 
-                *  @todo Capire con Pisan per la parte di Diagnostica nel decapsulator per salvare i dati in SD
-                *        sin da quando viene ricevuto il log o solo una volta quando viene spento oppure quando 
-                *        xMessageBufferReceive=false sfrutta il momento per inviare i log nel file
-                *
-                *  @todo Capire con Pisan per la parte di Diagnostica nel decapsulator per VISUALIZZARE gli ultimi
-                *        5 o 10 logs nella UI. capire cosa invia l'opzione scrollable se manda una pagina oppure boh.
-                *        Usare readFileRow() per ottenere una determinata riga, tenerne traccia, magari implementare
-                *        una funzione che spezzetta le stringhe dei LOGS ogni volta che c'è uno '\n' e all'inizio di
-                *        ogni riga scrivere il numero così basta partire dall'ultima riga (trovando il numero
-                *        di riga con String.startWith()) e fare un ciclo che restituisca una stringa composta da 5-10 righe che verrà mandata 
-                *        direttamente alla UI nella pagina dei LOGS.
-                * 
-                */
-
-                /// Attende un po' prima di iniziare una nuova trasmissione di log
-                xTaskDelayUntil(&getLastTick, pdMS_TO_TICKS(Logger_delay));
+                }
             }
+
+            /// Copia il messaggio in SD
+            #ifdef LOG_COPY_TO_SD
+                uint32_t ulNotifyValue = 0;
+
+                BaseType_t xNotifyReceived = xTaskNotifyWait(0, ULONG_MAX, &ulNotifyValue, 0);
+
+                /// Il refresh ha la priorità nel caso sia REFRESH che CLEAN arrivino insieme (viene perso il comando clean)
+                if((ulNotifyValue & SD_LOG_REFRESH) && (ulNotifyValue & SD_LOG_CLEAN))
+                    ulNotifyValue |= ~SD_LOG_CLEAN; // Reset del bit di clean dalla notifica
+
+                if((TICK - lastTimeWriteSD >= LOG_DELAY_SD_MS && bufferToSD[0] != "") || buffIndexSD == SD_BUFFER_LEN-1 || (ulNotifyValue & SD_LOG_REFRESH))
+                {
+                    Serial.printf("Append Log\nbuffIndexSD : %d\nDelta time : %d\nulNotifyValue & SD_LOG_REFRESH : %s\n\n\n\n", buffIndexSD, (uint32_t)(pdTICKS_TO_MS(TICK - lastTimeWriteSD)), (ulNotifyValue & SD_LOG_REFRESH) ? "true" : "false");
+                    /// Salva il nuovo tempo
+                    lastTimeWriteSD = TICK;
+
+                    /// Salva tutti i log nel buffer alla fine del file di log e pulisce il buffer man mano
+                    for(uint8_t i = 0; i < buffIndexSD; i++)
+                    {
+                        SD_Card.appendFile(LOG_PATH_SD, bufferToSD[i]);
+                        bufferToSD[i] = ""; /// Pulisce il buffer di stringhe
+                    }
+
+                    /// Resetta la testa del buffer
+                    buffIndexSD = 0;
+                }
+
+                /// Legge i log dalla microSD e li carica nella variabile della UI
+                if(ulNotifyValue & SD_LOG_REFRESH)
+                    set_var_str_logger_txt(SD_Card.readFile(LOG_PATH_SD).c_str());
+
+                if(ulNotifyValue & SD_LOG_CLEAN)
+                {
+                    for(uint8_t i = 0; i < buffIndexSD; i++)
+                        bufferToSD[i] = ""; /// Pulisce il buffer di stringhe
+
+                    /// Resetta la testa del buffer
+                    buffIndexSD = 0;
+
+                    set_var_str_logger_txt("");
+
+                    SD_Card.rmfile(LOG_PATH_SD);
+                    SD_Card.mkdir(LOG_PATH_SD);
+                }
+                
+            #endif
         }
     #endif
 

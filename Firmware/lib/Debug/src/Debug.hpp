@@ -29,8 +29,8 @@ using namespace std;// Usato per le stringhe standard del c++
     ╚═════════════════════════════════════════════╝ */
 
     
-/// Definisce la lunghezza dello message buffer dei log
-#define LOGGER_MESSAGE_BUFF_LEN 10
+/// Definisce la lunghezza del message buffer dei log
+#define LOGGER_MESSAGE_BUFF_LEN 25
 #define LOGGER_MAX_MESSAGE_SIZE 512
 #define LOGGER_MAX_TOPIC_SIZE 40
 #define LOGGER_BEGIN_INIT_TIMEOUT_MS 5000
@@ -56,6 +56,13 @@ using namespace std;// Usato per le stringhe standard del c++
 /// @info: Scommentando questa riga si disattiva il restart dell'esp in caso di fail del wifi e/o dell'MQTT
 #define NO_ESP_RESTART_ON_CONNECTION_FAILURE
 
+
+/*╔═════════════════════════════════════════════╗*/
+/*║                 NOTIFY CODES                ║*/
+/*╚═════════════════════════════════════════════╝*/
+
+#define SD_LOG_REFRESH (1 << 0)
+#define SD_LOG_CLEAN (1 << 1)
 
 
 
