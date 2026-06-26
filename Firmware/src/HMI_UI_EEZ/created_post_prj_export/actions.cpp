@@ -7,6 +7,7 @@
 #include "WiFi_Config.hpp"
 #include "DateAndTimePRG.hpp"
 #include "Debug.hpp"
+#include "DecapsulatorPRG.hpp"
 
 void action_calibrazione_touch(lv_event_t *e)
 {
@@ -34,8 +35,14 @@ void action_calibrazione_touch(lv_event_t *e)
     tft.setTouch(calib_datas);
 
     /// Scrive i dati di calibrazione nella SD
-    for(uint8_t i=0; i < 5; i++)
-        SD_Card.setValueByKey(HMI_TOUCH_CALIB_PATH_SD, "data[" + String(i) + "]", calib_datas[i]);
+    String strCalibDatas;
+    for(uint8_t i = 0; i < 5; i++)
+    {
+        strCalibDatas += SD_Card.setValueByKey(HMI_TOUCH_CALIB_PATH_SD, "data[" + String(i) + "]", calib_datas[i]);
+        vTaskDelay(100);
+    }
+
+    LogInfo("New Touch Calib Datas", "Content of file %s :\n%s", HMI_TOUCH_CALIB_PATH_SD, strCalibDatas.c_str());
 }
 
 
@@ -43,8 +50,7 @@ void action_calibrazione_touch(lv_event_t *e)
 
 void action_logger_page_init(lv_event_t * e)
 {
-    /// Legge i log dalla microSD e li carica nella variabile della UI
-    set_var_str_logger_txt(SD_Card.readFile(LOG_PATH_SD).c_str());
+    xTaskNotify(LoggerHandler, SD_LOG_REFRESH, eSetBits);
 }
 
 
@@ -60,12 +66,17 @@ void action_logger_page_deinit(lv_event_t * e)
 
 void action_jogger_page_init(lv_event_t * e)
 {
-    /// Sospende la task del programma principale e attiva quella del jogger
+    /// Sospende la task del programma principale
     vTaskSuspend(MainPrgHandler);
-    vTaskResume(JogMotoriPrgHandler);
 
+    MotRalla.abortCurrentCommand();
+    MotPunzone.abortCurrentCommand();
+    MotRalla.detach();
+    MotPunzone.detach();
     ServoParatia.write(SERVO_CLOSED_POS); /// Chiude il servo
-    ServoParatia.detach(); // Disattiva il servomotore cosicchè non scaldi
+
+    /// Attiva la task del Jogger
+    vTaskResume(JogMotoriPrgHandler);
 
     /// Inizializza lo spazio percorso e la velocità dei motori di default
     set_var_gradi_per_click_ralla("270.0");
@@ -85,7 +96,12 @@ void action_jogger_page_deinit(lv_event_t * e)
     /// Sospende la task del jogger e attiva quella del programma principale
     vTaskSuspend(JogMotoriPrgHandler);
     vTaskResume(MainPrgHandler);
+
+    MotRalla.attach();
     ServoParatia.attach(SERVO_PIN); // Riattiva il servomotore
+
+    /// Deve rifare l'homing quando esce dal Jogger
+    sequenza = MACHINE_STARTUP_STATE;
 
     /// Si assicura che sia spenta la ventola
     Ventola.off();
@@ -110,8 +126,7 @@ void action_conf_wi_fi_page_deinit(lv_event_t * e)
 
 void action_refresh_logs(lv_event_t * e)
 {
-    /// Legge i log dalla microSD e li carica nella variabile della UI
-    set_var_str_logger_txt(SD_Card.readFile(LOG_PATH_SD).c_str());
+    xTaskNotify(LoggerHandler, SD_LOG_REFRESH, eSetBits);
 }
 
 
@@ -119,7 +134,7 @@ void action_refresh_logs(lv_event_t * e)
 
 void action_clean_logs(lv_event_t * e)
 {
-    
+    xTaskNotify(LoggerHandler, SD_LOG_CLEAN, eSetBits);
 }
 
 
@@ -128,49 +143,7 @@ void action_clean_logs(lv_event_t * e)
 void action_verify_wi_fi(lv_event_t * e)
 {
     /// Salva in SD il nuovo SSID e la nuova Password
-    /** @todo : 
-     *          1. Controllare se è possibile connettersi
-     *             con le nuove credenziali.
-     *          2. Restituire un bool alla UI -> true=connesso, false=credenziali errate.
-     *          3. se è true salva le credenziali in microSD
-     */
-    
-    set_var_wi_fi_success(false);
 
-    WiFi.mode(WIFI_STA); //per evitare conflitti con le risorse del bluetooth
-
-    String tmpSSID = get_var_nome_rete_inserita();
-    String tmpPASS = get_var_password_rete_inserita();
-
-    WiFi.begin(tmpSSID, tmpPASS);
-    if(WiFi.waitForConnectResult(DEFAULT_TIMEOUT_WIFI_CONNECTION_IN_MS) != WL_CONNECTED)
-    {
-        if(WIFI_SSID != "")
-        {
-            /// Prova a riconnettersi alla rete di prima
-            WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
-            if(WiFi.waitForConnectResult(DEFAULT_TIMEOUT_WIFI_CONNECTION_IN_MS) != WL_CONNECTED)
-                return;
-        }
-    }
-    
-    /// Richiesta di update dell'orologio una volta cambiate le credenziali WiFi
-    xTaskNotify(DateAndTimeHandler, DATE_TIME_FORCE_UPDATE, eNoAction);
-    
-    set_var_wi_fi_success(true);
-
-    /// Assegna le nuovi credenziali (se sono cambiate)
-    if(tmpSSID != WIFI_SSID )
-    {
-        WIFI_SSID = tmpSSID;
-        SD_Card.setValueByKey(WIFI_PATH_SD, "SSID", WIFI_SSID, "Nome della rete dell'utente");
-    }
-
-    if(tmpPASS != WIFI_PASSWORD)
-    {
-        WIFI_PASSWORD = tmpPASS;
-        SD_Card.setValueByKey(WIFI_PATH_SD, "WIFI_PASSWORD", WIFI_PASSWORD, "Password della rete dell'utente");
-    }
-
-    LogInfo("Credenziali WiFi", "Cambiate le credenziali del WiFi");
+    /// Richiesta di update delle credenziali WiFi
+    xTaskNotify(DateAndTimeHandler, TRY_TO_CONNECT_WITH_NEW_WIFI_CREDENTIALS, eSetBits);
 }
