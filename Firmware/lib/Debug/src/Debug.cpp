@@ -353,7 +353,6 @@ void LoggerTask(void* pvParameters)
 
                 if((TICK - lastTimeWriteSD >= LOG_DELAY_SD_MS && bufferToSD[0] != "") || buffIndexSD == SD_BUFFER_LEN-1 || (ulNotifyValue & SD_LOG_REFRESH))
                 {
-                    Serial.printf("Append Log\nbuffIndexSD : %d\nDelta time : %d\nulNotifyValue & SD_LOG_REFRESH : %s\n\n\n\n", buffIndexSD, (uint32_t)(pdTICKS_TO_MS(TICK - lastTimeWriteSD)), (ulNotifyValue & SD_LOG_REFRESH) ? "true" : "false");
                     /// Salva il nuovo tempo
                     lastTimeWriteSD = TICK;
 
