@@ -8,6 +8,7 @@ MOTION::~MOTION()
   Stop(RELEASE);
   /// Cancella il buffer di coda dei movimenti
   vQueueDelete(MoveQueueHandler);
+  vQueueDelete(HomingQueueHandler);
 }
 
 /*!< Funzione che esegue la task di update */
@@ -17,9 +18,10 @@ void MOTION::UpdateMoveHandler(void *pvParameters)
 
   while(1)
   {
+    uint32_t notifyValue = 0;
+    xTaskNotifyWait(0x00, ULONG_MAX, &notifyValue, pdMS_TO_TICKS(2));
     /// Aggiorna la classe del DRV8825
     THIS->Motion.update();
-    vTaskDelay(5);
   }
   
   /// Se per qualsiasi ragione dovesse uscire elimina la task
@@ -35,220 +37,344 @@ void MOTION::UpdateMoveHandler(void *pvParameters)
  */
 void MOTION::MoveHandler(void *pvParameters)
 {
-  /// Crea un'istanza che punta all'oggetto attuale della classe "this" 
-  /// il quale è passato come pvParameters, il cast serve per poter usare 
-  /// tutti i metodi e tutte le variabili della classe
-  /// Questa operazione è necessaria perchè non si possono passare le 
-  /// funzioni di una classe quando si crea una task per colpa del puntatore "this->"
   MOTION *THIS = static_cast<MOTION*>(pvParameters);
-
   TickType_t getLastTick = xTaskGetTickCount();
 
+  uint32_t tmrDebug = 0;
   while(1)
   {
     bool flagRunOnceCMD = false;
 
-    /// Se il motore non sta eseguendo nessun comando (selettore = STAND_STILL) e non
-    /// è stato fermato (perchè lo Stop forza STAND_STILL) allora...
-    if(THIS->selettore == STAND_STILL)
+    if(!THIS->__isHomingActive)
     {
-      BaseType_t queueErr = xQueueReceive(THIS->MoveQueueHandler, &THIS->receiverQueue, 0);
-      
-      /// Se è arrivato qualcosa in coda allora invia il comando al driver
-      if(queueErr == pdTRUE)
+      if(THIS->selettore == STAND_STILL)
       {
-        THIS->selettore = THIS->receiverQueue.__SwitchMove;
-
-        /// Alza il flag di comando
-        flagRunOnceCMD = true;
-      }
-      #ifdef LOG_ACTIVE_MOTION
-        LogInfo("Handler Motion", "Command %sReceived", (queueErr == pdTRUE ? "" : "Not "));
-      #endif
-    }
-    else if(THIS->Motion.isStepDone() == DRV_TRUE)
-    {
-      /// Se era in corso il backoff dell'homing, segnala il completamento
-      if(THIS->selettore == HOMING)
-      {
-        if(THIS->__homing_state == HOMING_BACKOFF)
+        BaseType_t queueErr = xQueueReceive(THIS->MoveQueueHandler, &THIS->receiverQueue, 0);
+        if(queueErr == pdTRUE)
         {
-          /// Ha finito l'homing ed è arretrato, qui c'è il punto zero (0)
-          THIS->Motion.setAbsPosition(0);
-          THIS->__isHomeFinished = true;
-          THIS->__homing_state = HOMING_IDLE;
-          THIS->selettore = STAND_STILL;
-          #ifdef LOG_ACTIVE_MOTION
-            LogInfo("Handler Motion", "Homing completato con successo");
-          #endif
+          THIS->selettore = THIS->receiverQueue.__SwitchMove;
+          flagRunOnceCMD = true;
         }
       }
-      else
+      else if(THIS->Motion.isStepDone() == DRV_TRUE)
+      {
         THIS->selettore = STAND_STILL;
-    }
-    
-    if(THIS->HardMax != nullptr)
-    {
-      THIS->HardMax->IsInterrupt() ? THIS->HardMax->intrUpdate()
-                                  : THIS->HardMax->pollUpdate();
-      //LogWarning("HardMax", "RawRead HardMax : %s", THIS->HardMax->rawRead()  == HIGH ? "HIGH" : "LOW");
-      if(THIS->HardMax->event())
+      }
+
+      if(THIS->HardMax.isAttached())
       {
-        if(THIS->HardMax->rawRead() == THIS->__calib_signal)
+        THIS->HardMax.update();
+        if(THIS->HardMax.event())
         {
-          #ifdef LOG_ACTIVE_MOTION
-            LogInfo("Handler Motion", "Hard Max Limit Pressed, blocking DIR_POSITIVE");
-          #endif
-          THIS->__limit_direction = DIR_NEGATIVE;
+          if(THIS->HardMax.rawRead() == THIS->__calib_signal)
+          {
+            #ifdef LOG_ACTIVE_MOTION
+              LogWarning(THIS->TAG("Handler Motion"), "Hard Max Limit Pressed");
+            #endif
+            THIS->__limit_direction = DIR_POSITIVE;
+          }
+          else if(THIS->__limit_direction == DIR_POSITIVE)
+          {
+            THIS->__limit_direction = NO_DIR;
+          }
         }
-        else if(THIS->__limit_direction == DIR_NEGATIVE)
+      }
+
+      if(THIS->HardMin.isAttached())
+      {
+        THIS->HardMin.update();
+        if(THIS->HardMin.event())
         {
+          if(THIS->HardMin.rawRead() == THIS->__calib_signal)
+          {
+            #ifdef LOG_ACTIVE_MOTION
+              LogWarning(THIS->TAG("Handler Motion"), "Hard Min Limit Pressed");
+            #endif
+            THIS->__limit_direction = DIR_NEGATIVE;
+          }
+          else if(THIS->__limit_direction == DIR_NEGATIVE)
+          {
+            THIS->__limit_direction = NO_DIR;
+          }
+        }
+      }
+
+      if(THIS->__limit_direction != NO_DIR)
+      {
+        if(THIS->receiverQueue.__dir == THIS->__limit_direction)
+        {
+          THIS->abortCurrentCommand();
           #ifdef LOG_ACTIVE_MOTION
-            LogInfo("Handler Motion", "Hard Max Limit Released, clearing limit direction");
+            LogWarning(THIS->TAG("Handler Motion"), "Hard Limit active, aborting command in dir: %s",
+              THIS->receiverQueue.__dir == DIR_NEGATIVE ? "DIR_NEGATIVE" : "DIR_POSITIVE");
           #endif
-          THIS->__limit_direction = NO_DIR;
+          flagRunOnceCMD = false;
         }
       }
     }
 
-    if(THIS->HardMin != nullptr)
-    {
-      THIS->HardMin->IsInterrupt() ? THIS->HardMin->intrUpdate()
-                                  : THIS->HardMin->pollUpdate();
-      //LogWarning("HardMin", "RawRead HardMin : %s", THIS->HardMin->rawRead()  == HIGH ? "HIGH" : "LOW");
-
-      if(THIS->HardMin->event())
-      {
-        if(THIS->HardMin->rawRead() == THIS->__calib_signal)
-        {
-          #ifdef LOG_ACTIVE_MOTION
-            LogInfo("Handler Motion", "Hard Min Limit Pressed, blocking DIR_NEGATIVE");
-          #endif
-          THIS->__limit_direction = DIR_POSITIVE;
-        }
-        else if(THIS->__limit_direction == DIR_POSITIVE)
-        {
-          #ifdef LOG_ACTIVE_MOTION
-            LogInfo("Handler Motion", "Hard Min Limit Released, clearing limit direction");
-          #endif
-          THIS->__limit_direction = NO_DIR;
-        }
-      }
-    }
-
-    if(THIS->__limit_direction != NO_DIR)
-    {
-      THIS->abortCurrentCommand();
-      /// Durante l'homing in SEARCH il finecorsa è atteso: avvia il backoff
-      if(THIS->selettore == HOMING && THIS->__homing_state == HOMING_SEARCH)
-      {
-        #ifdef LOG_ACTIVE_MOTION
-          LogInfo("Handler Motion", "Homing: finecorsa trovato, avvio backoff di %lu steps",
-            receiverQueue.__PostHomeVal);
-        #endif
-
-        /// Percorre i passi post-home ad una velocità dimezzata
-        THIS->Motion.setDirection(THIS->receiverQueue.__backDir);
-        THIS->Motion.step(THIS->receiverQueue.__PostHomeVal, uint64_t(THIS->receiverQueue.__home_steps_us*2), THIS->receiverQueue.__home_acc_steps_s2, THIS->receiverQueue.__home_dec_steps_s2);
-
-        THIS->__homing_state = HOMING_BACKOFF;
-        THIS->__limit_direction = NO_DIR;
-        flagRunOnceCMD = false;
-      }
-      else if(THIS->receiverQueue.__dir == THIS->__limit_direction)
-      {
-        #ifdef LOG_ACTIVE_MOTION
-          LogInfo("Handler Motion", "Hard Limit active, aborting command in dir: %s",
-            THIS->receiverQueue.__dir == DIR_NEGATIVE ? "DIR_NEGATIVE" : "DIR_POSITIVE");
-        #endif
-        flagRunOnceCMD  = false;
-      }
-    }
-    
-    /// Se è stato dato un comando di halt allora blocca la coda
+    /// Halt resta un override universale, attivo anche durante l'homing
     if(THIS->__isHalted)
     {
       #ifdef LOG_ACTIVE_MOTION
-        LogInfo("Handler Motion", "Command Halted.\nErasing Queue");
+        LogWarning(THIS->TAG("Handler Motion"), "Command Halted.\nErasing Queue");
       #endif
 
-      /// Toglie qualsiasi movimento successivo contenuto nella coda se non è già vuota
       if(uxQueueMessagesWaiting(THIS->MoveQueueHandler) > 0)
         xQueueReset(THIS->MoveQueueHandler);
 
-      /// Forza il motore a stare in Halt, ovvero interrompe il comando attuale
       THIS->selettore = STAND_STILL;
-
-      /// Sblocca il motore dall'Halt (Halt rimane attivo per un ciclo e basta)
       THIS->__isHalted = false;
-
-      /// Resetta l'homing state interrompendolo se serve
-      THIS->__homing_state = HOMING_IDLE;
-
-      /// Abortisce il movimento attuale
       THIS->Motion.abortCurrentMovement();
-      
-      /// Abbassa il flag di comando
       flagRunOnceCMD = false;
     }
-    
-    if(flagRunOnceCMD)
-    {
-      /// Abbassa il flag di comando
-      flagRunOnceCMD = false;
 
-      /// Imposta la direzione
+    if(!THIS->__isHomingActive && flagRunOnceCMD)
+    {
+      flagRunOnceCMD = false;
       THIS->Motion.setDirection(THIS->receiverQueue.__dir);
 
-      /// Invio dei comandi
       switch(THIS->selettore)
       {
         case STAND_STILL :
-          // Do nothing
         break;
-        /// Avvia il movimento continuo verso il finecorsa di calibrazione
-        case HOMING :
-          THIS->__homing_state = HOMING_SEARCH;
-          THIS->Motion.stepContinuous(THIS->receiverQueue.__home_steps_us);
-        break;
-        /// Invia il comando di fare un movimento di tot steps in una direzione specificata
         case MOVE_REL :
         case MOVE_ABS :
-          THIS->Motion.step(THIS->receiverQueue.__move_steps, THIS->receiverQueue.__speed_steps_us, THIS->receiverQueue.__acc_steps_s2, THIS->receiverQueue.__dec_steps_s2);
+          THIS->Motion.step(THIS->receiverQueue.__move_steps, THIS->receiverQueue.__speed_steps_us);
         break;
-        /// Invia il comando che fa un passo finché non viene ricevuto un altro dato dalla queue
         case CONTINUOUS :
           THIS->Motion.stepContinuous(THIS->receiverQueue.__speed_steps_us);
         break;
       }
-      
-      /// Gestione dei log
+
       #ifdef LOG_ACTIVE_MOTION
-        LogInfo("Handler Motion", "SwitchMove(MC state selector) attuale = %s (stato = %d)", SwitchMoveStr[selettore], selettore);
+        LogWarning(THIS->TAG("Handler Motion"), "SwitchMove(MC state selector) attuale = %s (stato = %d)", THIS->SwitchMoveStr[THIS->selettore], THIS->selettore);
       #endif
     }
-  
 
-    #ifdef LOG_ACTIVE_MOTION
-      static uint32_t time = 0;
-      uint32_t actualTime = millis();
-      if(actualTime - time >= 8000)
-      {
-        time = actualTime;
-        if(err != DRV_OK && err != DRV_NO_NOTIFY && err != DRV_WAITING_RMT_TX_TO_FINISH)
-          LogError("Errore Update DRV8825", "Driver Error : %s", drv_err_to_name(err));
-        else
-          LogInfo("Update DRV8825", "%s", drv_err_to_name(err));
-      }
-    #endif
-
-
-
-    
-    //vTaskDelayUntil(&getLastTick, pdMS_TO_TICKS(10)); /// Permette di fare lo switch tra le task
+    vTaskDelayUntil(&getLastTick, pdMS_TO_TICKS(10));
   }
-  
-  /// Se per qualsiasi ragione dovesse uscire elimina la task
+
+  vTaskDelete(NULL);
+}
+
+
+void MOTION::HomingHandlerTask(void *pvParameters)
+{
+  MOTION *THIS = static_cast<MOTION*>(pvParameters);
+
+  TickType_t getLastTick = xTaskGetTickCount();
+
+  MOTION::HomingQueue_t HomingQueue = THIS->defaultHomingQueue;
+  DebPinHandler *ptrHardLimit  = nullptr;   /*!< Sensore target dell'homing */
+  DebPinHandler *ptrOtherLimit = nullptr;   /*!< Sensore opposto, monitorato solo per sicurezza */
+
+  uint32_t tmrDebug = 0;
+  while(1)
+  {
+    /// Halt() è un override di emergenza: si applica indipendentemente
+    /// dallo stato corrente dell'homing
+    if(THIS->__homing_state != HOMING_IDLE && THIS->__isHomingHaltRequested)
+    {
+      THIS->__isHomingHaltRequested = false;
+      THIS->abortCurrentCommand();
+
+      #ifdef LOG_ACTIVE_MOTION
+        LogWarning(THIS->TAG("Homing Task"), "Homing interrotto da Halt()");
+      #endif
+
+      THIS->__isHomeFailed   = true;
+      THIS->__isHomingActive = false;
+      THIS->__homing_state   = HOMING_IDLE;
+
+      vTaskDelayUntil(&getLastTick, pdMS_TO_TICKS(10));
+      continue;
+    }
+
+    switch(THIS->__homing_state)
+    {
+      case HOMING_IDLE :
+      {
+        /// Si blocca qui finché non arriva una richiesta; non consuma CPU
+        xQueueReceive(THIS->HomingQueueHandler, &HomingQueue, portMAX_DELAY);
+
+        /// Scarta eventuali richieste di Halt rimaste pendenti da prima
+        THIS->__isHomingHaltRequested = false;
+
+        if(HomingQueue.__hardLimit == HARD_NONE || HomingQueue.__calib_signal == UNKNOWN)
+        {
+          #ifdef LOG_ACTIVE_MOTION
+            LogError(THIS->TAG("Homing Task"), "Richiesta di homing non valida");
+          #endif
+          THIS->__isHomeFailed   = true;
+          THIS->__isHomingActive = false;
+          break;
+        }
+
+        if(HomingQueue.__hardLimit == HARD_MIN)
+        {
+          ptrHardLimit  = &THIS->HardMin;
+          ptrOtherLimit = &THIS->HardMax;
+        }
+        else
+        {
+          ptrHardLimit  = &THIS->HardMax;
+          ptrOtherLimit = &THIS->HardMin;
+        }
+
+        if(!ptrHardLimit->isAttached())
+        {
+          #ifdef LOG_ACTIVE_MOTION
+            LogError(THIS->TAG("Homing Task"), "Il finecorsa selezionato non è collegato (chiamare setHardLimits)");
+          #endif
+          THIS->__isHomeFailed   = true;
+          THIS->__isHomingActive = false;
+          break;
+        }
+
+        /// Lettura iniziale con timeout: evita un blocco indefinito se il
+        /// debounce non restituisce mai un valore valido
+        constexpr uint32_t HOMING_READ_TIMEOUT_MS = 100;
+        int8_t initialState = -1;
+        TickType_t readStart = millis();
+
+        do
+        {
+          ptrHardLimit->update();
+          initialState = ptrHardLimit->rawRead();
+          vTaskDelay(pdMS_TO_TICKS(1));
+        }
+        while(initialState == -1 && (millis() - readStart) < HOMING_READ_TIMEOUT_MS);
+
+        if(initialState == -1)
+        {
+          #ifdef LOG_ACTIVE_MOTION
+            LogError(THIS->TAG("Homing Task"), "Timeout nella lettura iniziale del finecorsa selezionato");
+          #endif
+          THIS->__isHomeFailed   = true;
+          THIS->__isHomingActive = false;
+          break;
+        }
+
+        THIS->__isHomeFinished = false;
+        THIS->__isHomeFailed   = false;
+
+        if((uint8_t)initialState == (uint8_t)HomingQueue.__calib_signal)
+        {
+          /// Già sul finecorsa: salta la ricerca
+          #ifdef LOG_ACTIVE_MOTION
+            LogWarning(THIS->TAG("Homing Task"), "Finecorsa già attivo, salto la ricerca");
+          #endif
+
+          if(HomingQueue.__PostHomeVal != 0)
+          {
+            THIS->Motion.setDirection(HomingQueue.__backDir);
+            THIS->Motion.step(HomingQueue.__PostHomeVal, uint64_t(HomingQueue.__home_steps_us*2));
+            THIS->__homing_state = HOMING_BACKOFF;
+          }
+          else
+          {
+            THIS->Motion.setAbsPosition(0);
+            THIS->__isHomeFinished = true;
+            THIS->__isHomingActive = false;
+            THIS->__homing_state   = HOMING_IDLE;
+          }
+        }
+        else
+        {
+          #ifdef LOG_ACTIVE_MOTION
+            LogWarning(THIS->TAG("Homing Task"), "Avvio ricerca del finecorsa");
+          #endif
+          THIS->Motion.setDirection(HomingQueue.__search_dir);
+          THIS->Motion.stepContinuous(HomingQueue.__home_steps_us);
+          THIS->__homing_state = HOMING_SEARCH;
+        }
+
+        getLastTick = xTaskGetTickCount();
+        break;
+      }
+
+      case HOMING_SEARCH :
+      {
+        ptrHardLimit->update();
+        ptrOtherLimit->update();
+
+        if(ptrHardLimit->rawRead() == (uint8_t)HomingQueue.__calib_signal)
+        {
+          #ifdef LOG_ACTIVE_MOTION
+            LogWarning(THIS->TAG("Homing Task"), "Finecorsa trovato, avvio backoff di %lld steps", (long long)HomingQueue.__PostHomeVal);
+          #endif
+
+          THIS->abortCurrentCommand();
+
+          if(HomingQueue.__PostHomeVal != 0)
+          {
+            THIS->Motion.setDirection(HomingQueue.__backDir);
+            THIS->Motion.step(HomingQueue.__PostHomeVal, uint64_t(HomingQueue.__home_steps_us*2));
+            THIS->__homing_state = HOMING_BACKOFF;
+          }
+          else
+          {
+            THIS->Motion.setAbsPosition(0);
+            THIS->__isHomeFinished = true;
+            THIS->__isHomingActive = false;
+            THIS->__homing_state   = HOMING_IDLE;
+          }
+        }
+        else if(ptrOtherLimit->event() && ptrOtherLimit->rawRead() == (uint8_t)HomingQueue.__calib_signal)
+        {
+          /// Finecorsa OPPOSTO scattato: possibile cablaggio invertito,
+          /// direzione di ricerca errata o corsa anomala
+          #ifdef LOG_ACTIVE_MOTION
+            LogError(THIS->TAG("Homing Task"), "Finecorsa opposto attivato durante la ricerca. Homing abortito.");
+          #endif
+
+          THIS->abortCurrentCommand();
+          THIS->__isHomeFailed    = true;
+          THIS->__isHomingActive  = false;
+          THIS->__homing_state    = HOMING_IDLE;
+        }
+
+        vTaskDelayUntil(&getLastTick, pdMS_TO_TICKS(10));
+        break;
+      }
+
+      case HOMING_BACKOFF :
+      {
+        ptrHardLimit->update();   /// lo aggiorniamo solo per fargli rilevare il rilascio, senza usarne l'evento
+        ptrOtherLimit->update();
+      
+        bool unexpectedLimit = ptrOtherLimit->event() && ptrOtherLimit->rawRead() == (uint8_t)HomingQueue.__calib_signal;
+      
+        if(unexpectedLimit)
+        {
+          #ifdef LOG_ACTIVE_MOTION
+            LogError(THIS->TAG("Homing Task"), "Finecorsa opposto attivato durante il backoff: corsa anomala. Homing abortito.");
+          #endif
+      
+          THIS->abortCurrentCommand();
+          THIS->__isHomeFailed   = true;
+          THIS->__isHomingActive = false;
+          THIS->__homing_state   = HOMING_IDLE;
+        }
+        else if(THIS->Motion.isStepDone() == DRV_TRUE)
+        {
+          THIS->Motion.setAbsPosition(0);
+          THIS->__isHomeFinished  = true;
+          THIS->__isHomingActive  = false;
+          THIS->__homing_state    = HOMING_IDLE;
+      
+          #ifdef LOG_ACTIVE_MOTION
+            LogWarning(THIS->TAG("Homing Task"), "Homing completato con successo");
+          #endif
+        }
+      
+        vTaskDelayUntil(&getLastTick, pdMS_TO_TICKS(10));
+        break;
+      }
+    }
+  }
+
   vTaskDelete(NULL);
 }
 
@@ -271,58 +397,69 @@ void MOTION::MoveHandler(void *pvParameters)
 drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin, uint8_t en_pin, uint8_t rst_pin, uint8_t sleep_pin, UBaseType_t taskPriority, uSteps_t microSteps, uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultISR_Heap, UBaseType_t FaultISR_priority)
 {
   /// Microstep scelti da HardWare
-  uStepScelti = microSteps;
+  this->uStepScelti = microSteps;
 
   /// Passi totali per ogni giro di motore
-  __stepsMotore = numberOfSteps;
-
-  /// Crea il buffer di coda per i movimenti del motore
+  this->__stepsMotore = numberOfSteps;
+  
+  /// Crea il buffer di coda per i movimenti del motore e dell'homing
   /// @link_ref: https://www.freertos.org/Documentation/02-Kernel/04-API-references/06-Queues/01-xQueueCreate
   MoveQueueHandler = xQueueCreate(10, sizeof(MoveQueue_t));
+  HomingQueueHandler = xQueueCreate(1, sizeof(HomingQueue_t));
   
   /// Inizializza l'Interrupt Service Routine per il pin nFAULT
   if(fault_pin != 255 && FaultISR != nullptr)
-    setFaultISR(fault_pin, FaultISR, FaultISR_Heap, FaultISR_priority);
+	setFaultISR(fault_pin, FaultISR, FaultISR_Heap, FaultISR_priority);
 
   /// Inizializza il driver e i pin
   drv_err_t errDrv = Motion.begin(dir_pin, step_pin, en_pin, rst_pin, sleep_pin, numberOfSteps);
   if(errDrv != DRV_OK)
-    return errDrv;
+	return errDrv;
   this->detach();
 
   /// Resetta i valori delle variabili della classe, fatto principalmente per portare a valori default "receiverQueue"
   reset();
-                          
+						  
   /// Inizializza la task per il metodo move
   BaseType_t errTaskInit = xTaskCreatePinnedToCore(MOTION::MoveHandler, "Motion Command", 8192, this, taskPriority, &this->__MoveHandlerTask, APP_CPU_NUM); 
 
   #ifdef LOG_ACTIVE_MOTION
-    if(errTaskInit != pdTRUE)
-    {
-      LogError("Motion Init", "Inizializzazione della task \"Motion Command\" fallita");
-      return DRV_FAIL;
-    }
+	if(errTaskInit != pdTRUE)
+	{
+	  LogError(TAG("Motion Init"), "Inizializzazione della task \"Motion Command\" fallita");
+	  return DRV_FAIL;
+	}
   #endif
   
   /// Inizializza la task per il metodo move
-  errTaskInit = xTaskCreatePinnedToCore(MOTION::UpdateMoveHandler, "Motion Update", 2048, this, 20, &this->__UpdateMoveHandlerTask, PRO_CPU_NUM); 
+  errTaskInit = xTaskCreatePinnedToCore(MOTION::UpdateMoveHandler, "Motion Update", 8192, this, 22, &this->__UpdateMoveHandlerTask, PRO_CPU_NUM); 
 
+  #ifdef LOG_ACTIVE_MOTION
+	if(errTaskInit != pdTRUE)
+	{
+	  LogError(TAG("Motion Init"), "Inizializzazione della task di \"Motion Update\" fallita");
+	  return DRV_FAIL;
+	}
+  #endif
+  
+  /// Inizializza la task per l'homing
+  errTaskInit = xTaskCreatePinnedToCore(MOTION::HomingHandlerTask, "Motion Homing", 8192, this, taskPriority, &this->__HomingHandlerTask, APP_CPU_NUM);
   #ifdef LOG_ACTIVE_MOTION
     if(errTaskInit != pdTRUE)
     {
-      LogError("Motion Init", "Inizializzazione della task di \"Motion Update\" fallita");
+      LogError(TAG("Motion Init"), "Inizializzazione della task \"Motion Homing\" fallita");
       return DRV_FAIL;
     }
   #endif
-    
+	
   /// Setta la task in cui verrà chiamato l'update
   errDrv = Motion.setUpdateTask(this->__UpdateMoveHandlerTask);
   if(errDrv != DRV_OK)
-    return errDrv;
+	return errDrv;
 
   /// Il motore inizialmente non è in coppia e aspetta un segnale di Start
   Stop(RELEASE);
-
+  
   return DRV_OK;
 }
 
@@ -338,61 +475,30 @@ drv_err_t MOTION::Init(uint16_t numberOfSteps, uint8_t dir_pin, uint8_t step_pin
  *  @param debounce_ms Tempo per il debounce in millisecondi
  *   
  *  @param input_mode Modalità di input del pin INPUT, INPUT_PULLUP, INPUT_PULLDOWN
- * 
- *  @param levelActive è il segnale per il quale il sensore viene considerato come triggerato.
- *                     Valori accetati ACTIVE_LOW, ACTIVE_HIGH
  */
 void MOTION::setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll, uint32_t debounce_ms, uint8_t input_mode, CalibSignal_t levelActive)
 {
+	if(pinLimMax == 255 && pinLimMin == 255)
+	{
+		#ifdef LOG_ACTIVE_MOTION
+			LogError(TAG("setHardLimits"), "Impossibile settare hard limits senza avere almeno settato uno dei due pin diverso da 255");
+		#endif
+		return;
+	}
 
-  if(pinLimMax == 255 && pinLimMin == 255)
-  {
-    #ifdef LOG_ACTIVE_MOTION
-      LogError("setHardLimits", "Impossibile settare hard limits senza avere almeno settato uno dei due pin diverso da 255");
-    #endif
-    return;
-  }
-
-  if(levelActive == UNKNOWN)
-  {
-    #ifdef LOG_ACTIVE_MOTION
-      LogError("setHardLimits", "Impossibile dedurre il livello di quando gli hard limit sono attivi o no del Motion");
-    #endif
-    return;
-  }
+	if(levelActive == UNKNOWN)
+	{
+	  #ifdef LOG_ACTIVE_MOTION
+		LogError(TAG("setHardLimits"), "Impossibile dedurre il livello di quando gli hard limit sono attivi o no del Motion");
+	  #endif
+	  return;
+	}
+	
+	this->__calib_signal = levelActive;
   
-  this->__calib_signal = levelActive;
-  
-  if(pinLimMax != 255)
-  {
-    DebPinHandler* ptrHardMax = new DebPinHandler(IntrOrPoll, pinLimMax, "MotionHardPinMax", debounce_ms, CHANGE, input_mode);
-    
-    if(ptrHardMax == 0)
-    {
-      #ifdef LOG_ACTIVE_MOTION
-        LogError("Hard Max Pin", "Impossibile allocare memoria per il pin Max del Motion");
-      #endif
-      return;
-    }
+	HardMax.begin(IntrOrPoll, pinLimMax, "MotionHardPinMax", debounce_ms, CHANGE, input_mode);
 
-    this->HardMax = ptrHardMax;
-  }
-  
-  if(pinLimMin != 255)
-  {
-    DebPinHandler* ptrHardMin = new DebPinHandler(IntrOrPoll, pinLimMin, "MotionHardPinMin", debounce_ms, CHANGE, input_mode);
-
-    if(ptrHardMin == 0)
-    {
-      #ifdef LOG_ACTIVE_MOTION
-        LogError("Hard Min Pin", "Impossibile allocare memoria per il pin Min del Motion");
-      #endif
-      return;
-    }
-
-    this->HardMin = ptrHardMin;
-  }
-
+	HardMin.begin(IntrOrPoll, pinLimMin, "MotionHardPinMin", debounce_ms, CHANGE, input_mode);
 }
 
 /**
@@ -400,23 +506,8 @@ void MOTION::setHardLimits(uint8_t pinLimMax, uint8_t pinLimMin, bool IntrOrPoll
  */
 void MOTION::removeHardLimits()
 {
-  if(this->HardMax != nullptr)
-  {
-    /// Copia l'istanza
-    this->HardMaxCpy = this->HardMax;
-
-    /// Rimuove il valore nel puntatore
-    this->HardMax = nullptr;
-  }
-
-  if(this->HardMin != nullptr)
-  {
-    /// Copia l'istanza
-    this->HardMinCpy = this->HardMin;
-
-    /// Rimuove il valore nel puntatore
-    this->HardMin = nullptr;
-  }
+  this->HardMax.detach();
+  this->HardMin.detach();
 }
 
 /**
@@ -424,21 +515,8 @@ void MOTION::removeHardLimits()
  */
 void MOTION::reattachHardLimits()
 {
-  if(this->HardMaxCpy != nullptr)
-  {
-    this->HardMax = this->HardMaxCpy;
-
-    /// Rimuove il valore nel puntatore di copia
-    this->HardMaxCpy = nullptr;
-  }
-
-  if(this->HardMinCpy != nullptr)
-  {
-    this->HardMin = this->HardMinCpy;
-
-    /// Rimuove il valore nel puntatore di copia
-    this->HardMinCpy = nullptr;
-  }
+  this->HardMax.reattach();
+  this->HardMin.reattach();
 }
 
 /**
@@ -478,19 +556,44 @@ bool MOTION::isDetached()
 /**
  *  @brief Inizializza il motore con l'Homing in modo che si sappia il punto di partenza.
  * 
- *  @param HomeVelocity_gradi_sec         : Velocità con cui verrà eseguito l'homing
- *  @param searchDirection                : Direzione in cui il motore cerca il finecorsa --> DIR_NEGATIVE (default) = clockWise DIR_POSITIVE = counterClockWise
- *  @param gradiDopoHome                  : Valore di posizione dopo aver fatto l'homing
+ *  @param HomeVelocity_gradi_sec      : Velocità con cui verrà eseguito l'homing
+ *  @param HardLimitToReach            : Finecorsa a cui arrivare HARD_MAX o HARD_MIN
+ *  @param searchDirection             : Direzione in cui il motore cerca il finecorsa --> DIR_NEGATIVE (default) = clockWise DIR_POSITIVE = counterClockWise
+ *  @param gradiDopoHome               : Valore di posizione dopo aver fatto l'homing
  *
  *  @warning QUESTA FUNZIONE ESCE SUBITO ED ESEGUE L'HOMING IN MODO ASINCRONO CON TASK INTERNA.
  *           Solo quando la funzione @see isHomeDone() restituisce true allora sarà effettivamente finito l'home 
  */
-void MOTION::home(double HomeVelocity_gradi_sec, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro, Direction_t searchDirection, double gradiDopoHome)
+void MOTION::home(double HomeVelocity_gradi_sec, HardLimit_t HardLimitToReach, Direction_t searchDirection, double gradiDopoHome)
 {
+  if(this->__isHomingActive)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError(TAG("Homing"), "Impossibile avviare un nuovo homing: un homing è già in corso");
+    #endif
+    return;
+  }
+
+  if(HardLimitToReach == HARD_NONE)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError(TAG("Homing"), "Impossibile eseguire l'homing senza un HardLimit di riferimento (HARD_NONE)");
+    #endif
+    return;
+  }
+
+  if(this->__calib_signal == UNKNOWN)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError(TAG("Homing"), "Impossibile eseguire l'homing: livello di attivazione del finecorsa non configurato (chiamare setHardLimits)");
+    #endif
+    return;
+  }
+
   if(HomeVelocity_gradi_sec <= 0)
   {
     #ifdef LOG_ACTIVE_MOTION
-      LogError("Homing", "Impossibile eseguire l'homing con una velocità di homing di : %f", HomeVelocity_gradi_sec);
+      LogError(TAG("Homing"), "Impossibile eseguire l'homing con una velocità di homing di : %f", HomeVelocity_gradi_sec);
     #endif
     return;
   }
@@ -498,41 +601,42 @@ void MOTION::home(double HomeVelocity_gradi_sec, double acc_gradi_al_secondo_qua
   if(searchDirection == NO_DIR)
   {
     #ifdef LOG_ACTIVE_MOTION
-      LogError("Homing", "Impossibile eseguire l'homing senza avere una direzione definita (searchDirection = NO_DIR)");
+      LogError(TAG("Homing"), "Impossibile eseguire l'homing senza avere una direzione definita (searchDirection = NO_DIR)");
     #endif
     return;
   }
 
   Direction_t backDir;
-  if(gradiDopoHome < 0) /// Mantiene la stessa direzione
+  if(gradiDopoHome < 0)
   {
     backDir = searchDirection;
     gradiDopoHome = abs(gradiDopoHome);
   }
-  else /// Inverte la direzione
+  else
     backDir = (searchDirection == DIR_POSITIVE ? DIR_NEGATIVE : DIR_POSITIVE);
-  
 
-  /// Struct per inviare il buffer dati
-  
-  MoveQueue_t HomeQueueDatas = defaultReceiverQueue;
-  HomeQueueDatas =
+  HomingQueue_t HomingQueueDatas = defaultHomingQueue;
+  HomingQueueDatas = 
   {
-    .__SwitchMove = HOMING,
+    .__hardLimit     = HardLimitToReach,
+    .__backDir       = backDir,
+    .__calib_signal  = this->__calib_signal,
     .__home_steps_us = getPeriodDelay(HomeVelocity_gradi_sec),
-    .__home_acc_steps_s2 = gradiToSteps(abs(acc_gradi_al_secondo_quadro)),
-    .__home_dec_steps_s2 = gradiToSteps(abs(dec_gradi_al_secondo_quadro)),
-    .__backDir = backDir,
-    .__PostHomeVal = gradiToSteps(gradiDopoHome),
-    .__speed_steps_us = 10,
-    .__dir = searchDirection,
+    .__PostHomeVal   = gradiToSteps(gradiDopoHome),
+    .__search_dir    = searchDirection,
   };
 
-  /// Abbassa il Flag di Home finito
-  this->__isHomeFinished = false;
+  if(xQueueSend(this->HomingQueueHandler, &HomingQueueDatas, pdMS_TO_TICKS(1000)) != pdTRUE)
+  {
+    #ifdef LOG_ACTIVE_MOTION
+      LogError(TAG("Homing"), "Impossibile inviare la richiesta di homing alla coda");
+    #endif
+    return;
+  }
 
-  /// Invia i dati alla coda
-  MoveSendToQueue(HomeQueueDatas);
+  this->__isHomingActive = true;
+  this->__isHomeFinished = false;
+  this->__isHomeFailed = false;
 }
 
 
@@ -549,13 +653,27 @@ bool MOTION::isHomeDone()
 
 
 
+
+/**
+ *  @brief Ritorna se l'Homing è fallito o no
+ *
+ *  @return Restituisce true se l'homing è fallito, restituisce false se non lo è
+ */
+bool MOTION::isHomeFailed()
+{
+  return this->__isHomeFailed;
+}
+
+
+
+
 /**
  *  @brief Ferma il motore con il rialascio o il mantenimento della coppia, utile in caso di EMERGENZA
  *
  *  @param rilasciaOppureMantieniCoppia è di default in RELEASE e serve per mantenere o rilasciare la coppia del motore
  *
  *  @note Il motore in RELEASE mode non riceverà più corrente dal driver ma sarà libero di girare se spostato manualmente
-           Invece in HOLD mode manterrà in coppia il motore impedendo che si sposti finchè c'è ancora corrente
+		   Invece in HOLD mode manterrà in coppia il motore impedendo che si sposti finchè c'è ancora corrente
  *  @note Se va in sleep consuma meno corrente e impedisce che per sbaglio vengano inviati comandi
  */
 void MOTION::Stop(StopReleaseOrHold_t rilasciaOppureMantieniCoppia)
@@ -566,9 +684,10 @@ void MOTION::Stop(StopReleaseOrHold_t rilasciaOppureMantieniCoppia)
   /// Rilascia o tiene in coppia il motore
   rilasciaOppureMantieniCoppia == RELEASE ? sleep(true) : Halt();
 
-  /// Sospende la task per ragioni di siurezza in modo che non riparta finchè non riviene dato lo Start()
+  /// Sospende le task per ragioni di siurezza in modo che non ripartano finchè non riviene dato lo Start()
   vTaskSuspend(this->__MoveHandlerTask);
   vTaskSuspend(this->__UpdateMoveHandlerTask);
+  vTaskSuspend(this->__HomingHandlerTask);
 }
 
 /**
@@ -587,9 +706,10 @@ bool MOTION::isStopped()
  */
 void MOTION::Start()
 {
-  /// Riprende la task che era stata precedentemente fermata per ragioni di siurezza con Stop()
+  /// Riprende le task che erano state precedentemente fermate per ragioni di siurezza con Stop()
   vTaskResume(this->__MoveHandlerTask);
   vTaskResume(this->__UpdateMoveHandlerTask);
+  vTaskResume(this->__HomingHandlerTask);
 
   __isStopped = false;
 }
@@ -609,6 +729,7 @@ bool MOTION::isStarted()
 void MOTION::Halt()
 {
   __isHalted = true;
+  __isHomingHaltRequested = true;
 }
 
 /**
@@ -630,11 +751,11 @@ uint64_t MOTION::abortCurrentCommand()
  *  @param gradi il segno determina la direzione e sono i gradi di cui si sposta
  *  @param speed_gradi_al_secondo è la velocità a cui si muove il motore
  */
-void MOTION::moveRel(double gradi, double speed_gradi_al_secondo, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro)
+void MOTION::moveRel(double gradi, double speed_gradi_al_secondo)
 {
   /// Struttura temporanea da inviare in coda
   MoveQueue_t QueueDatasToSend = defaultReceiverQueue;
-
+  
   /// Setta la direzione
   QueueDatasToSend.__dir = gradi < 0.0 ? DIR_NEGATIVE : DIR_POSITIVE; //isola il segno per riconoscere la direzione
   
@@ -642,8 +763,6 @@ void MOTION::moveRel(double gradi, double speed_gradi_al_secondo, double acc_gra
   QueueDatasToSend.__move_steps = gradiToSteps(abs(gradi)); //rimuove il segno se c'è e lo associa direttamente a __move_steps
 
   QueueDatasToSend.__speed_steps_us = getPeriodDelay(abs(speed_gradi_al_secondo));
-  QueueDatasToSend.__acc_steps_s2 = gradiToSteps(abs(acc_gradi_al_secondo_quadro));
-  QueueDatasToSend.__dec_steps_s2 = gradiToSteps(abs(dec_gradi_al_secondo_quadro));
 
   /// Setta il selettore dello switch case 
   QueueDatasToSend.__SwitchMove = MOVE_REL;
@@ -664,7 +783,7 @@ void MOTION::moveRel(double gradi, double speed_gradi_al_secondo, double acc_gra
  *                   poiché non teneva conto di quanti step doveva fare e in che direzione per arrivare
  *                   nel voluto punto assoluto
  */
-void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo, double acc_gradi_al_secondo_quadro, double dec_gradi_al_secondo_quadro)
+void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo)
 {
   /// In base all'attuale posizione riconosce la direzione
   int64_t tmpSteps = gradiToSteps(gradi);
@@ -679,8 +798,6 @@ void MOTION::moveAbs(double gradi, double speed_gradi_al_secondo, double acc_gra
   QueueDatasToSend.__move_steps = absoluteStepCounter - gradiToSteps(abs(gradi)); 
 
   QueueDatasToSend.__speed_steps_us = getPeriodDelay(abs(speed_gradi_al_secondo));
-  QueueDatasToSend.__acc_steps_s2 = gradiToSteps(abs(acc_gradi_al_secondo_quadro));
-  QueueDatasToSend.__dec_steps_s2 = gradiToSteps(abs(dec_gradi_al_secondo_quadro));
 
   /// Setta il selettore dello switch case 
   QueueDatasToSend.__SwitchMove = MOVE_ABS;
@@ -747,13 +864,19 @@ void MOTION::reset()
 
   __isHomeFinished = false;            /*!< Indica se l'homing è finito o no  */
 
+  __isHomeFailed   = false;			   /*!< Indica se l'homing è fallito o no  */
+
+  __isHomingActive = false;            /*!< Indica se l'homing è attivo o no  */
+
+  __isHomingHaltRequested = false;     /*!< Indica se l'homing ha richiesto l'halt */
+
   __isStopped = true;                  /*!< Flag di motore stoppato o avviato modificato da Start() e Stop() e restituito da
-                                            isStopped e isStarted  */
+											isStopped e isStarted  */
   
   __isHalted = false;                   /*!< Flag di motore in Halt modificato da Halt e tutte le azioni di movimento  */
 
   __isAttached = false;                /*!< Flag di motore stoppato o avviato modificato da Start() e Stop() e restituito da
-                                            isStopped e isStarted  */
+											isStopped e isStarted  */
 }
 
 
@@ -767,7 +890,7 @@ void MOTION::reset()
  */
 int64_t MOTION::gradiToSteps(double gradi)
 {
-  return (int64_t)((gradi / 360.0) * double(uStepScelti * __stepsMotore));
+  return (int64_t)((gradi * (double)(uStepScelti * __stepsMotore)) / 360.0);
 }
 
 
@@ -781,7 +904,7 @@ int64_t MOTION::gradiToSteps(double gradi)
  */
 double MOTION::stepsToGradi(int64_t steps)
 {
-  return (double)((steps * 360) / __stepsMotore); 
+  return (double)(steps) * 360.0 / (double)(__stepsMotore); 
 }
 
 
@@ -804,15 +927,15 @@ void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultIS
 
   /// collega il pin nFAULT all'Interrupt
   if(fault_pin != 255 && FaultISR != nullptr)
-    nFAULT_ISR.Init("nFault_ISR", fault_pin, INPUT, FALLING, 8192, priority, __FaultISR);
+	nFAULT_ISR.Init("nFault_ISR", fault_pin, INPUT, FALLING, 8192, priority, __FaultISR);
 
   #ifdef LOG_ACTIVE_MOTION
-    LogInfo("MOTION nFault ISR", "Sto per inizializzare nFaultISR con il pin %d", fault_pin);
-    /// collega il pin nFAULT all'Interrupt
-    if(fault_pin != 255 && FaultISR != nullptr)
-      LogInfo("MOTION nFault ISR", "Sto per Chiamare INTERRUPT.Init");
-    else
-      LogWarning("MOTION nFault ISR", "Controllare che il pin o la Interrupt Service Routine siano corretti");
+	LogWarning(TAG("MOTION nFault ISR"), "Sto per inizializzare nFaultISR con il pin %d", fault_pin);
+	/// collega il pin nFAULT all'Interrupt
+	if(fault_pin != 255 && FaultISR != nullptr)
+	  LogWarning(TAG("MOTION nFault ISR"), "Sto per Chiamare INTERRUPT.Init");
+	else
+	  LogWarning(TAG("MOTION nFault ISR"), "Controllare che il pin o la Interrupt Service Routine siano corretti");
   #endif
 }
 
@@ -822,7 +945,7 @@ void MOTION::setFaultISR(uint8_t fault_pin, void (*FaultISR)(), uint32_t FaultIS
 double MOTION::getPosition()
 {
   /// @note getAbsPosition appartiene alla @class DRV8825
-  return gradiToSteps(Motion.getAbsPosition());
+  return stepsToGradi(Motion.getAbsPosition());
 }
 
 /**
@@ -844,13 +967,13 @@ int64_t MOTION::getPositionInSteps()
 /**
  *  @private Element Of The Class
  *
- *  @brief Funzione per ottenere il delay per poter cambiare la velocità del movimento
+ *  @brief Metodo per ottenere il delay per poter cambiare la velocità del movimento
  */
 uint64_t MOTION::getPeriodDelay(const double gradiSecondo)
 {
   /// Formula Per ottenere il periodo tra uno step e l'altro tenendo conto del microstepping scelto,
   /// vedi datasheet per ottenere la frequenza di step dato che : Tstep = (1 / Fstep)
-  return (uint64_t)(360000000.0 / (gradiSecondo * double(this->uStepScelti * this->__stepsMotore)));
+  return (uint64_t)(360000000.0 / (gradiSecondo * (double)(this->uStepScelti) * (double)(this->__stepsMotore)));
 }
 
 
@@ -860,13 +983,21 @@ BaseType_t MOTION::MoveSendToQueue(MoveQueue_t StructToSend)
 
   if(MoveQueueHandler != 0)
   {
-    /// Se la coda è piena aspetta 1000 ms = 1s di tempo per inviare
-    queueValue = xQueueSend(MoveQueueHandler, &StructToSend, pdMS_TO_TICKS(1000));
+	/// Se la coda è piena aspetta 1000 ms = 1s di tempo per inviare
+	queueValue = xQueueSend(MoveQueueHandler, &StructToSend, pdMS_TO_TICKS(1000));
 
-    #ifdef LOG_ACTIVE_MOTION
-    LogDebug("MoveSendToQueue", "Queue value after send = %s", queueValue == pdTRUE ? "pdTRUE" : "pdFALSE");
-    #endif
+	#ifdef LOG_ACTIVE_MOTION
+	LogDebug(TAG("MoveSendToQueue"), "Queue value after send = %s", queueValue == pdTRUE ? "pdTRUE" : "pdFALSE");
+	#endif
   }
 
   return queueValue;
+}
+
+const char* MOTION::TAG(const char* tag)
+{
+  this->complete_tag = this->NAME;
+  this->complete_tag += this->NAME != "" ? " " : "";
+  this->complete_tag += tag;
+  return this->complete_tag.c_str();
 }

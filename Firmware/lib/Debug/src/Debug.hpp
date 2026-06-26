@@ -18,197 +18,193 @@
 #pragma once
 
 
-/// File contenente ssid e la password dell'Utente
-#include "WiFi_Config.hpp"
-#include "ESP32MQTTClient.h"
-#include "esp_idf_version.h"
-#include "esp32-hal-log.h"
-#include "rom/ets_sys.h" /// per ISR logging
-#include "semphr.h" // Per usare i semafori
-#include <string> /// Stringhe standard del c++
+#include "Arduino.h"
+#include <string>              /// Stringhe standard del c++
+#include "esp_task_wdt.h"      /// Per disattivare momentaneamente il INT_WDT che causa reset involontari
 
 using namespace std;// Usato per le stringhe standard del c++
 
 /** ╔═════════════════════════════════════════════╗
     ║             USER: LOGGER OPTIONS            ║
     ╚═════════════════════════════════════════════╝ */
-/// Definisce la lunghezza della coda dei log
-#define LOGGER_QUEUE_LEN 256
-#define LOGGER_MESSAGE_SIZE 2048
+
+    
+/// Definisce la lunghezza del message buffer dei log
+#define LOGGER_MESSAGE_BUFF_LEN 25
+#define LOGGER_MAX_MESSAGE_SIZE 512
+#define LOGGER_MAX_TOPIC_SIZE 40
+#define LOGGER_BEGIN_INIT_TIMEOUT_MS 5000
 
 /// @attention Viene perso anche l'OTA e l'MQTT commentando questa riga la quale disattiva l'inizializzazione del WiFi
-//#define WiFi_ACTIVE
+#define WiFi_ACTIVE
 /// @info: Commentando questa riga si disattivano i LOG senza il bisogno di cancellarli nel programma
 #define LOG_ACTIVE
+/// @info: Commentando questa riga si disattivano i log in seriale senza il bisogno di cancellarli nel programma
+#define LOG_ACTIVE_SERIAL
+/// @info: Commentando questa riga si disattivano i log in MQTT senza il bisogno di cancellarli nel programma
+//#define LOG_ACTIVE_MQTT
+/// @info: Commentando questa riga si disattivano i log in SD
+#define LOG_COPY_TO_SD
 /// @info: Commentando questa riga non vi saranno più log da parte del Programma Principale del decapsulator
 #define LOG_ACTIVE_MAIN_PRG
 /// @info: Commentando questa riga non vi saranno più log da parte della TaskTypedef class
 //#define LOG_ACTIVE_TASK
 /// @info: Commentando questa riga non vi saranno più log da parte della motion class
 //#define LOG_ACTIVE_MOTION
-/// @info: Commentando questa riga si disattivano i LOG MQTT senza il bisogno di cancellarli nel programma
-//#define LOG_ACTIVE_MQTT
 /// @info: Commentando questa riga si disattivano i LOG delle code di trasferimento tra main prg e HMI
 //#define LOG_ACTIVE_QUEUE_TRANSFER_MAIN_PRG_AND_HMI
 /// @info: Scommentando questa riga si disattiva il restart dell'esp in caso di fail del wifi e/o dell'MQTT
 #define NO_ESP_RESTART_ON_CONNECTION_FAILURE
 
 
-/** ╔═════════════════════════════════════════════╗
-    ║           USER: FUNCTION PROTOTIPES         ║
-    ╚═════════════════════════════════════════════╝ */
+/*╔═════════════════════════════════════════════╗*/
+/*║                 NOTIFY CODES                ║*/
+/*╚═════════════════════════════════════════════╝*/
 
-/// @brief Inizializza sia il logger (in preprocessor) che il WiFi (runtime) e l'eventuale MQTT (runtime)
-void LogBegin(uint32_t timeout_for_each_initialization_ms = DEFAULT_TIMEOUT_WIFI_CONNECTION_IN_MS);
-
-/// @brief Inizializza il WiFi (viene chiamato dalla funzione LogBegin)
-void startWiFi(uint32_t timeout_for_each_initialization_ms = DEFAULT_TIMEOUT_WIFI_CONNECTION_IN_MS);
-
-
-
-
+#define SD_LOG_REFRESH (1 << 0)
+#define SD_LOG_CLEAN (1 << 1)
 
 
 
 /*╔═════════════════════════════════════════════╗*/
 /*║                 LOGGER CODE                 ║*/
 /*╚═════════════════════════════════════════════╝*/
-/// Per quanti millisecondi il semaforo blocca la task al MAX se non riceve subito il semaforo
-#define __SEMAPHORE_TIMEOUT_MS__ 150
-extern SemaphoreHandle_t xSemaphoreLogger;
+extern MessageBufferHandle_t LoggerMessageHandler;
+extern void LoggerTask(void* pvParameters);
+extern void startWiFi(uint32_t timeout_for_each_initialization_ms);
 
 struct log_msg_t
 {
-  string mqttTopic;
-  char message[LOGGER_MESSAGE_SIZE];
+    char message[LOGGER_MAX_MESSAGE_SIZE];
+    char mqttTopic[LOGGER_MAX_TOPIC_SIZE];
+
+    const char* logTypeStr;
+    uint8_t logTypeColor; // 1=rosso, 3=giallo, 2=verde, 6=ciano, 8=grigio
+    const char* file;
+    const char* task;
+    const char* func;
+    uint32_t line;
+    uint32_t time;
+    const char* tagStr;
 };
 
-static bool isMqttConnected = false;
-
-#if !defined(WiFi_ACTIVE)
-  #undef LOG_MQTT_ACTIVE
+#ifndef WiFi_ACTIVE
+    #undef LOG_ACTIVE_MQTT
 #endif
+
+/// Disattiva tutti i log se LOG_ACTIVE non è definito
+#ifndef LOG_ACTIVE
+    #undef LOG_ACTIVE_SERIAL
+    #undef LOG_ACTIVE_MQTT
+    #undef LOG_COPY_TO_SD
+    #undef LOG_ACTIVE_MAIN_PRG
+    #undef LOG_ACTIVE_TASK
+    #undef LOG_ACTIVE_MOTION
+    #undef LOG_ACTIVE_QUEUE_TRANSFER_MAIN_PRG_AND_HMI
+#endif
+
+#define _LOG_SNPRINTF_FMT_COLORS_(buffer, size, msg)\
+    snprintf(buffer, size, "\033[1;3%dm\n[### %s ###]\033[0m\033[0;3%dm\
+                            \nFile: \"%s\",\
+                            \nLine:  %u,\
+                            \nTask: \"%s\",\
+                            \nFunc: \"%s\",\
+                            \nTime:  %lums,\
+                            \n[ Tag: \"%s\" ] = \n%s\n\n\033[0m",\
+                            msg.logTypeColor,\
+                            msg.logTypeStr,\
+                            msg.logTypeColor,\
+                            msg.file,\
+                            msg.line,\
+                            msg.task,\
+                            msg.func,\
+                            msg.time,\
+                            msg.tagStr,\
+                            msg.message)
+
+#define _LOG_SNPRINTF_FMT_NO_COLORS_(buffer, size, msg)\
+    snprintf(buffer, size, "\n[### %s ###]\
+                            \nFile: \"%s\",\
+                            \nLine:  %u,\
+                            \nTask: \"%s\",\
+                            \nFunc: \"%s\",\
+                            \nTime:  %lums,\
+                            \n[ Tag: \"%s\" ] = \n%s\n\n",\
+                            msg.logTypeStr,\
+                            msg.file,\
+                            msg.line,\
+                            msg.task,\
+                            msg.func,\
+                            msg.time,\
+                            msg.tagStr,\
+                            msg.message)
+    
+    
+/// Aggiunge al topic molte altre informazioni (Neccessario perchè se no vengono sovrascritti i log sempre)
+#define _LOG_SNPRINTF_TOPIC_MQTT_(msg)\
+    snprintf(msg.mqttTopic, LOGGER_MAX_TOPIC_SIZE, "Decapsulator_Logger/%s/File:%s/Task:%s/Func:%s/Line:%d/Time:%lums [ Tag : %s ]",\
+                                                    msg.logTypeStr,\
+                                                    msg.file,\
+                                                    msg.task,\
+                                                    msg.func,\
+                                                    msg.line,\
+                                                    msg.time,\
+                                                    msg.tagStr)
+    
+    
+// ANSI Code per colorare i logs
+#define ERROR_COLOR   ( (uint8_t)(1) ) // "\033[x;31m" Rosso
+#define WARNING_COLOR ( (uint8_t)(3) ) // "\033[x;33m" Giallo
+#define INFO_COLOR    ( (uint8_t)(2) ) // "\033[x;32m" Verde
+#define DEBUG_COLOR   ( (uint8_t)(6) ) // "\033[x;36m" Ciano
+#define DETAILS_COLOR ( (uint8_t)(8) ) // "\033[x;38m" Grigio
 
 
 /// @precompilazione: Se non è predisposto il log o non è specificata la sua attivazione definisce delle macro vuote
 #ifdef LOG_ACTIVE
-  // ANSI Code per colorare i logs
-  #define RST_COLOR       "\033[0m" // Resetta il colore alla fine del punto che si vuole colorare
-  /// Normale
-  #define BASE_ERROR      "\033[0;31m" // Rosso
-  #define BASE_WARNING    "\033[0;33m" // Giallo
-  #define BASE_INFO       "\033[0;32m" // Verde
-  #define BASE_DEBUG      "\033[0;36m" // Ciano
-  #define BASE_DETAILS    "\033[0;38m" // Grigio
-  /// Grassetti
-  #define BOLD_ERROR      "\033[1;31m" // Rosso
-  #define BOLD_WARNING    "\033[1;33m" // Giallo
-  #define BOLD_INFO       "\033[1;32m" // Verde
-  #define BOLD_DEBUG      "\033[1;36m" // Ciano
-  #define BOLD_DETAILS    "\033[1;38m" // Grigio
+
+    #define __BASE_DEACAPSULATOR_LOG(logType, color, tag, format, ...)\
+        if(LoggerMessageHandler == NULL)\
+            break;\
+        log_msg_t msg;\
+        msg.logTypeStr = logType,\
+        msg.logTypeColor = color,\
+        msg.tagStr     = tag,\
+        msg.file = pathToFileName(__FILE__),\
+        msg.line = __LINE__,\
+        msg.task = pcTaskGetName(xTaskGetCurrentTaskHandle()),\
+        msg.func = __FUNCTION__,\
+        msg.time = (uint32_t)(esp_timer_get_time() / 1000ULL),\
+        /* Fa un "piccolo" snprintf per settare i __VA_ARGS__ */\
+        snprintf(msg.message, LOGGER_MAX_MESSAGE_SIZE, format, ##__VA_ARGS__)
 
 
-
-  /// Default Decapsulator Logger Format
-  #define _FORMAT_(logType, format, tag) \
-      BOLD_ ## logType \
-      "\n[### " #logType " ###]"\
-      RST_COLOR\
-      BASE_ ## logType \
-      "\nFile: \"%s\",\
-      \nLine:  %u,\
-      \nTask: \"%s\",\
-      \nFunc: \"%s\",\
-      \nTime:  %ums,\
-      \n[ Tag: \"%s\" ] = \n"\
-      format\
-      "\n\n"\
-      RST_COLOR,\
-      pathToFileName(__FILE__),\
-      __LINE__,\
-      pcTaskGetName(xTaskGetCurrentTaskHandle()),\
-      __FUNCTION__,\
-      (uint32_t)(esp_timer_get_time() / 1000ULL),\
-      (const char*)tag
-   
-  #ifdef LOG_ACTIVE_MQTT
-    /// topics del logger:
-    #define BASE_LOG_TOPIC      "Decapsulator_Logger/"
-    #define ERROR_LOG_TOPIC     BASE_LOG_TOPIC "ERROR/"
-    #define WARNING_LOG_TOPIC   BASE_LOG_TOPIC "WARNING/"
-    #define INFO_LOG_TOPIC      BASE_LOG_TOPIC "INFO/"
-    #define DEBUG_LOG_TOPIC     BASE_LOG_TOPIC "DEBUG/"
-    #define DETAILS_LOG_TOPIC   BASE_LOG_TOPIC "DETAILS/"
-      
-    /// Aggiunge al topic molte altre informazioni (Neccessario perchè se no vengono sovrascritti i log sempre)
-    #define _TOPIC_MQTT_(logType, tag)\
-        string topic = logType;\
-        topic += "File:" + string(pathToFileName(__FILE__)) +\
-                "/Task:" + string(pcTaskGetName(xTaskGetCurrentTaskHandle())) +\
-                "/Func:" + string(__FUNCTION__) +\
-                "/Line:" + to_string(__LINE__) +\
-                "/Time:" + to_string(esp_timer_get_time() / 1000ULL) +\
-                " [ Tag : " + string(tag) + " ] "
-  #endif
-
-
-
-
-
-  #define __SEMAPHORE_TIMEOUT_TICKS__ pdMS_TO_TICKS(__SEMAPHORE_TIMEOUT_MS__)
-
-  #ifdef LOG_ACTIVE_MQTT
     /// Default Decapsulator Logger
-    #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
-      do\
-      {\
-        if(xSemaphoreLogger != nullptr)\
-          if(xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__))\
-          {\
-            log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
-            if(isMqttConnected)\
-            {\
-              _TOPIC_MQTT_(logType ## _LOG_TOPIC, tag);\
-              mqtt_logger_printf(topic, format, ##__VA_ARGS__);\
-            }\
-            xSemaphoreGive(xSemaphoreLogger);\
-          }\
-      } while(0)
-  #else 
-    #ifdef LOG_ACTIVE
-      /// Default Decapsulator Logger
-      #define __DECAPSULATOR_LOG(logType, tag, format, ...)\
+    #define __DECAPSULATOR_LOG(logType, color, tag, format, ...)\
         do\
         {\
-          if(xSemaphoreLogger != nullptr)\
-            if(xSemaphoreTake(xSemaphoreLogger, __SEMAPHORE_TIMEOUT_TICKS__))\
-            {\
-              log_printf(_FORMAT_(logType, format, tag), ##__VA_ARGS__);\
-              xSemaphoreGive(xSemaphoreLogger);\
-            }\
-        } while(0)  
-    #endif 
-  #endif
+            __BASE_DEACAPSULATOR_LOG(logType, color, tag, format, ##__VA_ARGS__);\
+            xMessageBufferSend(LoggerMessageHandler, &msg, sizeof(msg), 0);\
+        } while(0)
 
-    /// Default Decapsulator Logger For Interrupt Service Routines (ISR)
-    #define __ISR_DECAPSULATOR_LOG(logType, tag, format, ...)\
-      do\
-      {\
-        BaseType_t xHigherPriorityTaskWoken = pdFALSE;\
-        if(xSemaphoreLogger != nullptr)\
-          if(xSemaphoreTakeFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken))\
-          {\
-            ets_printf(ARDUHAL_LOG_FORMAT(## logType, format), ##__VA_ARGS__);\
-            xSemaphoreGiveFromISR(xSemaphoreLogger, &xHigherPriorityTaskWoken);\
-          }\
-      } while(0)
 
+    /// Default Decapsulator Logger per Interrupt Service Routines (ISR)
+    #define __ISR_DECAPSULATOR_LOG(logType, color, tag, format, ...)\
+        do\
+        {\
+            __BASE_DEACAPSULATOR_LOG(logType, color, tag, format, ##__VA_ARGS__);\
+            BaseType_t __LoggerMessageBuffHigherPriorityTaskWoken__ = pdFALSE;\
+            xMessageBufferSendFromISR(LoggerMessageHandler, &msg, sizeof(msg), &__LoggerMessageBuffHigherPriorityTaskWoken__);\
+            if(__LoggerMessageBuffHigherPriorityTaskWoken__)\
+                portYIELD_FROM_ISR();\
+        } while(0)
+        
 #else // NO LOGGER DEFINES
 
-  /// NO LOGGER Default Decapsulator Logger
-  #define __DECAPSULATOR_LOG(logType, tag, format, ...)
-  /// NO LOGGER Default Decapsulator Logger For Interrupt Service Routines (ISR)
-  #define __ISR_DECAPSULATOR_LOG(logType, tag, format, ...)
+    /// NO LOGGER Default Decapsulator Logger
+    #define __DECAPSULATOR_LOG(logType, color, tag, format, ...)
+    /// NO LOGGER Default Decapsulator Logger For Interrupt Service Routines (ISR)
+    #define __ISR_DECAPSULATOR_LOG(logType, color, tag, format, ...)
   
 #endif
 
@@ -217,55 +213,35 @@ static bool isMqttConnected = false;
 /*║             Per Logging Normale              ║*/
 /*╚══════════════════════════════════════════════╝*/
 /// @logging: degli @errori:
-#define LogError(tag, format, ...)         __DECAPSULATOR_LOG(ERROR, tag, format, ##__VA_ARGS__)
+#define LogError(tag, format, ...)         __DECAPSULATOR_LOG("ERROR", ERROR_COLOR, tag, format, ##__VA_ARGS__)
 
 /// @logging: degli @avvertimenti:
-#define LogWarning(tag, format, ...)       __DECAPSULATOR_LOG(WARNING, tag, format, ##__VA_ARGS__)
+#define LogWarning(tag, format, ...)       __DECAPSULATOR_LOG("WARNING", WARNING_COLOR, tag, format, ##__VA_ARGS__)
 
 /// @logging: delle @informazioni:
-#define LogInfo(tag, format, ...)          __DECAPSULATOR_LOG(INFO, tag, format, ##__VA_ARGS__)
+#define LogInfo(tag, format, ...)          __DECAPSULATOR_LOG("INFO", INFO_COLOR, tag, format, ##__VA_ARGS__)
 
 /// @logging: di @debug:
-#define LogDebug(tag, format, ...)         __DECAPSULATOR_LOG(DEBUG, tag, format, ##__VA_ARGS__)
+#define LogDebug(tag, format, ...)         __DECAPSULATOR_LOG("DEBUG", DEBUG_COLOR, tag, format, ##__VA_ARGS__)
 
 /// @logging: dei @dettagli:
-#define LogDetails(tag, format, ...)       __DECAPSULATOR_LOG(DETAILS, tag, format, ##__VA_ARGS__)
+#define LogDetails(tag, format, ...)       __DECAPSULATOR_LOG("DETAILS", DETAILS_COLOR, tag, format, ##__VA_ARGS__)
 
 
 /*╔══════════════════════════════════════════════╗*/
 /*║ Per Logging Nelle Interrupt Service Routine  ║*/
 /*╚══════════════════════════════════════════════╝*/
 /// @logging: degli @errori: nelle Interrupt Service Routine:
-#define LogErrorISR(tag, format, ...)      __ISR_DECAPSULATOR_LOG(ERROR, tag, format, ##__VA_ARGS__)
+#define LogErrorISR(tag, format, ...)      __ISR_DECAPSULATOR_LOG("ERROR", ERROR_COLOR, tag, format, ##__VA_ARGS__)
 
 /// @logging: degli @avvertimenti: nelle Interrupt Service Routine:
-#define LogWarningISR(tag, format, ...)    __ISR_DECAPSULATOR_LOG(WARNING, tag, format, ##__VA_ARGS__)
+#define LogWarningISR(tag, format, ...)    __ISR_DECAPSULATOR_LOG("WARNING", WARNING_COLOR, tag, format, ##__VA_ARGS__)
 
 /// @logging: delle @informazioni: nelle Interrupt Service Routine:
-#define LogInfoISR(tag, format, ...)       __ISR_DECAPSULATOR_LOG(INFO, tag, format, ##__VA_ARGS__)
+#define LogInfoISR(tag, format, ...)       __ISR_DECAPSULATOR_LOG("INFO", INFO_COLOR, tag, format, ##__VA_ARGS__)
 
 /// @logging: di @debug: nelle Interrupt Service Routine:
-#define LogDebugISR(tag, format, ...)      __ISR_DECAPSULATOR_LOG(DEBUG, tag, format, ##__VA_ARGS__)
+#define LogDebugISR(tag, format, ...)      __ISR_DECAPSULATOR_LOG("DEBUG", DEBUG_COLOR, tag, format, ##__VA_ARGS__)
 
 /// @logging: dei @dettagli: nelle Interrupt Service Routine:
-#define LogDetailsISR(tag, format, ...)    __ISR_DECAPSULATOR_LOG(DETAILS, tag, format, ##__VA_ARGS__)
-
-/// @brief Modifica una variabile in runtime scrivendola in un determinato topic mqtt
-/// @warning il topic sarà composto così: Decapsulator_Logger/DEBUG OVERRIDE/override_topic 
-template<typename varType>
-void DebugOverrideVar(const String override_topic, varType* var)
-{
-  #ifdef LOG_ACTIVE_MQTT
-    if(!var)
-      return;
-
-    /// Scrive il topic utente
-    String topic = BASE_LOG_TOPIC "DEBUG OVERRIDE/" + override_topic;
-
-    /// ATTENZIONE: il puntatore deve essere valido per tutta la durata della sottoscrizione.
-    mqttClient.subscribe(topic.c_str(), [var](const string &topic, const string &payload)
-    {
-        *var = FromStringToVarType<varType>(payload);
-    });
-  #endif
-}
+#define LogDetailsISR(tag, format, ...)    __ISR_DECAPSULATOR_LOG("DETAILS", DETAILS_COLOR, tag, format, ##__VA_ARGS__)

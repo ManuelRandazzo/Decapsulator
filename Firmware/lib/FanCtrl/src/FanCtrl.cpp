@@ -51,7 +51,7 @@ bool FanCtrl::begin(uint8_t pin, uint32_t pwm_freq, uint8_t pwm_resolution_in_bi
         return false;
 
     /// Imposta il pin come OUTPUT
-    pinMode(this->fan_pin, OUTPUT);
+    pinMode(pin, OUTPUT);
 
     /// Tenta l'attach del nuovo pin
     bool attach_ok = ledcAttach(pin, pwm_freq, pwm_resolution_in_bits);
@@ -122,13 +122,34 @@ bool FanCtrl::setDuty(uint8_t duty_percentage)
         return true;
 
     /// Tenta di fare la scrittura della PWM (Write)
-    bool write_ok = ledcWrite(this->fan_pin, this->duty);
+    bool write_ok = ledcWrite(this->fan_pin, duty_percentage);
 
     /// Se la scrittura non è fallita assegna il nuovo duty-cycle
     if(write_ok)
         this->duty = duty_percentage;
 
     return write_ok;
+}
+
+
+
+
+/**
+ * @brief Restituisce il duty-cycle della PWM
+ *
+ * @param duty_percentage Range 0-100. Seleziona il duty-cycle della PWM, espresso in percentuale [%].
+ *
+ * @attention se duty_percentage > 100 allora il duty viene impostato al 100%
+ *
+ * @return Valore attuale del duty-cycle
+ *
+ * @example duty_percentage = 0 ---> ventola spenta
+ *
+ * @example duty_percentage = 100 ---> ventola accesa
+ */
+uint8_t FanCtrl::getDuty()
+{
+    return this->duty;
 }
 
 

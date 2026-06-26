@@ -1,7 +1,3 @@
-/**
- *    @brief FILE CONTENENTE LE DEFINIZIONI E LE ENUMERAZIONI DELLE TASKS
- */
-
 #pragma once /// Mi permette di non avere errori di multiple ridefinizioni nei file che le usano che magari vengono inclusi a loro volta in altri file che usano questo file
 
 /// @link https://learn.microsoft.com/it-it/cpp/standard-library/functional?view=msvc-170
@@ -10,59 +6,7 @@
 /// Per i Log
 #include "Debug.hpp"
 
-/**
- *  @brief enum dell'Heap occupato dalle singole tasks (RAM del runtime)
- *
- *  @note heap occupato realmente --> realHeap = taskHeapSize * 4   (ex. 2048 * 4 = 8196 = 8KB)
- *  @note cercare di non occupare troppo spazio dell'Heap. Utilizzare esp_get_free_heap_size() 
- *        per sapere l'heap rimanente e uxTaskGetStackHighWaterMark(NULL) per sapere quello della task in cui viene chiamato. 
- *        MAX 512KB
- *
- *  ATTENZIONE: @stack_overflow: "Debug exception reason: Stack canary watchpoint triggered (task X) " nella console indica uno stack overflow della task X, aumentare lo stack
- *
- *  
- *  @determinazione_heap:
- *                        1. Aggiungi una funziona che restituisce l'Heap rimanente.
- *
- *                        2. Esegui la task in condizioni realistiche.
- *
- *                        3. Monitora quanta heap rimane con la funzione messa prima.
- *
- *                        4. Aggiungi un margine di sicurezza +20~50%.
- * 
- */
-enum taskHeapSize_t
-{
-  OTA_heap        = 2048, // 2kiB
-  HMI_heap        = 4096, // 4kiB
-  JogMotori_heap  = 4096, // 4kiB 
-  MainPrg_heap    = 6656, // 6.5kiB
-};
 
-/**
- *  @brief enum delle priorità delle singole tasks
- *
- *  @note più alto è il valore più la priorità è alta
- *  @note cercare di non fare troppe task con la stessa priorità (anche se vengono ugualmente eseguite)
- */
-enum taskPriority_t
-{
-  OTA_priority        = 10,
-  HMI_priority        = 5,
-  JogMotori_priority  = 7,
-  MainPrg_priority    = 7,
-};
-
-/**
- *  @brief enum dei delay delle singole tasks
- */
-enum taskDelays_t
-{
-  MainPrg_delay    = 5,
-  JogMotori_delay  = 5,
-  HMI_delay        = 100,
-  OTA_delay        = 200,
-};
 
 
 class TaskTypeDef

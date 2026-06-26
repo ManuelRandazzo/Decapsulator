@@ -15,8 +15,8 @@
 
 
 /// Test Mosquitto MQTT broker, @see https://test.mosquitto.org
-#define MQTT_BROKER "mqtt://test.mosquitto.org:1883"
-//#define MQTT_BROKER "mqtt://192.168.3.98:1883" /// Usa l'mqtt broker che gira sulla raspberry
+//#define MQTT_BROKER "mqtt://test.mosquitto.org:1883"
+#define MQTT_BROKER "mqtt://192.168.1.98:1883" /// Usa l'mqtt broker che gira sulla raspberry
 
 /// Si può modificare dal display (tastiera virtuale usando LVGL, libreria "lvgl" esempio "keyboard"), ma di default sono così, veranno salvati su un file da leggere all'inizio.
 /// Bisogna dichiararla inline perchè se no viene fatta una copia in tutti i file che includono WiFi_secrets.h, producendo errori
@@ -28,3 +28,7 @@ extern String WIFI_PASSWORD;
 
 /// Decapsulator ESP MQTT logging "Super User Do" e "AuthKey" 
 #define __HIDDEN_PASSWORD_ESP_MQTT_FOR_DETAILED_LOGS "DecapsulatorSudo2426mb"
+
+/// Decapsulator ESP pagina manutenzione della ui "Super User Do" 
+#define __HIDDEN_PASSWORD_DECAPSULATOR_MANUTENCTOR "123456"
+#define PASSWORD_DECAPSULATOR_MANUTENCTOR __HIDDEN_PASSWORD_DECAPSULATOR_MANUTENCTOR

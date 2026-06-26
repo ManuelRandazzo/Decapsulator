@@ -1,202 +1,210 @@
 #include "JogMotoriPRG.hpp"
+#include "HMI_UI_EEZ/created_post_prj_export/ui_vars_mutexs.h"
+#include "HMI_UI_EEZ/vars.h"
 
-TaskHandle_t JogMotoriPrgHandler;
 
 void prgJogMotoriTask(void *pvParameters)
 {
     TickType_t getLastTick = xTaskGetTickCount();
-    CommandQueueHMI_t FromHMI = defaultCommandQueueHMI;
-    EventQueueHMI_t ToHMI = defaultEventQueueHMI;
-    bool sendChangesToHMI = false;
 
-    /// NON SERVONO PIU' SE SI USANO GLI STATI
-    bool lastRallaEnable = false;
-    bool lastPunzoneEnable = false;
-
-    /// Per sapere quando sta facendo la sequenza di homing
-    bool nowHoming = false;
+    /// Sequenza Homing
     uint8_t StateHoming = 0;
 
+    double gradi_per_click_ralla = 360.0;
+    double speed_motore_ralla    = 90.0;
+    double gradi_per_click_punz  = 360.0;
+    double speed_motore_punz     = 90.0;
+
     /// Si assicura di Auto-sospendersi per evitare problemi con le risorse condivise (motori)
-    /// Sarà la task dell'HMI che deciderà Se sospendere o attivare le task del programma main e di jog
+    /// Sarà la task dell'HMI che deciderà se sospendere o attivare le task del programma main e di jog
     vTaskSuspend(NULL);
 
+    uint32_t tmr = 0;
+    
     while(1)
     {
-        switch(FromHMI.jogStateCMD)
+        #pragma region (PUNZONE)
+
+        /// Legge il sensore di finecorsa MINIMO del Punzone
+        if(MotPunzone.HardMin.event())
+            set_var_stato_finecorsa_min(MotPunzone.HardMin.rawRead() == (int8_t)(PUNZ_CAM_SIGNAL));
+
+        /// Legge il sensore di finecorsa MASSIMO del Punzone
+        if(MotPunzone.HardMax.event())
+            set_var_stato_finecorsa_max(MotPunzone.HardMax.rawRead() == (int8_t)(PUNZ_CAM_SIGNAL));
+        
+        /// Converte le stringhe in numeri double positivi
+        gradi_per_click_punz = abs(String(get_var_gradi_per_click_punz()).toDouble());
+        speed_motore_punz    = abs(String(get_var_speed_motore_punz()).toDouble());
+
+        /// Enable/Disable Motore Punzone
+        if(get_var_comando_motore_punzone() == true)
         {
-            case NO_CMD :
-                if(MotRalla.isStepDone() && MotPunzone.isStepDone() && !nowHoming)
-                    checkUpdateHMI(&FromHMI);
-            break;
-
-            case TAMBURO_ENABLE :
-                MotRalla.attach();
-                MotRalla.Start();
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
-
-            case TAMBURO_DISABLE :
-                MotRalla.Stop(RELEASE);
-                MotRalla.detach();
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
-
-            case TAMBURO_JOG_POSITIVE :
-                MotRalla.moveRel(FromHMI.jogRallaGradiPerClick, FromHMI.jogRallaSpeed);
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
-
-            case TAMBURO_JOG_NEGATIVE :
-                MotRalla.moveRel(-1 * FromHMI.jogRallaGradiPerClick, FromHMI.jogRallaSpeed);
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
-                
-            case PUNZONE_ENABLE :
+            if(MotPunzone.isDetached())
+            {
                 MotPunzone.attach();
                 MotPunzone.Start();
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
-
-            case PUNZONE_DISABLE :
+            }
+        }
+        else
+        {
+            if(MotPunzone.isAttached())
+            {
+                MotPunzone.abortCurrentCommand();
+                xQueueReset(queue_direzione_comando_punzone);
                 MotPunzone.Stop(RELEASE);
                 MotPunzone.detach();
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
+            }
+        }
 
-            case PUNZONE_JOG_POSITIVE :
-                MotPunzone.moveRel(FromHMI.jogPunzoneGradiPerClick, FromHMI.jogPunzoneSpeed, PUNZ_ACC, PUNZ_DEC);
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
+        if(MotPunzone.isStepDone())
+        {
+            int8_t punz_jog_dir = 0;
+            if(xQueueReceive(queue_direzione_comando_punzone, &punz_jog_dir, 0) == pdTRUE)
+                MotPunzone.moveRel(punz_jog_dir * gradi_per_click_punz, speed_motore_punz);
+        }
 
-            case PUNZONE_JOG_NEGATIVE :
-                MotPunzone.moveRel(-1 * FromHMI.jogPunzoneGradiPerClick, FromHMI.jogPunzoneSpeed, PUNZ_ACC, PUNZ_DEC);
-                FromHMI.jogStateCMD = NO_CMD;
-            break;
+        
+        set_var_stato_motore_punzone(StateHoming == 0 ? !MotPunzone.isStepDone() : !MotPunzone.isHomeDone());
 
-            case HOMING :
-                switch(StateHoming)
+        #pragma endregion (PUNZONE)
+        
+
+
+
+
+        
+        
+        #pragma region (RALLA)
+        
+        /// Converte le stringhe in numeri double positivi
+        gradi_per_click_ralla = abs(String(get_var_gradi_per_click_ralla()).toDouble());
+        speed_motore_ralla    = abs(String(get_var_speed_motore_ralla()).toDouble());
+
+        /// Legge il sensore di calibrazione della RALLA
+        set_var_stato_sensore_di_calibrazione(MotRalla.HardMax.rawRead() == (int8_t)(RALLA_CAM_SIGNAL));
+                    
+        /// Enable/Disable Motore Tamburo
+        if(get_var_comando_motore_ralla() == true)
+        {
+            if(MotRalla.isDetached())
+            {
+                MotRalla.attach();
+                MotRalla.Start();
+            }
+        }
+        else
+        {
+            if(MotRalla.isAttached())
+            {
+                MotRalla.abortCurrentCommand();
+                xQueueReset(queue_direzione_comando_ralla);
+                MotRalla.Stop(RELEASE);
+                MotRalla.detach();
+            }
+        }
+
+        if(MotRalla.isStepDone())
+        {
+            int8_t ralla_jog_dir = 0;
+            if(xQueueReceive(queue_direzione_comando_ralla, &ralla_jog_dir, 0) == pdTRUE)
+                MotRalla.moveRel(ralla_jog_dir * gradi_per_click_ralla, speed_motore_ralla);
+        }
+
+        set_var_stato_motore_ralla(StateHoming == 0 ? !MotRalla.isStepDone() : !MotRalla.isHomeDone());
+            
+        #pragma endregion (RALLA)
+        
+        
+
+        #pragma region (HOMING)
+
+        /// Blocca l'homing se l'utente ripreme il tasto
+        if(get_var_homing() == false && StateHoming != 0)
+        {
+            MotPunzone.abortCurrentCommand();
+            MotRalla.abortCurrentCommand();
+            MotRalla.removeHardLimits();
+            StateHoming = 0;
+        }
+
+        switch(StateHoming)
+        {
+            case 0 : /// NO HOMING IN CORSO
+            {
+                if(get_var_homing() == true)                
                 {
-                    case 0 : /// HOMING CMD PUNZONE
-                        MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_ACC, PUNZ_HOME_DEC, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
-                        nowHoming = true;
-                        StateHoming++;
-                    break;
-
-                    case 1 : /// HOMING WAIT DONE PUNZONE
-                        if(MotPunzone.isHomeDone())
-                            StateHoming++;
-                    break;
-
-                    case 2 : /// HOMING CMD RALLA
-                        MotRalla.home(RALLA_HOME_SPEED, RALLA_HOME_ACC, RALLA_HOME_DEC, RALLA_HOME_DIR, RALLA_POST_HOME_POS);
-                        StateHoming++;
-                    break;
-
-                    case 3 : /// HOMING WAIT DONE RALLA
-                        if(MotRalla.isHomeDone())
-                        {
-                            StateHoming = 0;
-                            nowHoming = false;
-                            FromHMI.jogStateCMD = NO_CMD;
-                        }
-                    break;
+                    MotPunzone.abortCurrentCommand();
+                    MotRalla.abortCurrentCommand();
+                    MotRalla.removeHardLimits();
+                    xQueueReset(queue_direzione_comando_punzone);
+                    xQueueReset(queue_direzione_comando_ralla);
+                    StateHoming++;
                 }
+            }
+            break;
+
+            case 1 : /// HOMING CMD PUNZONE
+            {
+                MotPunzone.home(PUNZ_HOME_SPEED, HARD_MAX, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
+                StateHoming++;
+            }
+            break;
+
+            case 2 : /// HOMING WAIT DONE PUNZONE
+            {
+                if(MotPunzone.isHomeDone())
+                {
+                    MotRalla.reattachHardLimits();
+                    StateHoming++;
+                }
+            }
+            break;
+
+            case 3 : /// HOMING CMD RALLA
+            {
+                int8_t RallaHardMaxStatus = MotRalla.HardMax.rawRead();
+                
+                if(RallaHardMaxStatus != -1)
+                {
+                    if(RallaHardMaxStatus == RALLA_CAM_SIGNAL)
+                    {
+                        if(MotRalla.isStepDone())
+                            MotRalla.moveRel(-RALLA_HOME_DIR * 360.0 * GEAR_RATIO_RALLA, RALLA_HOME_CONT_SPEED);
+                    }
+                    else
+                    {
+                        double gradi_post_home = 0.0;
+                        if(!MotRalla.isStepDone())
+                        {
+                            MotRalla.abortCurrentCommand();
+                            gradi_post_home = -3.3 * GEAR_RATIO_RALLA;
+                        }
+                        else
+                            gradi_post_home = RALLA_POST_HOME_POS * GEAR_RATIO_RALLA;
+
+                        MotRalla.home(RALLA_HOME_SPEED, HARD_MAX, RALLA_HOME_DIR, gradi_post_home);
+                        StateHoming++;
+                    }
+                }
+            }
+            break;
+
+            case 4 : /// HOMING WAIT DONE RALLA
+            {
+                if(MotRalla.isHomeDone())
+                {
+                    MotRalla.removeHardLimits();
+                    StateHoming = 0;
+                    set_var_homing(false);
+                    /// @todo notificare che bisogna skippare un'apertura del ServoParatia
+                }
+            }
             break;
         }
 
-        
-        /*/// PUNZONE
-        if(FromHMI.jogRallaEnable != lastRallaEnable)
-        {
-            lastRallaEnable = FromHMI.jogRallaEnable;
-            if(FromHMI.jogRallaEnable == 0)
-            {
-                MotRalla.Stop(RELEASE);
-                MotRalla.detach();
-            }
-            else
-            {
-                MotRalla.attach();
-                MotRalla.Start();
-            }
-        }
-
-        if(MotRalla.isStepDone() == true && !nowHoming)
-        {
-            if(FromHMI.jogRallaJogPositive == true)
-            {
-                FromHMI.jogRallaJogPositive = false;
-                MotRalla.moveRel(FromHMI.jogRallaGradiPerClick, FromHMI.jogRallaSpeed);
-            }
-            else if(FromHMI.jogRallaJogNegative == true)
-            {
-                FromHMI.jogRallaJogNegative = false;
-                MotRalla.moveRel(-1 * FromHMI.jogRallaGradiPerClick, FromHMI.jogRallaSpeed);
-            }
-
-            
-            if(FromHMI.jogPunzoneHome && MotPunzone.isHomeDone())
-            {
-                FromHMI.jogRallaHome = false;
-                MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
-            }
-        }
-
-        if(ToHMI.jogRallaIsMoving != (!MotRalla.isStepDone()))
-        {
-            ToHMI.jogRallaIsMoving = !MotRalla.isStepDone();
-            sendChangesToHMI = true;
-        }
-
-
-        /// PUNZONE
-        if(FromHMI.jogPunzoneEnable != lastPunzoneEnable)
-        {
-            lastPunzoneEnable = FromHMI.jogPunzoneEnable;
-            if(FromHMI.jogPunzoneEnable == 1)
-            {
-                MotPunzone.attach();
-                MotPunzone.Start();
-            }
-            else
-            {
-                MotPunzone.Stop(RELEASE);
-                MotPunzone.detach();
-            }
-        }
-        
-        if(MotPunzone.isStepDone() == true)
-        {
-            if(FromHMI.jogPunzoneJogPositive == true)
-            {
-                FromHMI.jogPunzoneJogPositive = false;
-                MotPunzone.moveRel(FromHMI.jogPunzoneGradiPerClick, FromHMI.jogPunzoneSpeed);
-            }
-
-            
-            if(FromHMI.jogPunzoneJogNegative == true)
-            {
-                FromHMI.jogPunzoneJogNegative = false;
-                MotPunzone.moveRel(-1 * FromHMI.jogPunzoneGradiPerClick, FromHMI.jogPunzoneSpeed);
-            }
-
-
-            if(FromHMI.jogPunzoneHome && MotPunzone.isHomeDone())
-            {
-                FromHMI.jogRallaHome = false;
-                MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
-            }
-        }    
-
-        if(ToHMI.jogPunzoneIsMoving != (!MotPunzone.isStepDone()))
-        {
-            ToHMI.jogPunzoneIsMoving = !MotPunzone.isStepDone();
-            sendChangesToHMI = true;
-        }*/
-
-        /// Aggiorna in caso vengano richiesti dei cambiamenti da segnalare all'HMI
-        sendUpdateHMI(&ToHMI, &sendChangesToHMI);
+        #pragma endregion (HOMING)
+                
 
         xTaskDelayUntil(&getLastTick, JogMotori_delay);
     }

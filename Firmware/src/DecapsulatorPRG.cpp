@@ -15,52 +15,17 @@
  */
 
 #include "DecapsulatorPRG.hpp"
-
+#include "HMI_UI_EEZ/vars.h"
+#include "filePathsSD.hpp"
+#include "DateAndTimePRG.hpp"
+#include "AutoKillPRG.hpp"
 
 
 
 
 #pragma region (GLOBAL VARIABLE LIST)
 
-
-/// @brief Handler della coda che riceve i comandi che arrivano dall'HMI
-QueueHandle_t QueueHandlerHMI_CMD = nullptr;
-
-/// @brief Handler della coda che invia gli eventi (errori, avvisi, ecc.) all'HMI
-QueueHandle_t QueueHandlerHMI_EVT = nullptr; 
-
-/// @brief Handler della task che gestisce il programma principale del decapsulator
-TaskHandle_t MainPrgHandler = nullptr;
-
-typedef enum __sequence__ : uint8_t
-{
-  EMERGENCY_STATE,
-  CONTAINER_FULL,
-  TIMEOUT_STATE,
-  MACHINE_STARTUP_STATE,
-  PUNZONE_STARTUP_STATE,
-  TAMBURO_STARTUP_STATE,
-  QUIETE_STATE,
-  SERVO_LOADER_OPEN_STATE,
-  SERVO_LOADER_CLOSE_STATE,
-  REACH_NEXT_STATION_STATE,
-  PUNCHER_DOWN_FAST_STATE,
-  PUNCHER_DOWN_SLOW_STATE,
-  PUNCHER_UP_FAST_STATE,
-} Sequence_t;
-
-
-/// Crea gli oggetti
-MOTION MotRalla;
-MOTION MotPunzone;
-Servo ServoParatia;
-FanCtrl Ventola;
-
-/// Mutex e spinlock
-SemaphoreHandle_t _DecapsulatorMutex = nullptr;
-portMUX_TYPE _DecapsulatorSpinlock = portMUX_INITIALIZER_UNLOCKED;
-
-volatile QueueHandle_t ptrAutokillSharedVars;
+Sequence_t sequenza = MACHINE_STARTUP_STATE;  // Gestione della sequenza del movimento del Decapsulator
 
 /// @brief false = da il comando, true = esegue il comando
 bool cmd_exec = false; 
@@ -71,10 +36,6 @@ bool cmd_exec = false;
 
 #pragma region (FUNCTION_PROTOTIPES)
 
-BaseType_t checkUpdateHMI(CommandQueueHMI_t* receivingQueue); /// Direction: Frontend --> Backend
-BaseType_t checkUpdateHMI(EventQueueHMI_t* receivingQueue);   /// Direction: Backend --> Frontend
-BaseType_t sendUpdateHMI(CommandQueueHMI_t* sendingQueue, bool* sendChanges); /// Direction: Frontend --> Backend
-BaseType_t sendUpdateHMI(EventQueueHMI_t* sendingQueue, bool* sendChanges);   /// Direction: Backend --> Frontend
 const char* state_name_to_string(Sequence_t seq_switch);
 
 #pragma endregion (FUNCTION_PROTOTIPES)
@@ -89,599 +50,601 @@ const char* state_name_to_string(Sequence_t seq_switch);
  */
 void prgDecapsulatorTask(void *pvParameters)
 {
-  /**
-   *    @setup:
-   */
-  TickType_t getLastTick = xTaskGetTickCount();
-
-  ///ATTENZIONE: Programma con variabili a caso ancora da definire
-  ///            e da rendere THREAD SAFE tramite notifiche e/o code
-  bool FORCE_THE_STARTUP = false;//true;
-  
-  /// @brief Handler della coda che riceve i comandi che arrivano dall'HMI
-  QueueHandlerHMI_CMD = xQueueCreate(HMI_CMD_QUEUE_LEN, sizeof(CommandQueueHMI_t));
-  CommandQueueHMI_t FromHMI = defaultCommandQueueHMI;
-
-  /// @brief Handler della coda che invia gli eventi (errori, avvisi, ecc.) all'HMI
-  QueueHandlerHMI_EVT = xQueueCreate(HMI_EVT_QUEUE_LEN, sizeof(EventQueueHMI_t));
-  EventQueueHMI_t ToHMI = defaultEventQueueHMI;
-  bool sendChangesToHMI = false;
-
-  uint8_t cntContainerFull = 0;
-  int nCicliRimanenti = 0; // prende il numero dalla SD Card
-
-  Sequence_t sequenza = MACHINE_STARTUP_STATE;  // Gestione della sequenza del movimento del Decapsulator
-
-  /// Ventola
-  Ventola.begin(VENTOLA_PIN, VENTOLA_FREQ, VENTOLA_RES);
-  Ventola.on();
-
-  /// Motore Tamburo
-  drv_err_t drvErr;
-  drvErr = MotRalla.Init(RALLA_MOTOR_STEPS, RALLA_DIRECTION_PIN, RALLA_STEP_PIN, RALLA_ENABLE_PIN, RALLA_RESET_PIN, RALLA_SLEEP_PIN,
-                         RALLA_TASK_PRIORITY, RALLA_MICROSTEP);
-                  
-  MotRalla.detach();
-
-  MotRalla.setHardLimits(RALLA_CALIB_PIN, 255, RALLA_CALIB_INTR_OR_POLL, 30, RALLA_INPUT_PULL, RALLA_CAM_SIGNAL);
-
-  R_TRIG RallaStepDone;
-
-  if(drvErr != DRV_OK)
-  {
-    #ifdef LOG_ACTIVE_MAIN_PRG
-      LogError("Main Prg", "Errore nell'inizializzazione del MOTION della Ralla, codice errore = %s (%d)", drv_err_to_name(drvErr), drvErr);
-    #endif
-    while(1) { vTaskDelay(pdMS_TO_TICKS(1000)); }
-  }
-
-  /// Motore Punzone
-  drvErr = MotPunzone.Init(PUNZ_MOTOR_STEPS, PUNZ_DIRECTION_PIN, PUNZ_STEP_PIN, PUNZ_ENABLE_PIN, PUNZ_RESET_PIN, PUNZ_SLEEP_PIN,
-                           PUNZ_TASK_PRIORITY, PUNZ_MICROSTEP);
-  MotPunzone.detach();
-  
-  R_TRIG PunzoneStepDone;
-  
-  if(drvErr != DRV_OK)
-  {
-    #ifdef LOG_ACTIVE_MAIN_PRG
-      LogError("Main Prg", "Errore nell'inizializzazione del MOTION del Punzone, codice errore = %s (%d)", drv_err_to_name(drvErr), drvErr);
-    #endif
-    while(1) { vTaskDelay(pdMS_TO_TICKS(1000)); }
-  }
-
-  MotPunzone.setHardLimits(PUNZ_MAX_POS_PIN, PUNZ_MIN_POS_PIN, PUNZ_HARD_LIM_INTR_OR_POLL, 30, PUNZ_INPUT_PULL, PUNZ_CAM_SIGNAL);
-
-
-  /// Inizializzazione Servo e relativi suoi timer[0-3] dell'hardware ledc
-  for(uint8_t i = 0; i < 4; i++)
-    ESP32PWM::allocateTimer(i);
-	ServoParatia.setPeriodHertz(50);    // standard 50 hz servo
-  
-  /// Inizializzazione dei pin di debounce
-  DebPinHandler autoKill     (INTR, AUTOKILL_DETECT_PIN, "Autokill Detection Pin", 10/* ms */, FALLING, INPUT);
-  DebPinHandler cadutaCaps   (INTR, PIECE_PASSED_PIN   , "Caduta Capsule Pin"    , 10/* ms */, FALLING , INPUT);
-  DebPinHandler presenzaCaps (INTR, PIECE_PRESENCE_PIN , "Presenza Capsule Pin"  , 30/* ms */, FALLING, INPUT);
-  bool doAnotherCycle = false;
-
-  if(cadutaCaps.event())
-  {
-    /// ATTENZIONE: Loggare Qualcosa nel display
-    #ifdef LOG_ACTIVE_MAIN_PRG
-      LogError("Main Prg", "C'è una capsula incastrata nello scivolo, consultare il Manuale di uso e manutenzione");
-    #endif
-    
-    int8_t rawRead;
-    do
-    {
-      rawRead = cadutaCaps.rawRead();
-      vTaskDelay(pdMS_TO_TICKS(1000));
-      #ifdef LOG_ACTIVE_MAIN_PRG
-        LogError("Main Prg", "Valore lettura = %s", rawRead ? "HIGH" : "LOW");
-      #endif
-    } while(rawRead == cadutaCaps.getLevelTrig());
-  }
-
-  /// TIMEOUTS: TIMERS:
-  uint32_t tmoPunzHome = 0;
-  uint32_t tmoRallaHome = 0;
-  uint32_t tmoCaduta = 0;
-
-  #ifdef LOG_ACTIVE_MAIN_PRG
-    LogInfo("setup main prg", "creata la tasks - Free Stack Space: %d\nSwitch Initial : %s", uxTaskGetStackHighWaterMark(NULL), state_name_to_string(sequenza));
-  #endif
-  
-  /**
-   *    @loop:
-   */
-  while(1)
-  {
     /**
-     * @info: Gestione della sequenza completa del decapsulator
-     * 
-     * @attention
-     * 
-     * @todo Farlo Funzionare :)
+     *    @setup:
      */
-
-    /// acquisisce il tempo attuale di millis()
-    const uint32_t MILLIS = millis();
-
-    /// Update dei pin d'evento
-    autoKill.intrUpdate();
-    cadutaCaps.intrUpdate();
-    presenzaCaps.intrUpdate();
-
-    RallaStepDone.CLK(MotRalla.isStepDone());
-    PunzoneStepDone.CLK(MotPunzone.isStepDone());
-
-    /// Se arriva una capsula allora bisogna può essere eseguito un altro ciclo
-    if(presenzaCaps.event())
-      doAnotherCycle = true;
-
-    checkUpdateHMI(&FromHMI);
-
-    Serial.printf("Sequenza : %s\npresenzaCaps.event() : %d\ncadutaCaps.event() : %d", state_name_to_string(sequenza), presenzaCaps.event(), cadutaCaps.event());
+    TickType_t getLastTick = xTaskGetTickCount();
     
-    switch(sequenza)
+    bool FORCE_THE_STARTUP = false;
+
+    bool skipOneLoadingPhase = false;  
+    R_TRIG RallaStepDone;
+    R_TRIG PunzoneStepDone;
+    F_TRIG StopMachine;
+
+    uint16_t local_caps_ses = 0;
+    uint16_t local_caps_tot = 0; // = getCapsTotFromSD; /// Prende il dato dalla SD
+    uint8_t cntContainerCapsuleFull = 0;
+    uint8_t cntContainerCoffeeFull = 0;
+
+    uint8_t shiftRegisterCapsuleCaricate = SD_Card.getValueByKey<int>(DECAPSULATOR_GLOBAL_STATUS_PATH_SD, "shiftRegisterCapsuleCaricate"); // prende il numero dalla SD Card
+
+    /// TIMEOUTS: TIMERS:
+    uint32_t tmoPunzHome = 0;
+    uint32_t tmoRallaHome = 0;
+    uint32_t tmoCaduta = 0;
+    uint32_t tmrDebug = 0;
+
+    #ifdef LOG_ACTIVE_MAIN_PRG
+        LogInfo("setup main prg", "creata la tasks - Free Stack Space: %d\nSwitch Initial : %s", uxTaskGetStackHighWaterMark(NULL), state_name_to_string(sequenza));
+    #endif
+  
+    /**
+     *    @loop:
+     */
+    while(1)
     {
-      case EMERGENCY_STATE :
-      {        
-        /// @todo
-        MainPrgStopAllMotors();
-        Ventola.on();
-        LogError("EMERGENCY", "Si è entrati in uno stato di EMERGENZA");
+        /**
+         * @info: Gestione della sequenza completa del decapsulator
+         * 
+         * @attention
+         * 
+         * @todo Farlo Funzionare :)
+         */
 
-        break;
-      }
+        /// acquisisce il tempo attuale di millis()
+        const uint32_t MILLIS = millis();
 
-      case TIMEOUT_STATE :
-      {
-        if(!cmd_exec)
+        /// Update dei pin d'evento
+        cadutaCaps.intrUpdate();
+        presenzaCaps.pollUpdate();
+        rallaFault.intrUpdate();
+        punzoneFault.intrUpdate();
+                
+        /// Osserva il RISING di fine comando del Tamburo
+        RallaStepDone.CLK(MotRalla.isStepDone());
+        
+        /// Osserva il RISING di fine comando del Punzone
+        PunzoneStepDone.CLK(MotPunzone.isStepDone());
+        
+        /// Osserva il FALLING di stop della macchina
+        StopMachine.CLK(get_var_comando_macchina());
+
+
+        /// Se viene premuto stop il macchinario si arresta
+        switch(sequenza)
         {
-          if(ToHMI.xErrorInitPunz || ToHMI.xErrorInitRalla)
-            MainPrgStopAllMotors();
-
-          Ventola.off();
-
-          cmd_exec = true;
-        }
-        /// @todo
-        break;
-      }
-
-      case CONTAINER_FULL :
-      {
-        Ventola.off();
-        if(FromHMI.restartAfterContainerEmptied == true)
-        {
-          FromHMI.restartAfterContainerEmptied = false;
-          cntContainerFull = 0;
-        }
-
-        break;
-      }
-
-      /// Inizializza il macchinario
-      case MACHINE_STARTUP_STATE :
-      {
-        /// Fa tutti gli attach dei motori e li prepara ad essere comandati
-        ServoParatia.attach(SERVO_PIN);
-        ServoParatia.write(SERVO_CLOSED_POS); // Chiude la paratia mossa dal servomotore
-
-        cmd_exec = false;
-
-        if(FORCE_THE_STARTUP == false)
-          sequenza = PUNZONE_STARTUP_STATE;
-        else
-          sequenza = QUIETE_STATE;
-    
-        break;
-      }
-
-      case PUNZONE_STARTUP_STATE :
-      {
-        if(!cmd_exec) // Da il comando
-        {
-          Ventola.on(); // Si assicura che la ventola sia accesa
-          MotPunzone.attach();
-          MotPunzone.Start();
-          MotPunzone.home(PUNZ_HOME_SPEED, PUNZ_HOME_ACC, PUNZ_HOME_DEC, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
-          tmoPunzHome = MILLIS;
-          cmd_exec = true;
-        }
-        else
-        {
-          if(1/*MILLIS - tmoPunzHome < TIMEOUT_PUNZ_HOME_MS*/)
-          {
-            if(MotPunzone.isHomeDone() == true) // Aspetta la fine del comando
-            {
-              // Deve assicurarsi di portare in posizione il punzone prima di poter muovere la ralla
-              sequenza = TAMBURO_STARTUP_STATE;
-              cmd_exec = false;
-            }
-          }
-          else
-          {
-            cmd_exec = false;
-            sequenza = TIMEOUT_STATE;
-          }
-        }
-
-        break;
-      }
-
-      case TAMBURO_STARTUP_STATE :
-      {
-        if(!cmd_exec) // Da il comando
-        {
-          Ventola.on(); // Si assicura che la ventola sia accesa
-          MotRalla.attach();
-          MotRalla.Start();
-          MotRalla.reattachHardLimits();
-          MotRalla.home(RALLA_HOME_SPEED, RALLA_HOME_ACC, RALLA_HOME_DEC, RALLA_HOME_DIR, RALLA_POST_HOME_POS);
-          tmoRallaHome = MILLIS;
-          cmd_exec = true;
-        }
-        else
-        {
-          if(1/*MILLIS - tmoRallaHome < TIMEOUT_RALLA_HOME_MS*/)
-          {
-            if(MotRalla.isHomeDone() == true) // Aspetta la fine del comando
-            {
-              /// Rimuove il sensore di calibrazione
-              MotRalla.removeHardLimits();
-              Ventola.off(); // Si assicura che la ventola sia spenta
-              sequenza = QUIETE_STATE;
-              cmd_exec = false;
-            }
-          }
-          else
-          {
-            sequenza = TIMEOUT_STATE;
-            cmd_exec = false;
-          }
-        }
-
-        break;
-      }
-
-      case QUIETE_STATE :
-      {
-        /// Se sono presenti le capsule nello scivolo e c'è stato il segnale di start inizia il ciclo
-        if(FromHMI.StartMachine)
-        {
-          FromHMI.StartMachine = false;
-          
-          if(doAnotherCycle == true)
-          {
-            Ventola.on(); // Si assicura che la ventola sia accesa
-            sequenza = SERVO_LOADER_OPEN_STATE;
-          }
-        }
-
-        break;
-      }
-      
-      case SERVO_LOADER_OPEN_STATE :
-      {
-        if(doAnotherCycle == true)
-        {
-          if(cntContainerFull <= MAX_CAPSULE_CONTAINER) // Impedisce che scendano le capsule quando il contatore segnala  
-          {
-            if(!cmd_exec) // Da il comando
-            {
-              ServoParatia.write(SERVO_OPEN_POS);
-              tmoCaduta = MILLIS;
-              cmd_exec = true;
-            }
-            else
-            {
-             if(1/*MILLIS - tmoCaduta <= TIMEOUT_CADUTA_CAPS_MS*/)
-              {
-                /// Cambio di stato dovuto dall'Interrupt della Fotocellula conferma capsula nel tamburo
-                if(cadutaCaps.event() == true)
+            /// La macchina non si blocca se si stoppa il macchinario dopo aver già aperto
+            /// il servo paratia perchè deve richiudersi e muovere il tamburo alla
+            /// prossima posizione oppure il macchinario non partirà (se il servo non viene chiuso)
+            /// oppure si incastrerà la capsula (se il tamburo non viene spostata alla posizione successiva)
+            case SERVO_LOADER_OPEN_STATE ... PUNCHER_SECOND_UP_STATE :
+                if(StopMachine.Q() || rallaFault.event() || punzoneFault.event())
                 {
-                  //cntContainerFull++;
-                  doAnotherCycle = false;
-                  sequenza = SERVO_LOADER_CLOSE_STATE;
-                  cmd_exec = false;
+                    MotRalla.abortCurrentCommand();
+                    
+                    MotPunzone.abortCurrentCommand();
+
+                    MotRalla.detach();
+
+                    MotPunzone.detach();
+
+                    MotRalla.Stop(RELEASE);
+
+                    MotPunzone.Stop(RELEASE);
+
+                    ServoParatia.write(SERVO_CLOSED_POS);
+
+                    bool problemaFaultMotori = rallaFault.event() || punzoneFault.event();
+                    
+                    if(problemaFaultMotori)
+                        set_var_nome_errore("Attendere un po' fino a quando i driver dei motori non si saranno raffreddati");
+                    else
+                        set_var_nome_errore("E' richiesta la conferma per poter continuare dopo uno STOP");
+
+                    if(problemaFaultMotori)
+                    {
+                        Ventola.on();
+                        while(rallaFault.rawEvent() || punzoneFault.rawEvent())
+                            vTaskDelay(100);
+
+                        set_var_nome_errore("I driver dei motori si sono raffreddati, premere OK per continuare");
+                    }
+                    
+                    
+                    Ventola.off();
+                    
+                    /// Attende l'OK
+                    while(get_var_pulsante_errore())
+                        vTaskDelay(100);
+                    
+                    cmd_exec = false;
+
+                    LogError("STOP Reset", "Resetto stop e faccio homing");
+                    
+                    /// Resetta la notifica di errore
+                    set_var_presenza_errore(false);
+
+                    sequenza = MACHINE_STARTUP_STATE;
                 }
-              }
-              else
-              {
-                ToHMI.xErrorCapsIncastrata = true;
-                sequenza = TIMEOUT_STATE;
-                cmd_exec = false;
-              }
+            break;
+        }
+
+        #ifdef LOG_ACTIVE_MAIN_PRG
+            static Sequence_t last_seq;
+            if(last_seq != sequenza)
+            {
+                last_seq = sequenza;
+                LogDebug("MAIN PRG LOOP", "Sequenza : %s\npresenzaCaps.event() : %d\ncadutaCaps.event() : %d", state_name_to_string(sequenza), presenzaCaps.event(), cadutaCaps.event());
             }
-          }
-          else
-          {
-            cmd_exec = false;
-            sequenza = CONTAINER_FULL;
-          }
-        }
-        else
-          sequenza = QUIETE_STATE;
+        #endif
         
-        break;
-      }
-
-      case SERVO_LOADER_CLOSE_STATE :
-      {
-        /// Se il pezzo è passato, i tot ms di debounce sono passati e non si è intasato
-        ServoParatia.write(SERVO_CLOSED_POS);
-        sequenza = REACH_NEXT_STATION_STATE;
-        
-        break;
-      }
-
-      case REACH_NEXT_STATION_STATE :
-      {
-        if(!cmd_exec) // Dà il comando
+        switch(sequenza)
         {
-          /// Setta la direzione di marcia del tamburo e si muove alla posizione successiva
-          MotRalla.moveRel(+90.0 * GEAR_RATIO_RALLA, RALLA_SPEED, RALLA_ACC, RALLA_DEC);
-          cmd_exec = true;
-        }
-        else if(RallaStepDone.Q() == true) // Aspetta la fine del comando
-        {
-          sequenza = PUNCHER_DOWN_FAST_STATE;
-          cmd_exec = false;
-        }
-        
-        break;
-      }
+            case EMERGENCY_STATE :
+            {
+                /// @todo
+                set_var_comando_macchina(false);
+                set_var_nome_errore("EMERGENZA : Il macchinario necessità di restart, attendere o spegnere per 2/3 minuti e riaccendere prima di avviare un nuovo ciclo");
+                ServoParatia.write(SERVO_CLOSED_POS);
+                MainPrgStopAllMotors();
+                Ventola.on();
+                LogError("EMERGENCY", "Si è entrati in uno stato di EMERGENZA");
+            }
+            break;
 
-      case PUNCHER_DOWN_FAST_STATE :
-      {
-        if(!cmd_exec) // Dà il comando
-        {
-          /// Setta la direzione di marcia del punzone e mette in coda 
-          /// due movimenti uno veloce (bassa coppia) e uno lento (alta coppia)
-          MotPunzone.moveRel(PUNZ_FAST_ROTATIONS * -360.0, PUNZ_FAST_SPEED, PUNZ_ACC, PUNZ_DEC); // Fa 10 giri = 20mm lineari ad alta velocità
-          cmd_exec = true;
-        }
-        else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
-        {
-          sequenza = PUNCHER_DOWN_SLOW_STATE;
-          cmd_exec = false;
+            case TIMEOUT_STATE :
+            {
+                if(!cmd_exec)
+                {
+                    /// Disattiva il pulsante start
+                    set_var_comando_macchina(false);
+
+                    MainPrgStopAllMotors();                    
+
+                    Ventola.off();
+
+                    cmd_exec = true;
+                }
+                /// @todo
+            }
+            break;
+
+            case CONTAINER_FULL :
+            {
+                if(!cmd_exec)
+                {
+                    set_var_comando_macchina(false);
+
+                    if(cntContainerCapsuleFull >= MAX_CAPSULE_CONTAINER && cntContainerCoffeeFull >= MAX_COFFEE_CONTAINER)
+                    {
+                        set_var_nome_errore("Container Capsule e Caffè pieni, svuotarli e premere OK");
+                        LogDebug("CONTAINERS", "Container Capsule e Caffè pieni, svuotarli e premere OK");
+                    }
+                    else
+                    {
+                        if(cntContainerCoffeeFull >= MAX_CAPSULE_CONTAINER)
+                        {
+                            set_var_nome_errore("Container Capsule pieno, svuotarlo e premere OK");
+                            LogDebug("CONTAINERS", "Container Capsule pieno");
+                        }
+                        else if(cntContainerCoffeeFull >= MAX_COFFEE_CONTAINER)
+                        {
+                            set_var_nome_errore("Container Caffè pieno, svuotarlo e premere OK");
+                            LogDebug("CONTAINERS", "Container Caffè pieno");
+                        }
+                    }
+                    sequenza = QUIETE_STATE;
+                    Ventola.setDuty(50);
+                    cmd_exec = true;
+                }
+                else
+                {
+                    /// Se rileva che è stato premuto OK vuol dire che sono stati svuotati i contenitori
+                    if(!get_var_pulsante_errore())
+                    {
+                        if(cntContainerCapsuleFull >= MAX_CAPSULE_CONTAINER)
+                            cntContainerCapsuleFull = 0;
+                        
+                        if(cntContainerCoffeeFull >= MAX_COFFEE_CONTAINER)
+                            cntContainerCoffeeFull = 0;
+
+                        /// Resetta la notifica di errore
+                        set_var_presenza_errore(false);
+
+                        sequenza = QUIETE_STATE;
+                        cmd_exec = false;
+                    }
+                }
+            }
+            break;
+
+            /// Inizializza il macchinario
+            case MACHINE_STARTUP_STATE :
+            {
+                /// Fa tutti gli attach dei motori e li prepara ad essere comandati
+                ServoParatia.attach(SERVO_PIN);
+                ServoParatia.write(SERVO_CLOSED_POS); // Chiude la paratia mossa dal servomotore
+
+                cmd_exec = false;
+
+                if(FORCE_THE_STARTUP == false)
+                    sequenza = PUNZONE_STARTUP_STATE;
+                else
+                {
+                    /// Avvio macchina completato (HMI)
+                    set_var_stato_avvio_macchina(true);
+                    sequenza = QUIETE_STATE;
+                }
+            }
+            break;
+
+            case PUNZONE_STARTUP_STATE :
+            {
+                if(!cmd_exec) // Da il comando
+                {
+                    Ventola.on(); // Si assicura che la ventola sia accesa
+                    MotPunzone.attach();
+                    MotPunzone.Start();
+                    MotPunzone.home(PUNZ_HOME_SPEED, HARD_MAX, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
+                    tmoPunzHome = MILLIS;
+                    cmd_exec = true;
+                }
+                else
+                {
+                    if(1/*MILLIS - tmoPunzHome < TIMEOUT_PUNZ_HOME_MS*/)
+                    {
+                        if(MotPunzone.isHomeDone() == true) // Aspetta la fine del comando
+                        {
+                            /// Deve assicurarsi di portare in posizione il punzone prima di poter muovere la ralla
+                            MotPunzone.detach(); // toglie la coppia al punzone
+                            sequenza = TAMBURO_STARTUP_STATE;
+                            Ventola.on(); // Si assicura che la ventola sia accesa
+                            MotRalla.attach();
+                            MotRalla.Start();
+                            MotRalla.reattachHardLimits();
+                            cmd_exec = false;
+                        }
+                    }
+                    else
+                    {
+                        cmd_exec = false;
+                        sequenza = TIMEOUT_STATE;
+                    }
+                }
+            }
+            break;
+
+            case TAMBURO_STARTUP_STATE :
+            {
+                if(!cmd_exec) // Da il comando
+                {
+                    int8_t RallaHardMaxStatus = MotRalla.HardMax.rawRead();
+                    
+                    if(RallaHardMaxStatus != -1)
+                    {
+                        if(RallaHardMaxStatus == RALLA_CAM_SIGNAL)
+                        {
+                            if(MotRalla.isStepDone())
+                            {
+                                LogDebug("TAMBURO_STARTUP_STATE", "move Continuous indietro");
+                                MotRalla.moveRel(-RALLA_HOME_DIR * 360.0 * GEAR_RATIO_RALLA, RALLA_HOME_CONT_SPEED);
+                            }
+                        }
+                        else
+                        {
+                            double gradi_post_home = 0.0;
+                            if(!MotRalla.isStepDone())
+                            {
+                                MotRalla.abortCurrentCommand();
+                                gradi_post_home = RALLA_POST_HOME_POS_CONT * GEAR_RATIO_RALLA;
+                            }
+                            else
+                                gradi_post_home = RALLA_POST_HOME_POS * GEAR_RATIO_RALLA;
+
+                            LogDebug("TAMBURO_STARTUP_STATE", "MotRalla.home -> gradi_post_home : %f", gradi_post_home);
+                            
+                            MotRalla.home(RALLA_HOME_SPEED, HARD_MAX, RALLA_HOME_DIR, gradi_post_home);
+
+                            /// Skippa se c'è una capsula nella prima posizione (caricamento capsule)
+                            if(shiftRegisterCapsuleCaricate & (1 << 0))
+                                skipOneLoadingPhase = true;
+
+                            tmoRallaHome = MILLIS;
+                            cmd_exec = true;
+                        }
+                    }
+                }
+                else
+                {
+                    if(1/*MILLIS - tmoRallaHome < TIMEOUT_RALLA_HOME_MS*/)
+                    {
+                        if(MotRalla.isHomeDone() == true) // Aspetta la fine del comando
+                        {
+                            /// Rimuove il sensore di calibrazione
+                            MotRalla.removeHardLimits();
+                            vTaskDelay(500);
+                            
+                            sequenza = QUIETE_STATE;
+
+                            /// Avvio macchina completato (HMI)
+                            set_var_stato_avvio_macchina(true);
+                            xTaskNotify(DateAndTimeHandler, DATE_TIME_FORCE_UPDATE, eSetBits);
+                            cmd_exec = false;
+                        }
+                    }
+                    else
+                    {
+                        sequenza = TIMEOUT_STATE;
+                        cmd_exec = false;
+                    }
+                }
+            }
+            break;
+
+            case QUIETE_STATE :
+            {
+                /// Se sono presenti le capsule nello scivolo e c'è stato il segnale di start inizia il ciclo
+                if(get_var_comando_macchina())
+                {
+                    int8_t presenzaEvt = presenzaCaps.rawEvent();
+                    if(presenzaEvt != -1)
+                    {
+                        /// Se arriva una capsula allora può essere eseguito un altro ciclo
+                        if(presenzaEvt == 1)
+                        {
+                            Ventola.on(); // Si assicura che la ventola sia accesa
+
+                            /// Dopo un errore critico, un homing o uno stop skippa
+                            /// una volta l'apertura e la rotazione del tamburo
+                            /// poichè potrebbe esserci una capsula ancora non punzonata
+                            /// che potrebbe quindi venire raschiata danneggiando il raschiatore
+                            if(!skipOneLoadingPhase)
+                            {
+                                ServoParatia.attach(SERVO_PIN); // Riattiva il servo paratia
+                                sequenza = SERVO_LOADER_OPEN_STATE;
+                            }
+                            else
+                            {
+                                skipOneLoadingPhase = false;
+                                sequenza = PUNCHER_FIRST_DOWN_STATE;
+                            }
+                        }
+                        else
+                        {
+                            set_var_nome_errore("Nessuna capsula inserita");
+                            
+                            /// Disattiva il pulsante start
+                            set_var_comando_macchina(false);
+
+                            /// Attende che venga premuto il pulsante OK
+                            while(get_var_pulsante_errore())
+                                vTaskDelay(100);
+
+                            /// Resetta la notifica di errore
+                            set_var_presenza_errore(false);
+                        }
+                    }
+                }
+            }
+            break;
+
+            case SERVO_LOADER_OPEN_STATE :
+            {
+                int8_t presenzaEvt = presenzaCaps.rawEvent();
+                if(presenzaEvt != -1)
+                {
+                    /// Se arriva una capsula allora può essere eseguito un altro ciclo
+                    if(presenzaEvt == 1)
+                    {
+                        /// Impedisce che scendano le capsule quando il contatore segnala che il serbatoio è pieno
+                        if(cntContainerCapsuleFull < MAX_CAPSULE_CONTAINER && cntContainerCoffeeFull < MAX_COFFEE_CONTAINER)  
+                        {
+                            /// Indica che c'è una capsula che sta venendo caricata
+                            shiftRegisterCapsuleCaricate |= (1 << 0);                            
+                            ServoParatia.write(SERVO_OPEN_POS);
+                            tmoCaduta = MILLIS;
+                            sequenza = SERVO_LOADER_CLOSE_STATE;
+                        }
+                        else
+                        {                        
+                            cmd_exec = false;
+                            sequenza = CONTAINER_FULL;
+                        }
+                    }
+                    else
+                    {
+                        /// Se lo shift register non è 0x00 allora ci sono delle capsule
+                        if(shiftRegisterCapsuleCaricate > 0)
+                        {
+                            LogDebug("Tamburo non vuoto", "Continuo a fare il resto del ciclo");
+
+                            /// Resetta il bit 0 (caricamento capsula)
+                            shiftRegisterCapsuleCaricate &= ~(1 << 0);
+
+                            cmd_exec = false;
+                            sequenza = REACH_NEXT_STATION_STATE;
+                        }
+                        else
+                        {
+                            LogDebug("Cicli Finiti", "Fermo il macchinario");
+                            
+                            /// Toglie la coppia ai motori così che non scaldino
+                            // MotRalla.detach(); Alla RALLA no per poter garantire la posizione
+                            MotPunzone.detach();
+
+                            /// Non spegne completamente la ventola ma rimane bassa per raffreddare i drivers
+                            Ventola.setDuty(50);
+
+                            /// Riporta il pulsante in off
+                            set_var_comando_macchina(false); 
+
+                            sequenza = QUIETE_STATE;
+                        }
+                    }
+                }
+            }
+            break;
+
+            case SERVO_LOADER_CLOSE_STATE :
+            {
+                if(1/*MILLIS - tmoCaduta <= TIMEOUT_CADUTA_CAPS_MS*/)
+                {
+                    /// Cambio di stato dovuto dall'Interrupt della Fotocellula conferma capsula nel tamburo
+                    if(cadutaCaps.event() == true)
+                    {                     
+                        /// Se il pezzo è passato, i tot ms di debounce sono passati e non si è intasato
+                        ServoParatia.write(SERVO_CLOSED_POS);
+                        MotRalla.attach();   // mette in coppia il tamburo
+                        sequenza = REACH_NEXT_STATION_STATE;
+                        vTaskDelay(1500 + (uint32_t)(TEMPO_CADUTA_CAPSULA_MS));
+                        cmd_exec = false;
+                    }
+                }
+                else
+                {
+                    set_var_nome_errore("Capsula incastrata nello scivolo, spegnere il macchinario e estrarla.");
+                    
+                    sequenza = TIMEOUT_STATE;
+                    cmd_exec = false;
+                }
+            }
+            break;
+
+            case REACH_NEXT_STATION_STATE :
+            {
+                if(!cmd_exec) // Dà il comando
+                {
+                    /// Legge il bit 2 della posizione di raschiatura (l'ultima zona) e se è uscita incrementa i contatori
+                    if((shiftRegisterCapsuleCaricate >> 2) & 0x01)
+                    {
+                        cntContainerCapsuleFull++;
+                        cntContainerCoffeeFull++;
+
+                        local_caps_ses++;
+                        local_caps_tot++;
+                        set_var_contatore_caps_ses(local_caps_ses);
+                        set_var_contatore_caps_totali(local_caps_tot);
+                    }
+                    
+                    /// Shift di un bit partendo da bit 0 (caricamento capsula), mascherato a 3 bit
+                    shiftRegisterCapsuleCaricate = (shiftRegisterCapsuleCaricate << 1) & 0x07;
+                    
+                    /// Setta la direzione di marcia del tamburo e si muove alla posizione successiva
+                    MotRalla.moveRel(+90.0 * GEAR_RATIO_RALLA, RALLA_SPEED);
+                    cmd_exec = true;
+                }
+                else if(RallaStepDone.Q() == true) // Aspetta la fine del comando
+                {
+                    sequenza = PUNCHER_FIRST_DOWN_STATE;
+                    vTaskDelay(500);
+                    cmd_exec = false;
+                }
+            }
+            break;
+
+            case PUNCHER_FIRST_DOWN_STATE :
+            {
+                if(!cmd_exec) // Dà il comando
+                {
+                    /// Setta la direzione di marcia del punzone e mette in coda
+                    MotPunzone.attach(); // mette in coppia il punzone
+                    MotPunzone.moveRel(PUNZ_MOVE_ROTATIONS * -360.0, PUNZ_SPEED);
+                    vTaskDelay(500);
+                    cmd_exec = true;
+                }
+                else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
+                {
+                    sequenza = PUNCHER_FIRST_UP_STATE;
+                    cmd_exec = false;
+                }
+            }
+            break;
+
+            case PUNCHER_FIRST_UP_STATE :
+            {                
+                if(!cmd_exec) // Dà il comando
+                {
+                    MotPunzone.moveRel(PUNZ_MOVE_ROTATIONS * +360.0, PUNZ_SPEED);   
+                    cmd_exec = true;
+                    vTaskDelay(500); 
+                }
+                else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
+                {
+                    sequenza = PUNCHER_SECOND_DOWN_STATE;
+                    cmd_exec = false;
+                }
+            }
+            break;
+
+            case PUNCHER_SECOND_DOWN_STATE :
+            {
+                if(!cmd_exec) // Dà il comando
+                {
+                    /// Setta la direzione di marcia del punzone e mette in coda
+                    MotPunzone.moveRel(PUNZ_MOVE_ROTATIONS * -360.0, PUNZ_SPEED);
+                    cmd_exec = true;
+                    vTaskDelay(500);
+                }
+                else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
+                {
+                    sequenza = PUNCHER_SECOND_UP_STATE;
+                    cmd_exec = false;
+                }
+            }
+            break;
+
+            case PUNCHER_SECOND_UP_STATE :
+            {
+                if(!cmd_exec) // Dà il comando
+                {
+                    /// Torna nella posizione 
+                    MotPunzone.moveRel(PUNZ_MOVE_ROTATIONS * +360.0, PUNZ_SPEED);
+                    vTaskDelay(100);
+                    cmd_exec = true;
+                }
+                else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
+                {
+                    MotPunzone.detach();
+                    sequenza = SERVO_LOADER_OPEN_STATE; // Ricomincia il ciclo
+                    cmd_exec = false;
+                }
+            }
+            break;
         }
 
-        break;
-      }
-
-      case PUNCHER_DOWN_SLOW_STATE :
-      {
-        if(!cmd_exec) // Dà il comando
+        /**
+         * Notifica
+         */
+        uint32_t ulNotifyVal = 0;
+        BaseType_t xNotifyReceived = xTaskNotifyWait(0, ULONG_MAX, &ulNotifyVal, 0);
+        if(xNotifyReceived == pdTRUE)
         {
-          /// Fa 15 giri = 30mm lineari ad alta coppia
-          MotPunzone.moveRel(PUNZ_SLOW_ROTATIONS * -360.0, PUNZ_SLOW_SPEED, PUNZ_ACC, PUNZ_DEC);    
-          cmd_exec = true;
-        }
-        else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
-        {
-          sequenza = PUNCHER_UP_FAST_STATE;     
-          cmd_exec = false;
-        }
-
-        break;
-      }
-
-      case PUNCHER_UP_FAST_STATE :
-      {
-        if(!cmd_exec) // Dà il comando
-        {
-          /// Torna nella posizione 
-          MotPunzone.moveRel(PUNZ_ROTATIONS_TOT * +360.0, PUNZ_FAST_SPEED, PUNZ_ACC, PUNZ_DEC);
-          vTaskDelay(100);
-          cmd_exec = true;
-        }
-        else if(PunzoneStepDone.Q() == true) // Aspetta la fine del comando
-        {
-          sequenza = SERVO_LOADER_OPEN_STATE; // Ricomincia il ciclo
-          cmd_exec = false;
+            /// Richiesta di spegnimento da parte dell'Autokill
+            if(ulNotifyVal & AUTOKILL_NOTIFY)
+            {
+                DatasToSave SendToAutokill;
+                SendToAutokill.capsuleTotali = local_caps_tot;
+                SendToAutokill.lastSequenza = sequenza;
+                SendToAutokill.shiftRegisterCapsuleCaricate = shiftRegisterCapsuleCaricate;
+                SendToAutokill.stepRimanentiPunzone = MotPunzone.abortCurrentCommand();
+                SendToAutokill.stepRimanentiRalla = MotRalla.abortCurrentCommand();
+                xQueueSend(AutokillQueueHandler, &SendToAutokill, portMAX_DELAY);
+            }
         }
 
-        break;
-      }
+        //LogDebug("debug", "TaskTime : %d\n", millis() - MILLIS);
+
+        xTaskDelayUntil(&getLastTick, MainPrg_delay);
     }
 
-    /// Aggiorna in caso vengano richiesti dei cambiamenti da segnalare all'HMI
-    sendUpdateHMI(&ToHMI, &sendChangesToHMI);
-
-    //LogDebug("debug", "TaskTime : %d\n", millis() - MILLIS);
-
-    xTaskDelayUntil(&getLastTick, MainPrg_delay);
-  }
-
-  /// Elimina la task qualora uscisse dal while(1)
-  vTaskDelete(NULL);
+    /// Elimina la task qualora uscisse dal while(1)
+    vTaskDelete(NULL);
 }
 
 
 #pragma endregion (DECAPSULATOR MAIN PROGRAM)
 
-
-
-
-/**
- *  @brief funzione chiamata in caso di emergenza, di servizio o di timeout
- * 
- *  @param ptrStepsLeftTamburo puntatore a cui viene settato il numero di gradi rimanenti
- *         per completare il movimento che verrà abortito chiamando questa funziione 
- *  
- *  @param ptrStepsLeftPunzone puntatore a cui viene settato il numero di gradi rimanenti
- *         per completare il movimento che verrà abortito chiamando questa funziione
- * 
- *  @note Se non si implementa una logica per riprendere l'ultimo movimento allora
- *        dopo aver chiamato questa funzione va rifatto l'homing
- * 
- *  @details Fa l'ABORT dei commandi attuali dei motori, FERMA i motori e fa DETACH dei pin RILASCIANDO la coppia
- */
-void MainPrgStopAllMotors(double* ptrStepsLeftTamburo, double* ptrStepsLeftPunzone)
-{  
-  /// Abort dei comandi attuali ai motori
-  int64_t stepsLeftRalla = (int64_t)MotRalla.abortCurrentCommand();
-  int64_t stepsLeftPunz = (int64_t)MotPunzone.abortCurrentCommand();
-
-
-  /// Ferma gli stepper e rilasciano la coppia
-  MotRalla.Stop(RELEASE);
-  MotPunzone.Stop(RELEASE);
-
-  /// Scollega i pin dei motori
-  MotRalla.detach();
-  MotPunzone.detach();
-  ServoParatia.detach();
-
-  /// Restituisce il numero di gradi rimanenti del comando abortito
-  if(ptrStepsLeftTamburo != nullptr)
-    *ptrStepsLeftTamburo = MotRalla.stepsToGradi(stepsLeftRalla);
-    
-  if(ptrStepsLeftPunzone != nullptr)
-    *ptrStepsLeftPunzone = MotPunzone.stepsToGradi(stepsLeftPunz);
-}
-
-
-/**
- * @brief Cerca e aggiorna in caso trovi dei cambiamenti dall'HMI
- * 
- * @dir Direction: Frontend --> Backend
- * 
- * @param receivingQueue Struct che contiene i dati che vengono inviati dall'HMI
- * 
- * @internal Usa "QueueHandlerHMI_CMD" come handler per la coda
- * 
- * @return pdTRUE se è stato ricevuto un comando con successo
- * 
- * @return pdFALSE se è fallita
- */
-BaseType_t checkUpdateHMI(CommandQueueHMI_t* receivingQueue)
-{
-  #ifdef LOG_ACTIVE_QUEUE_TRANSFER_MAIN_PRG_AND_HMI
-    if(receivingQueue == NULL)
-    {
-      LogError("checkUpdateHMI HMI-->Backend", "Il parametro \"receivingQueue\" is a null pointer");
-      return pdFALSE;
-    }
-  #endif
-
-  return xQueueReceive(QueueHandlerHMI_CMD, &receivingQueue, TICKS_TO_WAIT_QUEUE_RECEIVE_HMI);
-}
-
-
-/**
- * @brief Cerca e aggiorna in caso trovi dei cambiamenti dall'HMI
- * 
- * @dir Direction: Backend --> Frontend
- * 
- * @param receivingQueue Struct che contiene i dati che vengono inviati dall'HMI
- * 
- * @internal Usa "QueueHandlerHMI_EVT" come handler per la coda
- * 
- * @return BaseType_t Queue Error
- */
-BaseType_t checkUpdateHMI(EventQueueHMI_t* receivingQueue)
-{
-  #ifdef LOG_ACTIVE_QUEUE_TRANSFER_MAIN_PRG_AND_HMI
-    if(receivingQueue == NULL)
-    {
-      LogError("checkUpdateHMI Backend-->HMI", "Il parametro \"receivingQueue\" is a null pointer");
-      return pdFALSE;
-    }
-  #endif
-
-  return xQueueReceive(QueueHandlerHMI_EVT, receivingQueue, TICKS_TO_WAIT_QUEUE_RECEIVE_HMI);
-}
-
-
-/**
- * @brief Aggiorna in caso vengano richiesti dei cambiamenti da segnalare al Backend
- * 
- * @dir Direction: Frontend --> Backend
- * 
- * @param sendingQueue Struct che contiene i dati che vengono inviati al Backend
- * 
- * @param sendChanges Flag che determina se deve essere inviata la queue.
- *                    Il flag viene abbassato se è stato inviato il messaggio.
- * 
- * @internal Usa "QueueHandlerHMI_CMD" come handler per la coda
- * 
- * @return BaseType_t Queue Error
- */
-BaseType_t sendUpdateHMI(CommandQueueHMI_t* sendingQueue, bool* sendChanges)
-{
-  #ifdef LOG_ACTIVE_QUEUE_TRANSFER_MAIN_PRG_AND_HMI
-    if(sendingQueue == NULL)
-    {
-      LogError("sendUpdateHMI HMI-->Backend", "Il parametro \"sendingQueue\" is a null pointer");
-      return pdFALSE;
-    }
-
-    if(sendChanges == NULL)
-    {
-      LogError("sendUpdateHMI HMI-->Backend", "Il parametro \"sendChanges\" is a null pointer");
-      return pdFALSE;
-    }
-  #endif
-
-
-  BaseType_t err = pdTRUE;
-
-  if(*sendChanges == true)
-  {
-    err = xQueueSend(QueueHandlerHMI_CMD, sendingQueue, TICKS_TO_WAIT_QUEUE_SEND_HMI);
-    if(err == pdTRUE)
-      *sendChanges = false; // abbassa il flag se l'invio è riuscito
-  }
-
-  return err;
-}
-
-
-/**
- * @brief Aggiorna in caso vengano richiesti dei cambiamenti da segnalare all'HMI
- * 
- * @dir Direction: Backend --> Frontend
- * 
- * @param sendingQueue Struct che contiene i dati che vengono inviati all'HMI
- * 
- * @param sendChanges Flag che determina se deve essere inviata la queue.
- *                    Il flag viene abbassato se è stato inviato il messaggio.
- * 
- * @internal Usa "QueueHandlerHMI_EVT" come handler per la coda
- * 
- * @return BaseType_t Queue Error
- */
-BaseType_t sendUpdateHMI(EventQueueHMI_t* sendingQueue, bool* sendChanges)
-{
-  #ifdef LOG_ACTIVE_QUEUE_TRANSFER_MAIN_PRG_AND_HMI
-    if(sendingQueue == NULL)
-    {
-      LogError("sendUpdateHMI Backend-->HMI", "Il parametro \"sendingQueue\" is a null pointer");
-      return pdFALSE;
-    }
-    
-    if(sendChanges == NULL)
-    {
-      LogError("sendUpdateHMI Backend-->HMI", "Il parametro \"sendChanges\" is a null pointer");
-      return pdFALSE;
-    }
-  #endif
-
-  BaseType_t err = pdTRUE;
-
-  if(*sendChanges == true)
-  {
-    err = xQueueSend(QueueHandlerHMI_EVT, sendingQueue, TICKS_TO_WAIT_QUEUE_SEND_HMI);
-    if(err == pdTRUE)
-      *sendChanges = false; // abbassa il flag se l'invio è riuscito
-  }
-
-  return err;
-}
 
 
 
@@ -692,23 +655,26 @@ BaseType_t sendUpdateHMI(EventQueueHMI_t* sendingQueue, bool* sendChanges)
  */
 const char* state_name_to_string(Sequence_t seq_switch)
 {
-  #ifdef LOG_ACTIVE_MAIN_PRG
-    switch(seq_switch)
-    {
-      case EMERGENCY_STATE          : return "EMERGENCY_STATE";
-      case CONTAINER_FULL           : return "CONTAINER_FULL";                
-      case TIMEOUT_STATE            : return "TIMEOUT_STATE";           
-      case MACHINE_STARTUP_STATE    : return "MACHINE_STARTUP_STATE";       
-      case PUNZONE_STARTUP_STATE    : return "PUNZONE_STARTUP_STATE";        
-      case TAMBURO_STARTUP_STATE    : return "TAMBURO_STARTUP_STATE";      
-      case QUIETE_STATE             : return "QUIETE_STATE";            
-      case SERVO_LOADER_OPEN_STATE  : return "SERVO_LOADER_OPEN_STATE";  
-      case SERVO_LOADER_CLOSE_STATE : return "SERVO_LOADER_CLOSE_STATE"; 
-      case REACH_NEXT_STATION_STATE : return "REACH_NEXT_STATION_STATE"; 
-      case PUNCHER_DOWN_FAST_STATE  : return "PUNCHER_DOWN_FAST_STATE";   
-      case PUNCHER_DOWN_SLOW_STATE  : return "PUNCHER_DOWN_SLOW_STATE";   
-      case PUNCHER_UP_FAST_STATE    : return "PUNCHER_UP_FAST_STATE";
-      default                       : return "INVALID MAIN PRG SEQUENCE STATE";       
-    }
-  #endif
+    #ifdef LOG_ACTIVE_MAIN_PRG
+        switch(seq_switch)
+        {
+            case EMERGENCY_STATE                : return "EMERGENCY_STATE";
+            case CONTAINER_FULL                 : return "CONTAINER_FULL";                
+            case TIMEOUT_STATE                  : return "TIMEOUT_STATE";           
+            case MACHINE_STARTUP_STATE          : return "MACHINE_STARTUP_STATE";       
+            case PUNZONE_STARTUP_STATE          : return "PUNZONE_STARTUP_STATE";        
+            case TAMBURO_STARTUP_STATE          : return "TAMBURO_STARTUP_STATE";      
+            case QUIETE_STATE                   : return "QUIETE_STATE";            
+            case SERVO_LOADER_OPEN_STATE        : return "SERVO_LOADER_OPEN_STATE";  
+            case SERVO_LOADER_CLOSE_STATE       : return "SERVO_LOADER_CLOSE_STATE"; 
+            case REACH_NEXT_STATION_STATE       : return "REACH_NEXT_STATION_STATE"; 
+            case PUNCHER_FIRST_DOWN_STATE       : return "PUNCHER_FIRST_DOWN_STATE";   
+            case PUNCHER_FIRST_UP_STATE         : return "PUNCHER_FIRST_UP_STATE";   
+            case PUNCHER_SECOND_DOWN_STATE      : return "PUNCHER_SECOND_DOWN_STATE";
+            case PUNCHER_SECOND_UP_STATE        : return "PUNCHER_SECOND_UP_STATE";   
+            default                             : return "__INVALID_STATE__";    
+        }
+    #endif
+
+    return "";
 }
