@@ -76,7 +76,13 @@ extern "C" void set_var_stato_avvio_macchina(bool value)
     if(xSemaphoreTake(mutex_stato_avvio_macchina, MAX_MUTEX_BLOCK_TIME_TICKS) == pdFAIL)
         return;
     
+    /// Lock anche dell'LVGL
+    lv_lock();
+
     stato_avvio_macchina = value;
+
+    /// Unlock anche dell'LVGL
+    lv_unlock();
 
     xSemaphoreGive(mutex_stato_avvio_macchina);
 }

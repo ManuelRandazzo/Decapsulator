@@ -145,7 +145,13 @@ void prgHMITask(void* pvParameters)
         ui_tick(); 
 
         /// Reference https://lvgl.io/docs/open/integration/overview Sezione "Sleep Management"
+
+        /// Lock anche dell'LVGL
+        lv_lock();
         uint32_t time_until_next = lv_timer_handler();
+        /// Unlock anche dell'LVGL
+        lv_unlock();
+        
         /// Se non c'è nulla da fare ora, controllerà ancora fra un po'.
         if(time_until_next == LV_NO_TIMER_READY)
             time_until_next = LV_DEF_REFR_PERIOD; //16 ms (60Hz) in lv_conf.h
