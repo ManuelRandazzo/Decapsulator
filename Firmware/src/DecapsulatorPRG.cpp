@@ -94,6 +94,9 @@ void prgDecapsulatorTask(void *pvParameters)
 
         /// acquisisce il tempo attuale di millis()
         const uint32_t MILLIS = millis();
+        
+        if(Ventola.getDuty() != 100)
+            Ventola.on(); // Si assicura che la ventola sia accesa
 
         /// Update dei pin d'evento
         cadutaCaps.intrUpdate();
@@ -142,6 +145,10 @@ void prgDecapsulatorTask(void *pvParameters)
                     else
                         set_var_nome_errore("E' richiesta la conferma per poter continuare dopo uno STOP");
 
+                    /// Attende l'OK
+                    while(get_var_pulsante_errore())
+                        vTaskDelay(100);
+                        
                     if(problemaFaultMotori)
                     {
                         Ventola.on();
@@ -164,6 +171,8 @@ void prgDecapsulatorTask(void *pvParameters)
                     
                     /// Resetta la notifica di errore
                     set_var_presenza_errore(false);
+
+                    set_var_comando_macchina(false);
 
                     sequenza = MACHINE_STARTUP_STATE;
                 }
@@ -188,7 +197,6 @@ void prgDecapsulatorTask(void *pvParameters)
                 set_var_nome_errore("EMERGENZA : Il macchinario necessità di restart, attendere o spegnere per 2/3 minuti e riaccendere prima di avviare un nuovo ciclo");
                 ServoParatia.write(SERVO_CLOSED_POS);
                 MainPrgStopAllMotors();
-                Ventola.on();
                 LogError("EMERGENCY", "Si è entrati in uno stato di EMERGENZA");
             }
             break;
@@ -283,7 +291,6 @@ void prgDecapsulatorTask(void *pvParameters)
             {
                 if(!cmd_exec) // Da il comando
                 {
-                    Ventola.on(); // Si assicura che la ventola sia accesa
                     MotPunzone.attach();
                     MotPunzone.Start();
                     MotPunzone.home(PUNZ_HOME_SPEED, HARD_MAX, PUNZ_HOME_DIR, PUNZ_POST_HOME_POS);
@@ -299,7 +306,6 @@ void prgDecapsulatorTask(void *pvParameters)
                             /// Deve assicurarsi di portare in posizione il punzone prima di poter muovere la ralla
                             MotPunzone.detach(); // toglie la coppia al punzone
                             sequenza = TAMBURO_STARTUP_STATE;
-                            Ventola.on(); // Si assicura che la ventola sia accesa
                             MotRalla.attach();
                             MotRalla.Start();
                             MotRalla.reattachHardLimits();
@@ -393,8 +399,6 @@ void prgDecapsulatorTask(void *pvParameters)
                         /// Se arriva una capsula allora può essere eseguito un altro ciclo
                         if(presenzaEvt == 1)
                         {
-                            Ventola.on(); // Si assicura che la ventola sia accesa
-
                             /// Dopo un errore critico, un homing o uno stop skippa
                             /// una volta l'apertura e la rotazione del tamburo
                             /// poichè potrebbe esserci una capsula ancora non punzonata
@@ -412,6 +416,7 @@ void prgDecapsulatorTask(void *pvParameters)
                         }
                         else
                         {
+                            Ventola.on(); // Si assicura che la ventola sia accesa
                             set_var_nome_errore("Nessuna capsula inserita");
                             
                             /// Disattiva il pulsante start
