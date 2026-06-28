@@ -159,8 +159,8 @@ extern void MainPrgStopAllMotors(double* ptrStepsLeftTamburo = nullptr, double* 
 #define RALLA_HOME_SPEED      (250.0)   /* Gradi al secondo */
 #define RALLA_CAM_SIGNAL      (ACTIVE_LOW)
 #define RALLA_HOME_DIR        (DIR_POSITIVE)
-#define RALLA_POST_HOME_POS_CONT (-4.0) /*Gradi*/
-#define RALLA_POST_HOME_POS   (90.0 + RALLA_POST_HOME_POS_CONT) /*Gradi*/
+#define RALLA_POST_HOME_POS_CONT (0.0) /*Gradi*/
+#define RALLA_POST_HOME_POS   (90.0) /*Gradi*/
 
 #pragma endregion (TAMBURO_SETTINGS)
 
