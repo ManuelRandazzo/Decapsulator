@@ -177,6 +177,9 @@ void prgDecapsulatorTask(void *pvParameters)
                     sequenza = MACHINE_STARTUP_STATE;
                 }
             break;
+
+            default:
+            break;
         }
 
         #ifdef LOG_ACTIVE_MAIN_PRG
