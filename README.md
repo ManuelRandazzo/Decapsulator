@@ -262,7 +262,7 @@ Per maggiori informazioni riguardo a come utilizzare la pagina di manutenzione c
 
 4. Se si vogliono inserire nuove credenziali per il WiFi premere il pulsante in basso a destra della pagina di diagnostica come in figura:
 <p align="center">
-  <img src="RepoFiles/images/SelectWiFi.png" width="500">
+  <img src="RepoFiles/images/SelectWiFiConfiguration.png" width="500">
 </p>
 
 4.1. Una volta selezionata la pagina di configurazione del WiFi verrà visualizzata questa pagina:
@@ -271,7 +271,7 @@ Per maggiori informazioni riguardo a come utilizzare la pagina di manutenzione c
 </p>
 
 <p align="center">
-  <em>***Nota****: il WiFi consente al macchinario di fare l'upload del firmware tramite Over The Air (OTA), di far loggare in MQTT i messaggi del macchinario e soprattutto di sincronizzare il Real Time Clock (RTC) tramite server NTP così da visualizzare l'ora esatta*</em>
+  <em>Nota : il WiFi consente al macchinario di fare l'upload del firmware tramite Over The Air (OTA), di far loggare in MQTT i messaggi del macchinario e soprattutto di sincronizzare il Real Time Clock (RTC) tramite server NTP così da visualizzare l'ora esatta</em>
 </p>
 
 ---
