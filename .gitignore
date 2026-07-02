@@ -1,0 +1,16 @@
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+*~
+.cache/
+.directory
+.venv/
+.python-version
+node_modules/
+build/
+local_secrets
+local_secrets.*
+secrets
+secrets.*
