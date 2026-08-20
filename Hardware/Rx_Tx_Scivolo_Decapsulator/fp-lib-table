@@ -1,0 +1,4 @@
+(fp_lib_table
+  (version 7)
+  (lib (name "LibreriaPrject")(type "KiCad")(uri "${KIPRJMOD}/Rx_Tx_Scivolo_Decapsulator-backups/LibreriaPrject.pretty")(options "")(descr ""))
+)
